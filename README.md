@@ -4,6 +4,16 @@ An interactive crafting-tree map of **every item in RuneScape: Dragonwilds**, bu
 [Dragonwilds Wiki](https://dragonwilds.runescape.wiki) — items, stations, recipes, skills, spells
 and skill-level unlocks, woven into one navigable dependency graph.
 
+## What it's for
+
+**First and foremost, this answers one question: "What do I need to do to craft this thing
+from what I have now?"** Pick any item and the atlas walks the dependency graph backwards
+to raw materials, the stations you must build, and the skills you must train — so the gap
+between your inventory and your goal is a concrete checklist, not guesswork.
+
+**Secondly, it is a place to browse** — the crafting tree, the item categories, and the
+skill trees, as one explorable map of how everything connects.
+
 > **Non-commercial, in perpetuity.** This project carries no ads, no paywall, no sponsorships,
 > and no donations tied to feature access — and this will not change. This commitment is what
 > makes use of the licensed content below permissible.
@@ -26,6 +36,8 @@ python3 -m http.server 8477
 | Action | Result |
 |---|---|
 | **Click a node** | Opens its codex panel (top-right): description, stats, all recipes & facilities, skill gates, everything it is used to make |
+| **“From nothing” section** | The panel's headline answer: what to **gather** (raw materials, total quantities), what to **build** (stations), what to **train** (skills + levels), and the **critical chain** — the longest run of prerequisite steps. Click any chip to jump |
+| **Path to…** (panel button) | Pick a starting item, then tap any target on the map: the shortest material route between them is highlighted with numbered steps in the panel. Esc clears |
 | **Shift+Click a node** | Isolates the full crafting *tree* of that item (everything it can become) |
 | **Trace inputs** (panel button) | Highlights every transitive ingredient behind the selected item |
 | **Type to search** | Fuzzy search across all items; Enter jumps to the top hit |

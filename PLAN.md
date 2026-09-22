@@ -55,7 +55,24 @@ Current as of **2026-09-22**, after commit `c11553a` (live at http://rudeboy.dev
 
 ## 3. Work plan (priority order)
 
-### P0 — broken behavior & the two new TODO items ✅ done 2026-09-22 (`c11553a`)
+### P0 — Pathfinding: "what do I need to craft this?" (2026-09-22, the project's core question)
+
+The README purpose statement makes the priority explicit: answer **"What do I need to do to craft
+this thing from what I have now?"** first; browsing second. Three deliverables:
+
+- **PF-1 · "From nothing" panel section** — ✅ done: Gather/Build/Train chips with total
+  quantities, plus the critical chain (longest prerequisite run, followed top-down). Renders
+  for all 1,144 craftable items; raw/gatherables get a hint + the Path-to query instead.
+- **PF-2 · Two-node path query** — ✅ done: **Path to…** button arms a crosshair mode; tapping
+  the target runs BFS over material edges (skill gates excluded), highlights the gold trail and
+  lists numbered steps with facilities. Esc clears. Verified Ash Logs → Iron Sword
+  (3 steps: arrows chain → Iron Bar → sword).
+- **PF-3 · Possessions-aware path (future)** — when the possessions ledger lands, paths start
+  from what you actually have (multi-source shortest path from owned items) instead of "nothing".
+  The PF-1/PF-2 data structures (precomputed `recipesByOut`, BFS adjacency) are built to be
+  reusable for this.
+
+### P0·previous — broken behavior & the two new TODO items ✅ done 2026-09-22 (`c11553a`)
 
 - **P0-1 · Fix silent layout-switch drop** *(TODO #14)* — done: `activeLayout.stop()` + superseded-layout guard in `runLayout()`; verified mid-flight switch.
 - **P0-2 · Isolate depth control** *(TODO #13)* — done: `#isoDepth` input (default 3, blank = all), bidirectional depth-limited BFS; verified 44/1,200/1,408.
@@ -112,3 +129,5 @@ Current as of **2026-09-22**, after commit `c11553a` (live at http://rudeboy.dev
 | 2026-09-22 | `c11553a` / `90ce587` | Layout-switch fix, isolate depth control, compliance P0 texts (tickets 01–04) |
 | 2026-09-22 | `23d3c22` | Probe supports external `--url`; production verified |
 | 2026-09-22 | (this commit) | P1/P2 hygiene: etiquette config, LICENSE split, COMPLIANCE.md, honest deep-link audit (tickets 05, 06, 08, 09, 12) |
+| 2026-09-22 | `a615a74` | 10 more layouts (tidytree, fcose, spread, d3-force, avsdf, klay, elk mrtree/radial) + probe battery upgrades |
+| 2026-09-22 | (this commit) | README purpose statement; PF-1 "From nothing" plan + PF-2 two-node path query (PLAN P0 pathfinding) |

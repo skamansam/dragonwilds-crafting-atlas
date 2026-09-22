@@ -95,6 +95,46 @@ if (!only || only === 'isolate') {
   console.log('isolate Iron Bar:', JSON.stringify(iso));
   await page.screenshot({ path: 'cache/shots2/isolate-ironbar.png' });
 }
+if (!only || only === 'pf') {
+  await switchTo('cose-bilkent');
+  await page.waitForTimeout(3500);
+  // 1) "From nothing" plan in the Iron Sword panel
+  await page.evaluate(() => { window.__cy.getElementById('Iron Sword').emit('tap', {}); });
+  await page.waitForTimeout(900);
+  const plan = await page.evaluate(() => {
+    const body = document.getElementById('panelBody');
+    const planEl = body.querySelector('.p-section.plan');
+    if (!planEl) return null;
+    const subs = [...planEl.querySelectorAll('.p-label.sub')].map(s => s.innerText.trim());
+    const mats = [...planEl.querySelectorAll('.recipe-mats .mat .mn')].map(m => m.textContent);
+    return { subs, mats: mats.slice(0, 10), hasPathBtn: !!document.getElementById('btnPathTo') };
+  });
+  console.log('plan Iron Sword:', JSON.stringify(plan));
+  await page.screenshot({ path: 'cache/shots2/pf-plan.png' });
+  // 2) two-node path: open Firefly Jar panel, hit "Path to…", tap Iron Sword
+  await page.evaluate(() => { window.__cy.getElementById('Ash Logs').emit('tap', {}); });
+  await page.waitForTimeout(700);
+  await page.evaluate(() => document.getElementById('btnPathTo').click());
+  await page.waitForTimeout(300);
+  const arming = await page.evaluate(() => document.body.classList.contains('path-arming'));
+  console.log('arming after Path-to click:', arming);
+  await page.evaluate(() => { window.__cy.getElementById('Iron Sword').emit('tap', {}); });
+  await page.waitForTimeout(900);
+  const pathState = await page.evaluate(() => {
+    const body = document.getElementById('panelBody');
+    const steps = [...body.querySelectorAll('.path-step')].map(r => r.innerText.replace(/\s+/g, ' ').trim());
+    const traced = window.__cy.elements('.traced').length;
+    const faded = window.__cy.elements('.faded').length;
+    return { steps, traced, faded, armingOff: !document.body.classList.contains('path-arming') };
+  });
+  console.log('path Ash Logs→Iron Sword:', JSON.stringify(pathState, null, 1));
+  await page.screenshot({ path: 'cache/shots2/pf-path.png' });
+  // 3) Esc clears everything
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(400);
+  const cleared = await page.evaluate(() => ({ traced: window.__cy.elements('.traced').length, arming: document.body.classList.contains('path-arming') }));
+  console.log('after Esc:', JSON.stringify(cleared));
+}
 if (!only || only === 'force') {
   await switchTo('cose-bilkent');
   await page.waitForTimeout(3500);

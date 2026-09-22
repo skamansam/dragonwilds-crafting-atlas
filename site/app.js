@@ -693,11 +693,165 @@ function clearTrace() {
   cy.elements().removeClass('faded traced');
 }
 
+/* ── "From nothing" planner + two-node path query ───────────── */
+
+// Recipes indexed by output, in wiki order (first non-deprecated = primary)
+const recipesByOut = (() => {
+  const m = new Map();
+  for (const r of D.recipes) { if (!m.has(r.output)) m.set(r.output, []); m.get(r.output).push(r); }
+  return m;
+})();
+
+// Walk the (primary) recipe tree of `id` down to raw materials, multiplying
+// quantities. Collects: leaf mats, stations needed, skills (+levels), and the
+// critical chain (longest run of prerequisite steps). Returns null for raw items.
+function planFromNothing(id) {
+  const mats = new Map();       // material name -> total qty for one craft
+  const stations = new Set();   // station names used anywhere up the tree
+  const skillLv = new Map();    // skill name -> required level
+  const inPath = new Set();     // cycle guard
+
+  const primary = x => {
+    const rs = recipesByOut.get(x);
+    if (!rs || !rs.length) return null;
+    return rs.find(r => !r.deprecated) || rs[0];
+  };
+
+  const visit = (x, mult) => {
+    if (inPath.has(x)) { mats.set(x, (mats.get(x) || 0) + mult); return 0; }
+    const r = primary(x);
+    if (!r) { mats.set(x, (mats.get(x) || 0) + mult); return 0; }
+    if (r.facility && nodeById.get(r.facility) && nodeById.get(r.facility).kind === 'station') stations.add(r.facility);
+    if (r.skill) skillLv.set(r.skill, Math.max(skillLv.get(r.skill) || 1, 1));
+    for (const g of (D.skillLevelForItem[x] || [])) skillLv.set(g.skill, Math.max(skillLv.get(g.skill) || 1, g.level || 1));
+    inPath.add(x);
+    const crafts = Math.max(1, Math.ceil(mult / (r.outputQty || 1)));
+    let best = 0;
+    for (const i of r.inputs) best = Math.max(best, visit(i.name, crafts * i.qty) + 1);
+    inPath.delete(x);
+    return best;
+  };
+
+  const depth = visit(id, 1);
+  // raw/gatherable root (no recipe) would just list itself as its own material
+  if (!mats.size || (mats.size === 1 && mats.get(id) && !primary(id))) return null;
+
+  // critical chain: follow the input with the longest upstream depth, root -> leaf
+  function subDepth(x, seen) { // memo-free longest depth (primary-recipe trees are small)
+    if (seen.has(x)) return 0;
+    seen.add(x);
+    const r = primary(x);
+    if (!r) return 0;
+    let m = 0;
+    for (const i of r.inputs) m = Math.max(m, subDepth(i.name, seen) + 1);
+    return m;
+  }
+  const chain = [];
+  let cur = id, guard = 0;
+  while (cur && guard++ < 64) {
+    chain.push(cur);
+    const r = primary(cur);
+    if (!r || !r.inputs.length) break;
+    let bestD = -1, bestIn = null;
+    for (const i of r.inputs) {
+      const d = subDepth(i.name, new Set());
+      if (d > bestD) { bestD = d; bestIn = i.name; }
+    }
+    cur = bestIn;
+  }
+  return { mats, stations, skillLv, chain, depth };
+}
+
+// --- path between two nodes (BFS over material edges, skills excluded) ---
+let pathFrom = null;      // source id while arming
+let pathArming = false;
+let lastPath = null;      // { from, to, steps: [{from, to, e}] }
+
+function findPath(a, b) {
+  // undirected adjacency over non-skill edges (skill gates are metadata, not steps)
+  const adj = new Map();
+  const push = (x, v) => { if (!adj.has(x)) adj.set(x, []); adj.get(x).push(v); };
+  for (const e of D.edges) {
+    if (SKILL_NAMES.has(e.from) || SKILL_NAMES.has(e.to)) continue;
+    push(e.from, { to: e.to, e });
+    push(e.to, { to: e.from, e });
+  }
+  const prev = new Map([[a, null]]);
+  const q = [a];
+  while (q.length) {
+    const cur = q.shift();
+    if (cur === b) break;
+    for (const { to, e } of (adj.get(cur) || [])) {
+      if (!prev.has(to)) { prev.set(to, { node: cur, e }); q.push(to); }
+    }
+  }
+  if (!prev.has(b)) return null;
+  const steps = [];
+  for (let cur = b; prev.get(cur); cur = prev.get(cur).node) {
+    const p = prev.get(cur);
+    steps.unshift({ from: p.node, to: cur, e: p.e });
+  }
+  return steps;
+}
+
+function armPath(id) {
+  pathFrom = id;
+  pathArming = true;
+  document.body.classList.add('path-arming');
+  toast(`Path FROM ${nodeById.get(id).name} — now tap the item you want to reach`);
+}
+
+function disarmPath() {
+  pathArming = false;
+  pathFrom = null;
+  document.body.classList.remove('path-arming');
+}
+
+function clearPath() {
+  lastPath = null;
+  disarmPath();
+  cy.elements().removeClass('faded traced');
+}
+
+function runPath(a, b) {
+  disarmPath();
+  if (a === b) { toast('Pick a different target — that is the same item'); return; }
+  const steps = findPath(a, b);
+  if (!steps) { toast(`No crafting path between ${nodeById.get(a).name} and ${nodeById.get(b).name}`); return; }
+  lastPath = { from: a, to: b, steps };
+  selectNode(b); // renders target panel (which shows the path section) and clears old classes
+  cy.batch(() => {
+    cy.elements().addClass('faded');
+    for (const s of steps) {
+      cy.getElementById(s.from).removeClass('faded').addClass('traced');
+      cy.getElementById(s.to).removeClass('faded').addClass('traced');
+      const eid = s.e.from + '→' + s.e.to + ':' + s.e.qty + (s.e.variant ? ':' + s.e.variant : '');
+      cy.getElementById(eid).removeClass('faded').addClass('traced');
+    }
+  });
+  toast(`Path: ${steps.length} step${steps.length > 1 ? 's' : ''} from ${nodeById.get(a).name} to ${nodeById.get(b).name}`);
+}
+
+function pathStepsHTML(p) {
+  const rows = p.steps.map((s, i) => {
+    const qty = s.e.qty ? `<span class="q">${s.e.qty}×</span> ` : '';
+    const fac = s.e.facility && s.e.facility !== 'Cast' ? `<span class="pstep-fac">${esc(s.e.facility)}</span>` : '';
+    return `<div class="path-step" data-goto="${esc(s.to)}">
+      <span class="pn">${i + 1}</span>${iconImg(s.from)}<span class="ptx">${qty}${esc(s.from)}</span>
+      <span class="arr">→</span>${fac}${iconImg(s.to)}<span class="ptx">${esc(s.to)}</span>
+    </div>`;
+  }).join('');
+  return `<div class="p-section"><div class="p-label">Path from ${esc(nodeById.get(p.from).name)} (${p.steps.length} steps)
+    <button class="p-clear" id="btnClearPath" title="Clear path">✕</button></div>${rows}
+    <div class="p-hint">Gold trail = the shortest material route. Esc also clears.</div></div>`;
+}
+
 /* ── canvas events ───────────────────────────────────────────── */
 cy.on('tap', 'node', (evt) => {
   const id = evt.target.id();
   closeSuggestions();
   const oe = evt.originalEvent || {};
+  if (pathArming && pathFrom && id !== pathFrom) { runPath(pathFrom, id); return; }
   if (oe.shiftKey) { isolateTree(id); return; }
   selectNode(id);
 });
@@ -777,6 +931,35 @@ function renderPanelBody(n) {
   const unlocks = D.skillLevelForItem[id] || [];
 
   const sections = [];
+
+  // "From nothing" plan — the atlas' core question; shown for items and raw
+  // resources alike (raw items get the Path-to query instead of a plan)
+  const plan = n.kind === 'skill' || n.kind === 'spell' ? null : planFromNothing(id);
+  if (plan) {
+    const matChips = [...plan.mats.entries()].sort((a, b) => b[1] - a[1]).map(([m, q]) =>
+      `<span class="mat" data-goto="${esc(m)}">${iconImg(m)}<span class="q">${q}×</span><span class="mn">${esc(m)}</span></span>`).join('');
+    const stChips = [...plan.stations].map(s =>
+      `<span class="mat" data-goto="${esc(s)}">${iconImg(s)}<span class="mn">${esc(s)}</span></span>`).join('');
+    const skChips = [...plan.skillLv.entries()].map(([s, lv]) =>
+      `<span class="mat sk" data-goto="${esc(s)}">${skillIcon(s)}<span class="mn">${esc(s)} ${lv}</span></span>`).join('');
+    const chainHTML = plan.chain.filter(Boolean).map((c, i) =>
+      `${i ? '<span class="arr">→</span>' : ''}<span class="mat" data-goto="${esc(c)}">${iconImg(c)}<span class="mn">${esc(c)}</span></span>`).join('');
+    sections.push(`<div class="p-section plan">
+      <div class="p-label">From nothing — what you need<button class="p-clear gold" id="btnPathTo" title="Find the shortest material path from another item to this one">Path to…</button></div>
+      ${matChips ? `<div class="p-label sub">Gather</div><div class="recipe-mats">${matChips}</div>` : ''}
+      ${stChips ? `<div class="p-label sub">Build</div><div class="recipe-mats">${stChips}</div>` : ''}
+      ${skChips ? `<div class="p-label sub">Train</div><div class="recipe-mats">${skChips}</div>` : ''}
+      ${chainHTML ? `<div class="p-label sub">Critical chain (${plan.depth} steps)</div><div class="recipe-mats">${chainHTML}</div>` : ''}
+    </div>`);
+  } else if (n.kind !== 'skill' && n.kind !== 'spell') {
+    sections.push(`<div class="p-section plan">
+      <div class="p-label">From nothing<button class="p-clear gold" id="btnPathTo" title="Find the shortest material path from another item to this one">Path to…</button></div>
+      <div class="p-hint">Raw or gathered item — nothing to craft. Use “Path to…” to find the shortest route from this item to any other.</div>
+    </div>`);
+  }
+
+  // two-node path result (only when this node is the target of a queried path)
+  if (lastPath && lastPath.to === id) sections.push(pathStepsHTML(lastPath));
 
   // description
   if (n.description && n.description.length) {
@@ -872,6 +1055,10 @@ function renderPanelBody(n) {
   });
   const bt = document.getElementById('btnTrace');
   if (bt) bt.onclick = () => traceInputs(id);
+  const bpt = document.getElementById('btnPathTo');
+  if (bpt) bpt.onclick = () => armPath(id);
+  const bcp = document.getElementById('btnClearPath');
+  if (bcp) bcp.onclick = () => { clearPath(); renderPanelBody(n); };
   const bi = document.getElementById('btnIsolate');
   if (bi) {
     bi.onclick = () => isolateTree(id);
@@ -1043,7 +1230,7 @@ document.addEventListener('click', (e) => {
 document.addEventListener('keydown', (e) => {
   if (e.target === searchInput || e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
   if (e.key === '/') { e.preventDefault(); searchInput.focus(); searchInput.select(); }
-  else if (e.key === 'Escape') { if (isolatedRoot) clearIsolation(); closePanel(); clearTrace(); }
+  else if (e.key === 'Escape') { if (pathArming) { disarmPath(); toast('Path query cancelled'); } if (lastPath) clearPath(); if (isolatedRoot) clearIsolation(); closePanel(); clearTrace(); }
   else if (e.key === 'f' || e.key === 'F') cy.fit(undefined, 60);
 });
 
