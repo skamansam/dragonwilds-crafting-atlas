@@ -338,6 +338,9 @@ function runLayout(preset = currentLayout) {
   const make = LAYOUTS[preset] || LAYOUTS['cose-bilkent'];
   const opts = make();
   setLayoutIndicator(true, `Arranging · ${opts.name}${FORCE_LAYOUTS.has(preset) ? (forceDir ? ' · force' : ' · spread') : ''}…`);
+  // snapshot positions so we can detect algorithms that silently no-op
+  // (e.g. elk-radial needs a rooted/tree graph — degenerate on the full DAG)
+  const before = new Map(cy.nodes().map(n => [n.id(), n.position()]));
   const lay = cy.layout(opts);
   activeLayout = lay;
   lay.one('layoutstop', () => {
@@ -347,6 +350,14 @@ function runLayout(preset = currentLayout) {
     setLayoutIndicator(false);
     hideVeil();
     if (!isolatedRoot) cy.fit(undefined, 60);
+    // warn when an algorithm leaves the graph untouched
+    let moved = 0;
+    const sample = cy.nodes().length > 300 ? cy.nodes().slice(0, 300) : cy.nodes();
+    for (const n of sample) {
+      const b = before.get(n.id());
+      if (b && (Math.abs(b.x - n.position().x) + Math.abs(b.y - n.position().y)) > 1) { moved++; break; }
+    }
+    if (!moved && cy.nodes().length > 1) toast(`${preset} made no changes here — it needs a tree/rooted subgraph. Isolate a subtree first, or pick another layout.`);
   });
   lay.run();
 }
@@ -798,13 +809,19 @@ function armPath(id) {
   pathFrom = id;
   pathArming = true;
   document.body.classList.add('path-arming');
-  toast(`Path FROM ${nodeById.get(id).name} — now tap the item you want to reach`);
+  searchInput.dataset.armed = '1';
+  searchInput.placeholder = `Path from “${nodeById.get(id).name}” — pick or type the target…`;
+  searchInput.classList.add('arming');
+  toast(`Path FROM ${nodeById.get(id).name} — tap the target on the map, or pick it via search (Esc cancels)`);
 }
 
 function disarmPath() {
   pathArming = false;
   pathFrom = null;
   document.body.classList.remove('path-arming');
+  delete searchInput.dataset.armed;
+  searchInput.placeholder = 'Search items, stations, materials…';
+  searchInput.classList.remove('arming');
 }
 
 function clearPath() {
@@ -1191,6 +1208,7 @@ searchInput.addEventListener('input', () => {
       closeSuggestions();
       searchInput.value = n.name;
       searchClear.style.display = 'block';
+      if (pathArming && pathFrom && n.id !== pathFrom) { runPath(pathFrom, n.id); searchInput.blur(); return; }
       selectNode(n.id);
     };
   });
@@ -1205,11 +1223,17 @@ searchInput.addEventListener('keydown', (e) => {
     const pick = sugItems[Math.max(0, sugIndex)];
     if (pick) {
       closeSuggestions();
+      if (pathArming && pathFrom && pick.id !== pathFrom) { runPath(pathFrom, pick.id); searchInput.blur(); return; }
       selectNode(pick.id);
       searchInput.blur();
     }
     return;
-  } else if (e.key === 'Escape') { closeSuggestions(); searchInput.blur(); return; }
+  } else if (e.key === 'Escape') {
+    closeSuggestions();
+    if (pathArming) { disarmPath(); toast('Path query cancelled'); return; }
+    searchInput.blur();
+    return;
+  }
   else return;
   items.forEach((el, i) => el.classList.toggle('active', i === sugIndex));
   if (items[sugIndex]) items[sugIndex].scrollIntoView({ block: 'nearest' });

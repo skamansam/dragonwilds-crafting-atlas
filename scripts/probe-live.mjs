@@ -134,6 +134,40 @@ if (!only || only === 'pf') {
   await page.waitForTimeout(400);
   const cleared = await page.evaluate(() => ({ traced: window.__cy.elements('.traced').length, arming: document.body.classList.contains('path-arming') }));
   console.log('after Esc:', JSON.stringify(cleared));
+  // 4) Path-to via search box: arm from Copper Ore, pick Iron Sword through search
+  await page.evaluate(() => { window.__cy.getElementById('Copper Ore').emit('tap', {}); });
+  await page.waitForTimeout(600);
+  await page.evaluate(() => document.getElementById('btnPathTo').click());
+  await page.waitForTimeout(300);
+  await page.evaluate(() => {
+    const si = document.getElementById('search');
+    si.value = 'iron sw';
+    si.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+  await page.waitForTimeout(400);
+  await page.evaluate(() => document.querySelector('.sug-item').click());
+  await page.waitForTimeout(700);
+  const viaSearch = await page.evaluate(() => {
+    const steps = [...document.querySelectorAll('#panelBody .path-step')].length;
+    const ph = document.getElementById('search').placeholder;
+    return { traced: window.__cy.elements('.traced').length, steps, placeholderReset: ph.includes('Search items') };
+  });
+  console.log('path Copper Ore→Iron Sword via search:', JSON.stringify(viaSearch));
+  await page.screenshot({ path: 'cache/shots2/pf-path-search.png' });
+  // 5) Esc in search box cancels arming
+  await page.evaluate(() => { document.getElementById('btnPathTo') && document.getElementById('btnClearPath') && document.getElementById('btnClearPath').click(); });
+  await page.evaluate(() => { window.__cy.getElementById('Ash Logs').emit('tap', {}); });
+  await page.waitForTimeout(400);
+  await page.evaluate(() => document.getElementById('btnPathTo') && document.getElementById('btnPathTo').click());
+  await page.waitForTimeout(300);
+  await page.evaluate(() => {
+    const si = document.getElementById('search');
+    si.focus();
+    si.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+  });
+  await page.waitForTimeout(300);
+  const escCancel = await page.evaluate(() => ({ arming: document.body.classList.contains('path-arming'), ph: document.getElementById('search').placeholder }));
+  console.log('Esc cancels arming:', JSON.stringify(escCancel));
 }
 if (!only || only === 'force') {
   await switchTo('cose-bilkent');

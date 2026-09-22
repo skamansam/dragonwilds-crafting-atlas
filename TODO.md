@@ -48,6 +48,23 @@ The changes to the isolate tree are not really useful. Can we add an input below
 isolate tree button that shows how far deep to go, with a default of 3? It should
 show that depth forward and backwards in the tree.
 
-Ii don't know if this is a feedback issue, but when I select a new layout algorithm, the force
+I don't know if this is a feedback issue, but when I select a new layout algorithm, the force
 directed algorithms continue to calculate layout and the selected algorithm does not appear to 
 do anythng.
+
+We should add a toggle for disabling animations for layouts. (add `animate: false` to the layout options) 
+
+It looks like physics-based layouts are taking forever. We can speed them up by running them in
+memory before showing them by adding  `maxIterations: 1000, maxSimulationTime: 3000` to the layout options.
+
+We can also have precaclulated layouts for the graphs. The available nodes should be 
+able to store a preset config for layouts. I can use the cytoscape desktop app to configure
+these, but if you could give me a start with what you think a good heirarchical layout would look like,
+please do.
+
+When clicking on the path to.. button, a new panel should show at the top of the graph that allows
+the user to search for a node to link to.
+
+We have feedback now for layouts, but it is not showing up due to the blocking nature of the layout algorithms.
+can you do some research to find out whether we can offload this to a service worker or some other 
+thread-like construct?

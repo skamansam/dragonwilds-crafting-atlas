@@ -64,9 +64,10 @@ this thing from what I have now?"** first; browsing second. Three deliverables:
   quantities, plus the critical chain (longest prerequisite run, followed top-down). Renders
   for all 1,144 craftable items; raw/gatherables get a hint + the Path-to query instead.
 - **PF-2 · Two-node path query** — ✅ done: **Path to…** button arms a crosshair mode; tapping
-  the target runs BFS over material edges (skill gates excluded), highlights the gold trail and
-  lists numbered steps with facilities. Esc clears. Verified Ash Logs → Iron Sword
-  (3 steps: arrows chain → Iron Bar → sword).
+  the target (on the map *or* picked from the search box, which pulses gold while armed)
+  runs BFS over material edges (skill gates excluded), highlights the gold trail and lists
+  numbered steps with facilities. Esc clears. Verified Ash Logs → Iron Sword (3 steps) and
+  Copper Ore → Iron Sword via search pick (4 steps).
 - **PF-3 · Possessions-aware path (future)** — when the possessions ledger lands, paths start
   from what you actually have (multi-source shortest path from owned items) instead of "nothing".
   The PF-1/PF-2 data structures (precomputed `recipesByOut`, BFS adjacency) are built to be
@@ -131,3 +132,4 @@ this thing from what I have now?"** first; browsing second. Three deliverables:
 | 2026-09-22 | (this commit) | P1/P2 hygiene: etiquette config, LICENSE split, COMPLIANCE.md, honest deep-link audit (tickets 05, 06, 08, 09, 12) |
 | 2026-09-22 | `a615a74` | 10 more layouts (tidytree, fcose, spread, d3-force, avsdf, klay, elk mrtree/radial) + probe battery upgrades |
 | 2026-09-22 | (this commit) | README purpose statement; PF-1 "From nothing" plan + PF-2 two-node path query (PLAN P0 pathfinding) |
+| 2026-09-22 | (this commit) | Path-to via search pick; breadthfirst restored to dropdown; no-op layout detector; full 23-layout battery pass |

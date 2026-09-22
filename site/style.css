@@ -118,6 +118,16 @@ header {
   box-shadow: 0 0 0 3px var(--gold-faint), 0 0 20px rgba(226, 185, 92, 0.08);
 }
 #search::placeholder { color: var(--faint); }
+#search.arming {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px var(--gold-faint), 0 0 22px rgba(226, 185, 92, 0.18);
+  animation: armpulse 1.6s ease-in-out infinite;
+}
+#search.arming::placeholder { color: var(--gold); }
+@keyframes armpulse {
+  0%, 100% { box-shadow: 0 0 0 3px var(--gold-faint), 0 0 14px rgba(226, 185, 92, 0.10); }
+  50% { box-shadow: 0 0 0 4px var(--gold-faint), 0 0 26px rgba(226, 185, 92, 0.26); }
+}
 .search-icon {
   position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
   color: var(--faint); pointer-events: none; font-size: 14px;

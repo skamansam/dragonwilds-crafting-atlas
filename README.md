@@ -37,7 +37,7 @@ python3 -m http.server 8477
 |---|---|
 | **Click a node** | Opens its codex panel (top-right): description, stats, all recipes & facilities, skill gates, everything it is used to make |
 | **“From nothing” section** | The panel's headline answer: what to **gather** (raw materials, total quantities), what to **build** (stations), what to **train** (skills + levels), and the **critical chain** — the longest run of prerequisite steps. Click any chip to jump |
-| **Path to…** (panel button) | Pick a starting item, then tap any target on the map: the shortest material route between them is highlighted with numbered steps in the panel. Esc clears |
+| **Path to…** (panel button) | Pick a starting item, then tap any target on the map — or pick it from the search box: the shortest material route between them is highlighted with numbered steps in the panel. Esc clears |
 | **Shift+Click a node** | Isolates the full crafting *tree* of that item (everything it can become) |
 | **Trace inputs** (panel button) | Highlights every transitive ingredient behind the selected item |
 | **Type to search** | Fuzzy search across all items; Enter jumps to the top hit |
