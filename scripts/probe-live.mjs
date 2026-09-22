@@ -98,7 +98,41 @@ if (!only || only === 'force') {
   console.log('meta:', meta);
   await page.evaluate(() => { document.getElementById('forceToggle').checked = true; document.getElementById('forceToggle').onchange(); });
 }
-
+if (!only || only === 'p0') {
+  await switchTo('cose-bilkent');
+  await page.waitForTimeout(3500);
+  // P0-1: mid-flight switch — start cola, then switch to dagre 400ms in
+  await switchTo('cola');
+  await page.waitForTimeout(400);
+  const midInd = await page.evaluate(() => document.getElementById('layoutIndText').textContent);
+  await switchTo('dagre');
+  await page.waitForTimeout(500);
+  const newInd = await page.evaluate(() => document.getElementById('layoutIndText').textContent);
+  await page.waitForTimeout(2500);
+  const settled = await page.evaluate(() => !document.getElementById('layoutInd').classList.contains('on'));
+  const bb = await bounds();
+  console.log('P0-1 mid-switch:', JSON.stringify({ midInd, newInd, settled, bounds: bb }));
+  console.log('  expect: newInd starts with "Arranging · dagre", settled true, bad=0');
+  // P0-2: depth-limited isolate on Iron Bar
+  await switchTo('cose-bilkent');
+  await page.waitForTimeout(3500);
+  const depthCounts = {};
+  for (const val of ['1', '3', '']) {
+    await page.evaluate(() => { window.__cy.getElementById('Iron Bar').emit('tap'); }); // open panel first
+    await page.waitForTimeout(400);
+    await page.evaluate(v => {
+      document.getElementById('isoDepth').value = v;
+      document.getElementById('btnIsolate').click();
+    }, val);
+    await page.waitForTimeout(1200);
+    depthCounts[val === '' ? 'all' : 'depth' + val] = await page.evaluate(() => window.__cy.nodes(':visible').length);
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(400);
+  }
+  console.log('P0-2 depth counts:', JSON.stringify(depthCounts));
+  console.log('  expect: depth1 < depth3 < all(1408), all equals previous full-tree count');
+  await page.screenshot({ path: 'cache/shots2/p0-depth.png' });
+}
 console.log('errors:', errors.length ? errors.join('\n') : 'none');
 await cleanup();
 srv.close();

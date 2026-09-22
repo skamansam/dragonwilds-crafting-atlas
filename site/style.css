@@ -309,8 +309,17 @@ header {
   color: var(--muted);
   user-select: none;
 }
-.legend .lg-title {
-  font-family: var(--font-display); font-weight: 700; font-size: 11px;
+.legend .lg-legal {
+  margin-top: 6px; padding-top: 8px; border-top: 1px solid var(--line);
+  color: var(--faint); font-size: 10px; line-height: 1.45; max-width: 190px;
+}
+.legend .lg-legal a { color: var(--gold); text-decoration: none; }
+.legend .lg-legal a:hover { color: var(--gold-bright); }
+
+.w-legal {
+  margin-top: 14px; font-size: 10.5px; color: var(--faint);
+  max-width: 420px; line-height: 1.5;
+}
   letter-spacing: 0.18em; color: var(--faint); margin-bottom: 2px;
 }
 .legend .lg-row { display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 1px 2px; border-radius: 4px; }

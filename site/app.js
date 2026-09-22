@@ -276,14 +276,19 @@ function setLayoutIndicator(on, label) {
   if (on) layoutIndTimer = setTimeout(() => ind.classList.remove('on'), 20000); // safety net
 }
 
+let activeLayout = null;
 function runLayout(preset = currentLayout) {
-  if (layoutRunning) return;
+  // stop any in-flight layout so a new selection always wins
+  if (activeLayout) { try { activeLayout.stop(); } catch {} activeLayout = null; }
   layoutRunning = true;
   const make = LAYOUTS[preset] || LAYOUTS['cose-bilkent'];
   const opts = make();
   setLayoutIndicator(true, `Arranging · ${opts.name}${FORCE_LAYOUTS.has(preset) ? (forceDir ? ' · force' : ' · spread') : ''}…`);
   const lay = cy.layout(opts);
+  activeLayout = lay;
   lay.one('layoutstop', () => {
+    if (activeLayout !== lay) return; // superseded by a newer layout
+    activeLayout = null;
     layoutRunning = false;
     setLayoutIndicator(false);
     hideVeil();
@@ -365,6 +370,11 @@ for (const k of ['weapon', 'armour', 'tool', 'station', 'trinket', 'food', 'poti
   };
   legend.appendChild(row);
 }
+// required Jagex Fan Content Policy attribution (must stay verbatim)
+const legal = document.createElement('div');
+legal.className = 'lg-legal';
+legal.innerHTML = `Created using intellectual property belonging to Jagex Limited under the terms of Jagex's <a href="https://www.jagex.com/en-GB/legal/fan-content" target="_blank" rel="noopener">Fan Content Policy</a>. This content is not endorsed by or affiliated with Jagex.`;
+legend.appendChild(legal);
 
 /* ── filter chips ────────────────────────────────────────────── */
 document.querySelectorAll('.chip[data-cat]').forEach(chip => {
@@ -561,18 +571,28 @@ function clearIsolation() {
   fitSoon();
 }
 
-function isolateTree(id) {
+function isolateTree(id, depthOverride = null) {
+  // depth: number of recipe steps up & down (1 = direct neighbors only);
+  // empty input = unlimited (full tree to the leaves)
+  const dEl = document.getElementById('isoDepth');
+  const raw = depthOverride !== null ? depthOverride
+    : (dEl && dEl.value !== '' ? Math.max(1, parseInt(dEl.value, 10) || 3) : Infinity);
+  if (dEl) localStorage.setItem('dw.isoDepth', dEl.value);
   isolatedRoot = id;
-  // walk both directions: everything that feeds into the item AND everything
-  // it can make, all the way until only leaf nodes remain
-  const keep = new Set([id]);
-  const stack = [id];
-  while (stack.length) {
-    const cur = stack.pop();
-    for (const e of D.edges) {
-      if (e.from === cur && !keep.has(e.to)) { keep.add(e.to); stack.push(e.to); }
-      if (e.to === cur && !keep.has(e.from)) { keep.add(e.from); stack.push(e.from); }
+  // walk both directions, breadth-first, up to `raw` steps (or until leaves)
+  const keep = new Map([[id, 0]]);
+  let frontier = [id];
+  let d = 0;
+  while (frontier.length && d < raw) {
+    const next = [];
+    for (const cur of frontier) {
+      for (const e of D.edges) {
+        const nb = e.from === cur ? e.to : (e.to === cur ? e.from : null);
+        if (nb !== null && !keep.has(nb)) { keep.set(nb, d + 1); next.push(nb); }
+      }
     }
+    frontier = next;
+    d++;
   }
   cy.batch(() => {
     // auto-reveal every kind so the tree is fully visible regardless of filters
@@ -591,7 +611,7 @@ function isolateTree(id) {
   });
   selectNode(id, { fly: false });
   setTimeout(() => cy.fit(undefined, 70), 60);
-  toast(`Crafting tree of ${nodeById.get(id).name}`);
+  toast(`Crafting tree of ${nodeById.get(id).name} · depth ${raw === Infinity ? 'all' : raw}`);
 }
 
 function traceInputs(id) {
@@ -782,6 +802,8 @@ function renderPanelBody(n) {
     ${ownedBtnHTML(id)}
     <button class="btn" id="btnTrace">Trace inputs</button>
     <button class="btn primary" id="btnIsolate">Isolate tree</button>
+    <input id="isoDepth" type="number" min="1" step="1" placeholder="all" title="How many recipe steps up & down to include. Empty = the whole tree."
+           style="width:74px;flex:0 0 auto" />
   </div>
   <div class="p-section p-actions">
     <a class="btn" href="${n.wiki}" target="_blank" rel="noopener">Wiki page ↗</a>
@@ -797,7 +819,14 @@ function renderPanelBody(n) {
   const bt = document.getElementById('btnTrace');
   if (bt) bt.onclick = () => traceInputs(id);
   const bi = document.getElementById('btnIsolate');
-  if (bi) bi.onclick = () => isolateTree(id);
+  if (bi) {
+    bi.onclick = () => isolateTree(id);
+    const dEl = document.getElementById('isoDepth');
+    if (dEl) {
+      dEl.value = localStorage.getItem('dw.isoDepth') ?? '';
+      dEl.onkeydown = ev => { if (ev.key === 'Enter') { ev.preventDefault(); isolateTree(id); } };
+    }
+  }
   const bo = document.getElementById('btnOwn');
   if (bo) bo.onclick = () => {
     if (owned.has(id)) owned.delete(id); else owned.add(id);
