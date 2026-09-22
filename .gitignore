@@ -1,0 +1,11 @@
+# build/test tooling
+node_modules/
+package.json
+package-lock.json
+
+# scraper caches (regenerable via scripts/)
+cache/
+
+# OS cruft
+.DS_Store
+Thumbs.db

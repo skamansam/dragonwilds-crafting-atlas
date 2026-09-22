@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dragonwilds ✦ Crafting Atlas</title>
+<meta name="description" content="Interactive crafting tree map of every item in RuneScape: Dragonwilds — recipes, facilities, skills and spells.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✦</text></svg>">
+<link rel="stylesheet" href="fonts.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="veil">
+  <div class="veil-rune">✦</div>
+  <div class="veil-text">Attuning the Atlas</div>
+  <div class="veil-sub" id="veilSub">gathering the crafts of Ashenfall…</div>
+</div>
+
+<div id="app">
+  <header>
+    <div class="brand">
+      <div class="title">DRAGONWILDS</div>
+      <div class="subtitle">Crafting Atlas</div>
+    </div>
+    <div class="divider-v"></div>
+
+    <div class="search-wrap">
+      <span class="search-icon">⌕</span>
+      <input id="search" type="text" placeholder="Search items, stations, materials…"
+             autocomplete="off" spellcheck="false" aria-label="Search items">
+      <button id="searchClear" title="Clear search" aria-label="Clear search">✕</button>
+      <div class="suggestions" id="suggestions"></div>
+    </div>
+
+    <div class="filters" id="filters">
+      <div class="chip" data-cat="weapon" title="Show weapons"><span class="dot"></span>Weapons</div>
+      <div class="chip" data-cat="armour" title="Show armour"><span class="dot"></span>Armour</div>
+      <div class="chip" data-cat="tool" title="Show tools"><span class="dot"></span>Tools</div>
+      <div class="chip" data-cat="station" title="Show stations &amp; buildings"><span class="dot"></span>Stations</div>
+      <div class="chip" data-cat="ammo" title="Show ammunition"><span class="dot"></span>Ammo</div>
+      <div class="chip" data-cat="trinket" title="Show trinkets, rings &amp; capes"><span class="dot"></span>Trinkets</div>
+      <div class="chip" data-cat="food" title="Show food"><span class="dot"></span>Food</div>
+      <div class="chip" data-cat="potion" title="Show potions"><span class="dot"></span>Potions</div>
+      <div class="chip" data-cat="material" title="Show materials"><span class="dot"></span>Materials</div>
+      <div class="chip" data-cat="other" title="Show everything else"><span class="dot"></span>Other</div>
+      <div class="chip" id="orphansChip" title="Show items with no crafting recipes (drops, quest items, resource nodes)"><span class="dot"></span>Dead ends</div>
+      <div class="chip" id="resetFilters" title="Show all categories">↺ All</div>
+    </div>
+
+    <div class="readout" id="readout"></div>
+  </header>
+
+  <div id="stage">
+    <div id="cy"></div>
+
+    <div class="legend" id="legend">
+      <div class="lg-title">CRAFTS</div>
+    </div>
+
+    <div class="zoomctl">
+      <button id="zoomIn" title="Zoom in">+</button>
+      <button id="zoomOut" title="Zoom out">−</button>
+      <button id="zoomFit" title="Fit to view">⤢</button>
+    </div>
+
+    <div class="breadcrumb hidden" id="breadcrumb"></div>
+
+    <div id="welcome">
+      <div class="w-rune">✦</div>
+      <h1>CRAFTING ATLAS</h1>
+      <p>Every item, station and recipe in <b>RuneScape: Dragonwilds</b>, woven into one
+         navigable map. Click a node to open its codex — recipes, facilities, skills and
+         everything it unlocks.</p>
+      <div class="w-keys">
+        <kbd>Click — inspect</kbd><kbd>Shift+Click — isolate tree</kbd><kbd>Type — search</kbd>
+      </div>
+      <div class="w-stats" id="welcomeStats"></div>
+    </div>
+
+    <div id="panel" role="dialog" aria-label="Item details">
+      <div class="panel-head">
+        <div class="p-icon" id="panelIcon"></div>
+        <div class="p-titlebox">
+          <div class="p-title" id="panelTitle"></div>
+          <div class="p-type" id="panelType"></div>
+        </div>
+        <button id="panelClose" title="Close" aria-label="Close panel">✕</button>
+      </div>
+      <div class="panel-body" id="panelBody"></div>
+    </div>
+
+    <div id="toast"></div>
+
+    <div id="minimap" hidden><canvas id="mmCanvas"></canvas><div class="mm-viewport" id="mmViewport"></div></div>
+  </div>
+</div>
+
+<script src="vendor/cytoscape.min.js"></script>
+<script src="vendor/layout-base.js"></script>
+<script src="vendor/cose-base.js"></script>
+<script src="vendor/cytoscape-cose-bilkent.js"></script>
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
