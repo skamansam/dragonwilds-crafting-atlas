@@ -22,6 +22,7 @@
     <div class="brand">
       <div class="title">DRAGONWILDS</div>
       <div class="subtitle">Crafting Atlas</div>
+      <div class="dbcounts" id="dbcounts"></div>
     </div>
     <div class="divider-v"></div>
 
@@ -58,16 +59,28 @@
       <select id="layoutSelect" aria-label="Layout algorithm" title="Layout algorithm">
         <option value="cose-bilkent">Force-directed · airy</option>
         <option value="cose-bilkent-tight">Force-directed · compact</option>
-        <option value="dagre">Tree · top to bottom</option>
-        <option value="dagre-lr">Tree · left to right</option>
+        <option value="cola">Cola · constraint force</option>
+        <option value="euler">Euler · fast force</option>
+        <option value="cise">CiSE · clustered circles</option>
+        <option value="elk-layered">ELK · layered tree</option>
+        <option value="elk-force">ELK · force</option>
+        <option value="breadthfirst">Breadthfirst · levels</option>
+        <option value="dagre">Dagre · top to bottom</option>
+        <option value="dagre-lr">Dagre · left to right</option>
         <option value="concentric">Concentric</option>
         <option value="circle">Circle</option>
         <option value="grid">Grid</option>
         <option value="random">Random</option>
       </select>
+      <label id="forceToggleWrap" title="Force-directed layouts pull connected nodes together; off keeps nodes spread out">
+        <input type="checkbox" id="forceToggle" checked> force-directed
+      </label>
     </div>
 
-    <div class="readout" id="readout"></div>
+    <div class="layout-meta" id="layoutMeta"></div>
+    <div id="layoutInd"><span class="spin"></span><span id="layoutIndText">Arranging…</span></div>
+
+    <div class="readout" id="readout" hidden></div>
   </header>
 
   <div id="stage">
@@ -118,7 +131,14 @@
 <script src="vendor/cytoscape.min.js"></script>
 <script src="vendor/layout-base.js"></script>
 <script src="vendor/cose-base.js"></script>
+<script src="vendor/avsdf-base.js"></script>
 <script src="vendor/cytoscape-cose-bilkent.js"></script>
+<script src="vendor/cytoscape-cise.js"></script>
+<script src="vendor/webcola.js"></script>
+<script src="vendor/cytoscape-cola.js"></script>
+<script src="vendor/cytoscape-euler.js"></script>
+<script src="vendor/elk.bundled.js"></script>
+<script src="vendor/cytoscape-elk.js"></script>
 <script src="vendor/dagre.min.js"></script>
 <script src="vendor/cytoscape-dagre.js"></script>
 <script src="data.js"></script>

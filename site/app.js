@@ -210,36 +210,82 @@ for (const e of D.edges) {
 }
 
 let layoutRunning = false;
+let layoutIndTimer = null;
+const FORCE_LAYOUTS = new Set(['cose-bilkent', 'cose-bilkent-tight', 'cola', 'euler']);
+let forceDir = true; // force-directed physics on/off
+
+// each preset is a function so it can react to the force toggle
 const LAYOUTS = {
-  'cose-bilkent': {
+  'cose-bilkent': () => ({
     name: 'cose-bilkent', animate: true, animationDuration: 700, animationEasing: 'ease-out',
-    randomize: true, nodeSeparation: 120, idealEdgeLength: 110, nodeRepulsion: 22000,
-  },
-  'cose-bilkent-tight': {
+    randomize: true, nodeSeparation: forceDir ? 120 : 170, idealEdgeLength: forceDir ? 110 : 170, nodeRepulsion: forceDir ? 22000 : 42000,
+  }),
+  'cose-bilkent-tight': () => ({
     name: 'cose-bilkent', animate: true, animationDuration: 700, animationEasing: 'ease-out',
-    randomize: true, nodeSeparation: 60, idealEdgeLength: 55, nodeRepulsion: 9000,
-  },
-  dagre: {
+    randomize: true, nodeSeparation: forceDir ? 60 : 110, idealEdgeLength: forceDir ? 55 : 130, nodeRepulsion: forceDir ? 9000 : 26000,
+  }),
+  cola: () => ({
+    name: 'cola', animate: true, refresh: 5, maxSimulationTime: 4000,
+    randomize: true, avoidOverlap: true, handleDisconnected: true, fit: false,
+    nodeSpacing: forceDir ? 14 : 46, edgeLength: forceDir ? 95 : 175, convergenceThreshold: 0.01,
+  }),
+  euler: () => ({
+    name: 'euler', animate: true, refresh: 4, maxIterations: 6000, maxSimulationTime: 10000,
+    randomize: true, gravity: forceDir ? 0.01 : 0.004, springLength: forceDir ? 450 : 650,
+    springCoeff: 0.0004, mass: 8, theta: 0.9, dragCoeff: 0.05, timeStep: 8,
+  }),
+  cise: () => ({
+    name: 'cise', animate: true, maxSimulationTime: 4000, randomize: true,
+  }),
+  'elk-layered': () => ({
+    name: 'elk', animate: false, padding: 30,
+    elk: {
+      algorithm: 'layered', 'elk.direction': 'DOWN', 'elk.edgeRouting': 'ORTHOGONAL',
+      'elk.layered.spacing.nodeNodeBetweenLayers': forceDir ? 60 : 110,
+      'elk.spacing.nodeNode': forceDir ? 24 : 46,
+    },
+  }),
+  'elk-force': () => ({
+    name: 'elk', animate: false, padding: 30,
+    elk: { algorithm: 'force', 'elk.force.repulsion': forceDir ? 4000 : 12000, 'elk.force.iterations': 300 },
+  }),
+  breadthfirst: () => ({
+    name: 'breadthfirst', directed: true, circle: false, grid: false, padding: 30,
+    spacingFactor: forceDir ? 1.2 : 1.8, animate: true, animationDuration: 600,
+  }),
+  dagre: () => ({
     name: 'dagre', animate: true, animationDuration: 700, rankDir: 'TB',
-    nodeSep: 24, edgeSep: 12, rankSep: 70,
-  },
-  'dagre-lr': {
+    nodeSep: forceDir ? 24 : 44, edgeSep: 12, rankSep: forceDir ? 70 : 110,
+  }),
+  'dagre-lr': () => ({
     name: 'dagre', animate: true, animationDuration: 700, rankDir: 'LR',
-    nodeSep: 20, edgeSep: 12, rankSep: 70,
-  },
-  circle: { name: 'circle', animate: true, animationDuration: 700, spacingFactor: 1.4 },
-  concentric: { name: 'concentric', animate: true, animationDuration: 700, spacingFactor: 1.2 },
-  grid: { name: 'grid', animate: true, animationDuration: 700, spacingFactor: 1.6 },
-  random: { name: 'random', animate: true, animationDuration: 700, spacingFactor: 1.5 },
+    nodeSep: forceDir ? 20 : 40, edgeSep: 12, rankSep: forceDir ? 70 : 110,
+  }),
+  circle: () => ({ name: 'circle', animate: true, animationDuration: 700, spacingFactor: 1.4 }),
+  concentric: () => ({ name: 'concentric', animate: true, animationDuration: 700, spacingFactor: 1.2 }),
+  grid: () => ({ name: 'grid', animate: true, animationDuration: 700, spacingFactor: 1.6 }),
+  random: () => ({ name: 'random', animate: true, animationDuration: 700, spacingFactor: 1.5 }),
 };
+
+function setLayoutIndicator(on, label) {
+  const ind = document.getElementById('layoutInd');
+  if (!ind) return;
+  ind.classList.toggle('on', !!on);
+  if (label) document.getElementById('layoutIndText').textContent = label;
+  clearTimeout(layoutIndTimer);
+  if (on) layoutIndTimer = setTimeout(() => ind.classList.remove('on'), 20000); // safety net
+}
 
 function runLayout(preset = currentLayout) {
   if (layoutRunning) return;
   layoutRunning = true;
-  const opts = LAYOUTS[preset] || LAYOUTS['cose-bilkent'];
-  const lay = cy.layout({ ...opts, randomize: opts.name === 'cose-bilkent' ? opts.randomize : undefined });
+  const make = LAYOUTS[preset] || LAYOUTS['cose-bilkent'];
+  const opts = make();
+  setLayoutIndicator(true, `Arranging · ${opts.name}${FORCE_LAYOUTS.has(preset) ? (forceDir ? ' · force' : ' · spread') : ''}…`);
+  const lay = cy.layout(opts);
   lay.one('layoutstop', () => {
     layoutRunning = false;
+    setLayoutIndicator(false);
     hideVeil();
     if (!isolatedRoot) cy.fit(undefined, 60);
   });
@@ -364,8 +410,19 @@ document.getElementById('possessionsChip').onclick = () => {
 
 function updateReadout() {
   const visible = cy.nodes(':visible').length;
-  document.getElementById('readout').innerHTML =
-    `<b>${visible.toLocaleString()}</b> nodes · <b>${D.edges.length.toLocaleString()}</b> links`;
+  const shownLinks = cy.edges(':visible').length;
+  // DB counts under the brand (TODO: move out of header-right)
+  const db = document.getElementById('dbcounts');
+  if (db) db.innerHTML =
+    `<b>${D.nodes.length.toLocaleString()}</b> items · <b>${D.edges.length.toLocaleString()}</b> links · <b>${D.recipes.length.toLocaleString()}</b> recipes`;
+  // shown counts + active algorithm under the layout selector
+  const meta = document.getElementById('layoutMeta');
+  if (meta) {
+    const algo = (LAYOUTS[currentLayout] || LAYOUTS['cose-bilkent'])().name;
+    meta.innerHTML =
+      `<span><b>${visible.toLocaleString()}</b> nodes shown · <b>${shownLinks.toLocaleString()}</b> links shown</span>` +
+      `<span>algorithm: <span class="algo">${esc(algo)}</span>${FORCE_LAYOUTS.has(currentLayout) ? (forceDir ? ' · force' : ' · spread') : ''}</span>`;
+  }
 }
 
 /* ── zoom controls ───────────────────────────────────────────── */
@@ -375,10 +432,25 @@ document.getElementById('zoomFit').onclick = () => cy.fit(undefined, 60);
 
 /* ── layout selector ─────────────────────────────────────────── */
 const layoutSelect = document.getElementById('layoutSelect');
+const forceToggleWrap = document.getElementById('forceToggleWrap');
+const forceToggle = document.getElementById('forceToggle');
+function syncForceToggleUI() {
+  const applicable = FORCE_LAYOUTS.has(currentLayout);
+  if (forceToggleWrap) forceToggleWrap.classList.toggle('off', !applicable);
+  if (forceToggle) forceToggle.disabled = !applicable;
+}
 if (layoutSelect) {
   layoutSelect.value = currentLayout;
-  layoutSelect.onchange = () => { currentLayout = layoutSelect.value; runLayout(); };
+  layoutSelect.onchange = () => { currentLayout = layoutSelect.value; syncForceToggleUI(); updateReadout(); runLayout(); };
 }
+if (forceToggle) {
+  forceToggle.onchange = () => {
+    forceDir = forceToggle.checked;
+    updateReadout();
+    if (FORCE_LAYOUTS.has(currentLayout)) runLayout();
+  };
+}
+syncForceToggleUI();
 
 /* ── toast ───────────────────────────────────────────────────── */
 let toastTimer = null;
@@ -491,12 +563,15 @@ function clearIsolation() {
 
 function isolateTree(id) {
   isolatedRoot = id;
+  // walk both directions: everything that feeds into the item AND everything
+  // it can make, all the way until only leaf nodes remain
   const keep = new Set([id]);
   const stack = [id];
   while (stack.length) {
     const cur = stack.pop();
     for (const e of D.edges) {
       if (e.from === cur && !keep.has(e.to)) { keep.add(e.to); stack.push(e.to); }
+      if (e.to === cur && !keep.has(e.from)) { keep.add(e.from); stack.push(e.from); }
     }
   }
   cy.batch(() => {
