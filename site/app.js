@@ -211,7 +211,7 @@ for (const e of D.edges) {
 
 let layoutRunning = false;
 let layoutIndTimer = null;
-const FORCE_LAYOUTS = new Set(['cose-bilkent', 'cose-bilkent-tight', 'cola', 'euler']);
+const FORCE_LAYOUTS = new Set(['cose-bilkent', 'cose-bilkent-tight', 'cose', 'fcose', 'spread', 'cola', 'euler', 'd3-force', 'avsdf']);
 let forceDir = true; // force-directed physics on/off
 
 // each preset is a function so it can react to the force toggle
@@ -237,6 +237,40 @@ const LAYOUTS = {
   cise: () => ({
     name: 'cise', animate: true, maxSimulationTime: 4000, randomize: true,
   }),
+  cose: () => ({
+    name: 'cose', animate: true, animationDuration: 700, randomize: true,
+    nodeSeparation: forceDir ? 120 : 170, idealEdgeLength: forceDir ? 110 : 170, nodeRepulsion: forceDir ? 20000 : 40000,
+  }),
+  fcose: () => ({
+    name: 'fcose', animate: true, animationDuration: 700, randomize: true, packComponents: true,
+    nodeSeparation: 75, idealEdgeLength: forceDir ? 100 : 160, nodeRepulsion: forceDir ? 20000 : 50000,
+  }),
+  spread: () => ({
+    name: 'spread', animate: true, animationDuration: 700, randomize: true,
+    // spread constrains to the container by default — give it an explicit large canvas
+    boundingBox: { x1: 0, y1: 0, w: 4600, h: 3300 },
+    minDist: forceDir ? 40 : 70, padding: 30,
+  }),
+  'd3-force': () => ({
+    name: 'd3-force', animate: true, fit: false,
+    // d3 resolves link source/target via an accessor FUNCTION, not a field name
+    linkId: d => d.id,
+    collideRadius: 25, collideStrength: 0.7,
+    linkDistance: forceDir ? 90 : 160, linkStrength: 0.4,
+    manyBodyStrength: forceDir ? -250 : -700, alphaDecay: 0.03, velocityDecay: 0.45,
+  }),
+  avsdf: () => ({
+    name: 'avsdf', animate: true, animationDuration: 700,
+    nodeSeparation: forceDir ? 34 : 70, // circle diameter scales with node count — keep tight
+  }),
+  tidytree: () => ({
+    name: 'tidytree', direction: 'TB', fit: false, padding: 30,
+    horizontalSpacing: forceDir ? 18 : 34, verticalSpacing: forceDir ? 46 : 80,
+  }),
+  'tidytree-lr': () => ({
+    name: 'tidytree', direction: 'LR', fit: false, padding: 30,
+    horizontalSpacing: forceDir ? 18 : 34, verticalSpacing: forceDir ? 46 : 80,
+  }),
   'elk-layered': () => ({
     name: 'elk', animate: false, padding: 30,
     elk: {
@@ -248,6 +282,26 @@ const LAYOUTS = {
   'elk-force': () => ({
     name: 'elk', animate: false, padding: 30,
     elk: { algorithm: 'force', 'elk.force.repulsion': forceDir ? 4000 : 12000, 'elk.force.iterations': 300 },
+  }),
+  'elk-mrtree': () => ({
+    name: 'elk', animate: false, padding: 30,
+    elk: {
+      algorithm: 'mrtree',
+      'elk.spacing.nodeNode': forceDir ? 24 : 46, 'elk.spacing.nodesTree': forceDir ? 60 : 110,
+    },
+  }),
+  'elk-radial': () => ({
+    // radial needs a tree-ish/rooted graph: useful on isolated subtrees, degenerate on the full DAG
+    name: 'elk', animate: false, padding: 30,
+    elk: { algorithm: 'radial' },
+  }),
+  klay: () => ({
+    name: 'klay', animate: true, animationDuration: 700,
+    klay: {
+      direction: 'DOWN', edgeRouting: 'ORTHOGONAL',
+      spacing: forceDir ? 10 : 22,          // between-layer gap
+      inLayerSpacingFactor: forceDir ? 1.5 : 2.2, // × spacing inside a layer
+    },
   }),
   breadthfirst: () => ({
     name: 'breadthfirst', directed: true, circle: false, grid: false, padding: 30,
@@ -273,7 +327,7 @@ function setLayoutIndicator(on, label) {
   ind.classList.toggle('on', !!on);
   if (label) document.getElementById('layoutIndText').textContent = label;
   clearTimeout(layoutIndTimer);
-  if (on) layoutIndTimer = setTimeout(() => ind.classList.remove('on'), 20000); // safety net
+  if (on) layoutIndTimer = setTimeout(() => ind.classList.remove('on'), 90000); // safety net (spread/avsdf take 40-70s)
 }
 
 let activeLayout = null;

@@ -1506,7 +1506,7 @@ module.exports = register;
 /***/ 140:
 /***/ ((module) => {
 
-module.exports = __WEBPACK_EXTERNAL_MODULE__140__;
+module.exports = (typeof window !== "undefined" ? window.coseBase : undefined);
 
 /***/ })
 

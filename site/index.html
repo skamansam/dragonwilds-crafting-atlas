@@ -57,20 +57,35 @@
 
     <div class="layout-wrap">
       <select id="layoutSelect" aria-label="Layout algorithm" title="Layout algorithm">
-        <option value="cose-bilkent">Force-directed · airy</option>
-        <option value="cose-bilkent-tight">Force-directed · compact</option>
-        <option value="cola">Cola · constraint force</option>
-        <option value="euler">Euler · fast force</option>
-        <option value="cise">CiSE · clustered circles</option>
-        <option value="elk-layered">ELK · layered tree</option>
-        <option value="elk-force">ELK · force</option>
-        <option value="breadthfirst">Breadthfirst · levels</option>
-        <option value="dagre">Dagre · top to bottom</option>
-        <option value="dagre-lr">Dagre · left to right</option>
-        <option value="concentric">Concentric</option>
-        <option value="circle">Circle</option>
-        <option value="grid">Grid</option>
-        <option value="random">Random</option>
+        <optgroup label="Force-directed">
+          <option value="cose-bilkent">cose-bilkent · airy</option>
+          <option value="cose-bilkent-tight">cose-bilkent · compact</option>
+          <option value="cose">cose · classic</option>
+          <option value="fcose">fcose · fast bilkent</option>
+          <option value="spread">spread · speedy physics</option>
+          <option value="euler">euler · fast force</option>
+          <option value="d3-force">d3-force · D3 physics</option>
+          <option value="cola">cola · constraint force</option>
+          <option value="avsdf">avsdf · attraction-repulsion</option>
+        </optgroup>
+        <optgroup label="Trees &amp; layered">
+          <option value="tidytree">tidytree · TB (van der Ploeg)</option>
+          <option value="tidytree-lr">tidytree · left to right</option>
+          <option value="dagre">dagre · top to bottom</option>
+          <option value="dagre-lr">dagre · left to right</option>
+          <option value="elk-layered">elk · layered TB</option>
+          <option value="elk-mrtree">elk · mrtree</option>
+          <option value="elk-radial">elk · radial</option>
+          <option value="klay">klay · layered legacy</option>
+        </optgroup>
+        <optgroup label="Clustering &amp; simple">
+          <option value="cise">cise · clustered circles</option>
+          <option value="elk-force">elk · force</option>
+          <option value="concentric">concentric</option>
+          <option value="circle">circle</option>
+          <option value="grid">grid</option>
+          <option value="random">random</option>
+        </optgroup>
       </select>
       <label id="forceToggleWrap" title="Force-directed layouts pull connected nodes together; off keeps nodes spread out">
         <input type="checkbox" id="forceToggle" checked> force-directed
@@ -135,9 +150,26 @@
 <script src="vendor/avsdf-base.js"></script>
 <script src="vendor/cytoscape-cose-bilkent.js"></script>
 <script src="vendor/cytoscape-cise.js"></script>
+<!-- fcose needs cose-base v2 (layout-base v2 has SVD/Matrix); bilkent & cise
+     captured v1 above, so loading v2 alongside is safe -->
+<script src="vendor/layout-base2.js"></script>
+<script src="vendor/cose-base2.js"></script>
+<script src="vendor/cytoscape-fcose.js"></script>
+<script src="vendor/cytoscape-avsdf.js"></script>
 <script src="vendor/webcola.js"></script>
 <script src="vendor/cytoscape-cola.js"></script>
 <script src="vendor/cytoscape-euler.js"></script>
+<script src="vendor/weaverjs.js"></script>
+<script src="vendor/cytoscape-spread.js"></script>
+<script src="vendor/d3-quadtree.js"></script>
+<script src="vendor/d3-dispatch.js"></script>
+<script src="vendor/d3-timer.js"></script>
+<script src="vendor/d3-force.js"></script>
+<script>window['d3-force'] = window.d3; /* cytoscape-d3-force expects the d3 namespace under this name */</script>
+<script src="vendor/cytoscape-d3-force.js"></script>
+<script src="vendor/klay.js"></script>
+<script src="vendor/cytoscape-klay.js"></script>
+<script src="vendor/cytoscape-tidytree.js"></script>
 <script src="vendor/elk.bundled.js"></script>
 <script src="vendor/cytoscape-elk.js"></script>
 <script src="vendor/dagre.min.js"></script>

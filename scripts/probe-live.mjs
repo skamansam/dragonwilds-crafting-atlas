@@ -105,6 +105,42 @@ if (!only || only === 'force') {
   console.log('meta:', meta);
   await page.evaluate(() => { document.getElementById('forceToggle').checked = true; document.getElementById('forceToggle').onchange(); });
 }
+if (!only || only === 'battery' || only === 'all-layouts') {
+  const results = [];
+  const filter = (process.env.LAYOUTS || '').split(',').map(s => s.trim()).filter(Boolean);
+  let names = await page.evaluate(() => [...document.querySelectorAll('#layoutSelect option')].map(o => o.value));
+  if (filter.length) names = names.filter(n => filter.includes(n));
+  console.log(`layouts in dropdown: ${names.length}`);
+  let sinceReload = 0;
+  for (const name of names) {
+    try {
+      if (sinceReload >= 4) { // fresh page every 4 layouts — long sessions wedge this box
+        await page.reload({ waitUntil: 'commit' });
+        await page.waitForFunction(() => window.__cy && window.__cy.nodes().length > 0, null, { timeout: 90000, polling: 500 });
+        await page.waitForTimeout(1500);
+        sinceReload = 0;
+      }
+      sinceReload++;
+      await switchTo(name);
+      await page.waitForTimeout(600);
+      const done = await page.evaluate(() => new Promise(res => {
+        const t0 = Date.now();
+        const iv = setInterval(() => {
+          if (!document.getElementById('layoutInd').classList.contains('on')) { clearInterval(iv); res(true); }
+          else if (Date.now() - t0 > 90000) { clearInterval(iv); res(false); } // spread/avsdf take 40-70s
+        }, 200);
+      }));
+      const b2 = await bounds();
+      results.push({ name, done, ...b2 });
+      console.log(`  ${name.padEnd(20)} ${done ? 'ok' : 'TIMEOUT'} bounds=${b2.w}x${b2.h}${b2.bad ? ' NaN=' + b2.bad : ''}`);
+    } catch (e) {
+      results.push({ name, done: false, error: e.message.split('\n')[0] });
+      console.log(`  ${name.padEnd(20)} ERROR ${e.message.split('\n')[0]}`);
+    }
+  }
+  const bad = results.filter(r => !r.done || r.bad || r.error);
+  console.log(`battery: ${results.length - bad.length}/${results.length} layouts clean`);
+}
 if (!only || only === 'p0' || only === 'p0depth') {
   if (only !== 'p0depth') {
   await switchTo('cose-bilkent');
