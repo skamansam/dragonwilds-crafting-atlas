@@ -1251,9 +1251,21 @@ document.addEventListener('click', (e) => {
 });
 
 /* ── keyboard shortcuts ──────────────────────────────────────── */
+const helpModal = document.getElementById('helpModal');
+function toggleHelp(force) {
+  const show = force !== undefined ? force : helpModal.hidden;
+  helpModal.hidden = !show;
+  if (show) closeSuggestions();
+}
+document.getElementById('helpBtn').onclick = () => toggleHelp();
+document.getElementById('helpClose').onclick = () => toggleHelp(false);
+helpModal.addEventListener('click', (e) => { if (e.target === helpModal) toggleHelp(false); });
+
 document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && !helpModal.hidden) { toggleHelp(false); return; }
   if (e.target === searchInput || e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
   if (e.key === '/') { e.preventDefault(); searchInput.focus(); searchInput.select(); }
+  else if (e.key === '?') { e.preventDefault(); toggleHelp(); }
   else if (e.key === 'Escape') { if (pathArming) { disarmPath(); toast('Path query cancelled'); } if (lastPath) clearPath(); if (isolatedRoot) clearIsolation(); closePanel(); clearTrace(); }
   else if (e.key === 'f' || e.key === 'F') cy.fit(undefined, 60);
 });

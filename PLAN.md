@@ -146,3 +146,4 @@ this thing from what I have now?"** first; browsing second. Three deliverables:
 | 2026-09-22 | `9beacd4` | README purpose statement; PF-1 "From nothing" plan + PF-2 two-node path query (PLAN P0 pathfinding) |
 | 2026-09-22 | `543d983` | Path-to via search pick; breadthfirst restored to dropdown; no-op layout detector; full 23-layout battery pass |
 | 2026-09-22 | (this commit) | PLAN.md resync with TODO.md (items 15–19 added; statuses corrected) |
+| 2026-09-22 | (this commit) | README full feature tour; in-app help modal (?, header button; Esc/backdrop close) |

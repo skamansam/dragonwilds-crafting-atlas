@@ -169,6 +169,28 @@ if (!only || only === 'pf') {
   const escCancel = await page.evaluate(() => ({ arming: document.body.classList.contains('path-arming'), ph: document.getElementById('search').placeholder }));
   console.log('Esc cancels arming:', JSON.stringify(escCancel));
 }
+if (!only || only === 'help') {
+  await page.waitForTimeout(1000);
+  // open via button
+  await page.evaluate(() => document.getElementById('helpBtn').click());
+  await page.waitForTimeout(400);
+  const opened = await page.evaluate(() => !document.getElementById('helpModal').hidden);
+  console.log('help opens via button:', opened);
+  await page.screenshot({ path: 'cache/shots2/help-modal.png' });
+  // close via Esc
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(300);
+  const escClosed = await page.evaluate(() => document.getElementById('helpModal').hidden);
+  console.log('Esc closes help:', escClosed);
+  // open via ? key, close via backdrop
+  await page.keyboard.press('?');
+  await page.waitForTimeout(250);
+  const keyOpened = await page.evaluate(() => !document.getElementById('helpModal').hidden);
+  await page.mouse.click(30, 480); // backdrop area
+  await page.waitForTimeout(250);
+  const backdropClosed = await page.evaluate(() => document.getElementById('helpModal').hidden);
+  console.log('? key opens:', keyOpened, '| backdrop click closes:', backdropClosed);
+}
 if (!only || only === 'force') {
   await switchTo('cose-bilkent');
   await page.waitForTimeout(3500);

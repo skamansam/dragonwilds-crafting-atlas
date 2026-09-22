@@ -96,6 +96,8 @@
     <div class="layout-meta" id="layoutMeta"></div>
     <div id="layoutInd"><span class="spin"></span><span id="layoutIndText">Arranging…</span></div>
 
+    <button id="helpBtn" title="Help — what everything does (?)." aria-label="Help">?</button>
+
     <div class="readout" id="readout" hidden></div>
   </header>
 
@@ -140,6 +142,56 @@
     </div>
 
     <div id="toast"></div>
+
+    <div id="helpModal" role="dialog" aria-modal="true" aria-label="Atlas help" hidden>
+      <div class="help-card">
+        <button id="helpClose" title="Close help" aria-label="Close help">✕</button>
+        <div class="h-rune">✦</div>
+        <h2>THE ATLAS, EXPLAINED</h2>
+        <p class="h-tag">First it answers <b>“what do I need to craft this from what I have now?”</b> —
+          then it is a place to browse every crafting, item and skill tree.</p>
+
+        <div class="h-cols">
+          <div class="h-col">
+            <h3>Planning</h3>
+            <p><b>“From nothing”</b> — every item panel opens with the plan: <b>Gather</b> (raw
+            materials, total quantities), <b>Build</b> (stations), <b>Train</b> (skills + levels),
+            and the <b>Critical chain</b> — the longest prerequisite run that gates your progress.
+            Click any chip to jump.</p>
+            <p><b>Path to…</b> — pick a starting item, press the button, then tap a target on the
+            map <i>or</i> pick one from the gold-pulsing search box. The shortest material route
+            lights up with numbered steps.</p>
+          </div>
+          <div class="h-col">
+            <h3>Owning things</h3>
+            <p><b>✓ Owned</b> — mark items you have in their panel. Flip the <b>Possessions</b>
+            chip to show only what you can reach from what you own. Counts persist in your browser.</p>
+            <h3>Focus</h3>
+            <p><b>Shift+Click</b> isolates a full crafting tree (inputs <i>and</i> outputs to the
+            leaves). <b>Trace inputs</b> highlights every ingredient behind an item. <b>Depth</b>
+            limits how far isolation walks (blank = all). Filter chips tame the map; <b>Dead ends</b>
+            shows items nothing crafts.</p>
+          </div>
+          <div class="h-col">
+            <h3>Layouts</h3>
+            <p><b>23 algorithms</b>, grouped force / trees / simple. Similar ones ship on purpose —
+            the same graph renders differently under each, and subtrees can prefer different
+            algorithms than the whole. <b>force-directed</b> off = spread presets. The gold
+            <b>Arranging</b> pill spins until the layout settles; algorithms that can't run here
+            (rooted-tree ones on the full map) tell you so instead of failing silently.</p>
+          </div>
+          <div class="h-col">
+            <h3>Keys</h3>
+            <p><kbd>/</kbd> search · <kbd>?</kbd> help · <kbd>F</kbd> fit · <kbd>Esc</kbd> cancel
+            path → clear isolation → close panel.</p>
+            <h3>Map</h3>
+            <p>Wheel = zoom, drag = pan. The breadcrumb traces lineage; the minimap (bottom right)
+            shows where you are — click it to jump.</p>
+          </div>
+        </div>
+        <div class="h-legal">Created using intellectual property belonging to Jagex Limited under the terms of Jagex's Fan Content Policy. This content is not endorsed by or affiliated with Jagex.</div>
+      </div>
+    </div>
 
     <div id="minimap" hidden><canvas id="mmCanvas"></canvas><div class="mm-viewport" id="mmViewport"></div></div>
   </div>

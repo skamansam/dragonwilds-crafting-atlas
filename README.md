@@ -33,22 +33,66 @@ python3 -m http.server 8477
 
 ## Using the atlas
 
+Everything below is also available **in the app** — press the **?** button in the header
+(or the **?** key) for the built-in help.
+
+### The map
+
 | Action | Result |
 |---|---|
 | **Click a node** | Opens its codex panel (top-right): description, stats, all recipes & facilities, skill gates, everything it is used to make |
-| **“From nothing” section** | The panel's headline answer: what to **gather** (raw materials, total quantities), what to **build** (stations), what to **train** (skills + levels), and the **critical chain** — the longest run of prerequisite steps. Click any chip to jump |
-| **Path to…** (panel button) | Pick a starting item, then tap any target on the map — or pick it from the search box: the shortest material route between them is highlighted with numbered steps in the panel. Esc clears |
-| **Shift+Click a node** | Isolates the full crafting *tree* of that item (everything it can become) |
-| **Trace inputs** (panel button) | Highlights every transitive ingredient behind the selected item |
-| **Type to search** | Fuzzy search across all items; Enter jumps to the top hit |
-| **Filter chips** | Show/hide categories (weapons, armour, stations, spells, …) |
-| **Dead ends chip** | Reveals the 591 items with no crafting recipes (drops, quest items, resource nodes) |
-| **Click a material / product chip in the panel** | Jumps to that item |
-| **Esc** | Close panel · clear isolation |
-| **F** | Fit the whole graph to view |
+| **Shift+Click a node** | Isolates the crafting *tree* of that item — inputs **and** outputs to the leaves |
+| **Hover a node** | Direct neighbours highlight |
+| **Breadcrumb** (top right) | Crafting lineage of the current selection; click any step to walk the chain |
+| **Minimap** (bottom right) | Tracks the explored region; click it to jump |
+| **Zoom controls** (bottom left) | + / − / fit — or mouse wheel & drag; **F** fits the whole graph |
 
-The breadcrumb (top right) shows the crafting lineage of your current selection — click any step
-to walk back up the chain. The minimap (bottom right) tracks the explored region; click it to jump.
+### Planning — the core question
+
+- **"From nothing"** (codex panel): what to **Gather** (raw materials, total quantities for one
+  craft), what to **Build** (every station involved), what to **Train** (skills + required
+  levels), and the **Critical chain** — the longest run of prerequisite steps, which is what
+  actually gates your progress. Click any chip to jump to that item.
+- **Path to…** (codex panel): arms a path query — then tap the target on the map, or type in
+  the (gold-pulsing) search box and pick a suggestion. The shortest material route between the
+  two items is highlighted with numbered steps + facilities in the panel. Esc cancels/clears.
+- **Possessions** (header chip): mark items as **✓ Owned** in their panel, then flip the
+  Possessions chip to see only what you can reach from what you have. The count badge next to
+  the chip shows how many items you've marked; everything is persisted in your browser.
+
+### Focus tools
+
+- **Trace inputs** (panel button): highlights every transitive ingredient behind the selection.
+- **Isolate tree** (panel button): shows only the subtree, auto-revealing every category.
+  The **depth input** beside it limits how many recipe steps to walk (default 3; empty = the
+  whole tree to the leaves).
+- **Search**: fuzzy matching across all 1,900+ nodes with icon suggestions; **/** focuses it.
+- **Filter chips**: show/hide categories; **Dead ends** reveals the items with no crafting
+  recipes (drops, quest items, resource nodes); **Links** / **Skill links** toggle the two edge
+  kinds; **↺ All** resets.
+
+### Layouts
+
+- **23 layout algorithms** in the dropdown, grouped: force-directed (cose-bilkent, fcose,
+  spread, euler, d3-force, cola, avsdf…), trees & layered (tidytree, dagre, elk, klay,
+  breadthfirst), and clustering & simple (cise, concentric, circle, grid, random). Similar
+  algorithms ship deliberately — the same graph can render very differently, and one of them
+  may be exactly what you need for a subtree.
+- **force-directed toggle**: off swaps force presets to "spread" presets (larger spacing,
+  weaker pull) for a more readable map.
+- **Arranging indicator**: the gold pill in the header shows which algorithm is running and
+  spins until it settles (up to 90s for the heavy ones).
+- **No-op detection**: algorithms that need a rooted/tree subgraph (e.g. elk radial) tell you
+  so instead of silently doing nothing — isolate a subtree first, or pick another layout.
+
+### Keyboard
+
+| Key | Action |
+|---|---|
+| **/** | Focus search |
+| **?** | Toggle this help |
+| **Esc** | Cancel path query → clear path/isolation → close panel |
+| **F** | Fit graph to view |
 
 ## What's in the data
 
