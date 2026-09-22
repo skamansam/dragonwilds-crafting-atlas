@@ -125,7 +125,13 @@ const nodes = [...nodeIndex.values()].map(n => {
   return {
     id: n.id, name: n.name, kind: n.kind || 'other', itemType: n.itemType || '',
     icon,
-    wiki: 'https://dragonwilds.runescape.wiki/w/' + encodeURIComponent(n.name.replace(/ /g, '_')),
+    // deep link only for nodes backed by a real wiki page (TICKET-06);
+    // implicit/variant nodes have no page, so no link is fabricated.
+    // (the 12 canonical skills are real scraped pages even though their
+    //  parsed records carry no pageid)
+    wiki: (n.pageid != null || n.kind === 'skill')
+      ? 'https://dragonwilds.runescape.wiki/w/' + encodeURIComponent(n.name.replace(/ /g, '_'))
+      : null,
     description: n.description || [],
     stats: n.stats || null,
     weight: n.weight || null, stacklimit: n.stacklimit || null,

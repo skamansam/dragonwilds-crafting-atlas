@@ -47,7 +47,12 @@ to walk back up the chain. The minimap (bottom right) tracks the explored region
 - **12 skills** with their level-up unlock tables (items unlocked at each level = "Skill gates")
 - Icons for ~95% of nodes, downloaded from the wiki; the rest fall back to category glyphs
 
-Data is a snapshot of the wiki as of the 1.0 update (15 September 2026).
+Data is a **manual snapshot** of the wiki as of the 1.0 update (15 September 2026).
+It is refreshed by hand after major game updates — there is no scheduled or automated
+re-scraping of the wiki, and the deploy workflow only uploads the existing `site/` folder.
+
+The scraper is rate-limited to roughly one request per second (tune with `RATE_MS`)
+and identifies itself with a descriptive User-Agent — see `scripts/wiki-config.mjs`.
 
 ## Rebuilding the data
 
@@ -61,6 +66,20 @@ node scripts/build-data.mjs        # nodes/edges/recipes/spells/skills → site/
 node scripts/fetch-icon-files.mjs  # download icons → site/icons/ (then shrink >60 KB files)
 node scripts/test-site.mjs         # Playwright smoke test (site must be served on :8477)
 ```
+
+## Licensing
+
+This repo mixes code, data, and game assets under different licenses:
+
+- **Code** (`scripts/`, site application) — [MIT](LICENSE)
+- **Dataset** (`site/data.js`) — [CC BY-NC-SA 3.0](https://creativecommons.org/licenses/by-nc-sa/3.0/),
+  a derivative of the Dragonwilds Wiki's text
+- **Icons** (`site/icons/`) — Jagex Limited's game assets, used under the
+  [Fan Content Policy](https://www.jagex.com/en-GB/legal/fan-content); not open-licensed
+- **Fonts** — [SIL OFL 1.1](https://openfontlicense.org/)
+
+Full details in [LICENSE-DATA.md](LICENSE-DATA.md); licensing decisions and outreach are
+logged in [COMPLIANCE.md](COMPLIANCE.md).
 
 ## Attribution & legal
 

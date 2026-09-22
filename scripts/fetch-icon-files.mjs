@@ -1,6 +1,7 @@
 // Downloads all referenced icons into site/icons/ and rewrites data.js icon URLs to local paths.
 import fs from 'node:fs';
 import path from 'node:path';
+import { USER_AGENT, RATE_MS, sleep } from './wiki-config.mjs';
 
 const ICONS = new URL('../site/icons/', import.meta.url).pathname;
 fs.mkdirSync(ICONS, { recursive: true });
@@ -24,18 +25,18 @@ for (const url of urls) {
   if (fs.existsSync(file)) { i++; continue; }
   for (let a = 0; a < 4; a++) {
     try {
-      const res = await fetch(url, { headers: { 'User-Agent': 'DragonwildsCraftingExplorer/1.0' } });
+      const res = await fetch(url, { headers: { 'User-Agent': USER_AGENT } });
       if (!res.ok) throw new Error('HTTP ' + res.status);
       fs.writeFileSync(file, Buffer.from(await res.arrayBuffer()));
       break;
     } catch (e) {
       if (a === 3) console.error('FAILED', url, e.message);
-      await new Promise(r => setTimeout(r, 1500 * (a + 1)));
+      await sleep(1500 * (a + 1));
     }
   }
   i++;
   if (i % 300 === 0) console.log(`${i}/${urls.size}`);
-  await new Promise(r => setTimeout(r, 120));
+  await sleep(RATE_MS);
 }
 
 // rewrite dataset icons to local paths and re-emit data.js

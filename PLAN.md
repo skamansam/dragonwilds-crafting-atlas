@@ -42,14 +42,14 @@ Current as of **2026-09-22**, after commit `c11553a` (live at http://rudeboy.dev
 | 02 | Non-affiliation / non-endorsement disclaimer (README + app) | ✅ done | README disclaimer with trademark credit; in-app wording in welcome card + legend · `c11553a` |
 | 03 | "Non-commercial in perpetuity" statement at top of README | ✅ done | Blockquote directly under the intro · `c11553a` |
 | 04 | AI-generated disclosure in README | ✅ done | "AI-generated disclosure" section · `c11553a` |
-| 05 | LICENSE (code) + LICENSE-DATA.md (dataset CC BY-NC-SA, icons under Jagex FCP) | ❌ todo | No LICENSE file of any kind exists. |
-| 06 | Weird Gloop attribution: deep links per reused page | 🟡 partial | Verified: items, stations, spells, skills all carry `wiki` deep links. Remaining: audit nodes with wiki-derived data but no link (implicit/variant outputs), confirm README source link. |
+| 05 | LICENSE (code) + LICENSE-DATA.md (dataset CC BY-NC-SA, icons under Jagex FCP) | ✅ done | MIT `LICENSE` with scope exclusions; `LICENSE-DATA.md` splits dataset/icons/fonts; README "Licensing" section links all three |
+| 06 | Weird Gloop attribution: deep links per reused page | ✅ done | `scripts/audit-links.mjs`: 1,898/1,963 (96.7%) deep-linked; the 65 unlinked are pageless implicit/variant nodes (documented, no fabricated URLs). Fixed build-data to stop fabricating wiki URLs for pageless nodes. |
 | 07 | Scrape via MediaWiki API, not rendered HTML | ✅ done | `fetch-wiki.mjs` uses `api.php` exclusively (line 6). |
-| 08 | Rate limiting + descriptive User-Agent with contact | 🟡 partial | Delays exist (120–300 ms ≈ 3–8 req/s) but UA is `DragonwildsCraftingExplorer/1.0` with **no repo/contact**. Slow to ~1 req/s and add repo URL (§3, P1-1). |
-| 09 | Document manual-snapshot cadence, no scheduled re-scrape | 🟡 partial | README states the snapshot date (1.0 update, 15 Sep 2026) but doesn't explicitly say "manual, never scheduled". No CI re-scrape exists (deploy workflow only uploads `site/`). Small README addition. |
+| 08 | Rate limiting + descriptive User-Agent with contact | ✅ done | Shared `scripts/wiki-config.mjs`: ~1 req/s default (`RATE_MS` env override) + UA with repo URL and contact; all three fetch scripts use it; documented in README |
+| 09 | Document manual-snapshot cadence, no scheduled re-scrape | ✅ done | README states manual snapshot, no scheduled/automated re-scraping, deploy workflow uploads only |
 | 10 | Outreach email to Weird Gloop | ⬜ human | External action; log outcome in COMPLIANCE.md. |
 | 11 | Outreach email to Jagex (§6.1.3 "software/application" clause) | ⬜ human | External action; highest-value legal de-risk. |
-| 12 | `COMPLIANCE.md` decision log | ❌ todo | File doesn't exist yet. |
+| 12 | `COMPLIANCE.md` decision log | ✅ done | Created with dated decisions + pending-outreach slots for tickets 10/11 |
 
 ---
 
@@ -62,7 +62,7 @@ Current as of **2026-09-22**, after commit `c11553a` (live at http://rudeboy.dev
 
 ### P1 — high-value compliance & robustness
 
-- **P1-1 · Scraper etiquette finish** *(compliance 08)* — drop rate to ~1 req/s (`await sleep(1000)`), extend UA to `DragonwildsCraftingExplorer/1.0 (+https://github.com/skamansam/dragonwilds-crafting-atlas; contact: repo issues)`. Document in README's rebuild section. 15 min.
+- **P1-1 · Scraper etiquette finish** *(compliance 08)* — ✅ done: `scripts/wiki-config.mjs` shared config, ~1 req/s default, descriptive UA in all fetch scripts.
 - **P1-2 · Layout threading spike** *(TODO #10b)* — options, in order of pragmatism:
   1. Run layouts on the **visible subgraph only** and keep heavy algorithms off the initial load (already partially true).
   2. `animate: false` for ELK (already) and consider it for cose on graphs > 3k visible nodes.
@@ -71,10 +71,10 @@ Current as of **2026-09-22**, after commit `c11553a` (live at http://rudeboy.dev
 
 ### P2 — licensing & docs
 
-- **P2-1 · LICENSE (MIT) + LICENSE-DATA.md** *(compliance 05)* — code MIT; dataset CC BY-NC-SA 3.0 with link; icons declared Jagex FCP assets, explicitly excluded from the code license. Link all three from a README "Licensing" section.
-- **P2-2 · Snapshot wording** *(compliance 09)* — one README sentence: dataset is regenerated **manually** after major game updates; no scheduled or CI scraping exists.
-- **P2-3 · COMPLIANCE.md** *(compliance 12)* — dated log seeded with the decisions already made (API-only scraping, snapshot date, license plan); slots for 10/11 outcomes.
-- **P2-4 · Deep-link audit** *(compliance 06)* — script a check: every node whose data came from the wiki has a non-empty `wiki` field; exceptions (implicit/variant outputs) listed in COMPLIANCE.md.
+- **P2-1 · LICENSE (MIT) + LICENSE-DATA.md** *(compliance 05)* — ✅ done.
+- **P2-2 · Snapshot wording** *(compliance 09)* — ✅ done.
+- **P2-3 · COMPLIANCE.md** *(compliance 12)* — ✅ done.
+- **P2-4 · Deep-link audit** *(compliance 06)* — ✅ done: `scripts/audit-links.mjs` (96.7% coverage; 65 pageless implicit nodes are the only exceptions). Exposed and fixed a real bug: build-data used to fabricate wiki URLs for every node.
 
 ### P3 — polish / backlog grooming
 
@@ -109,4 +109,6 @@ Current as of **2026-09-22**, after commit `c11553a` (live at http://rudeboy.dev
 | 2026-09-22 | `576cbe0` | Skill nodes, layout selector, possessions, edge filters, facility links |
 | 2026-09-22 | `29bfe91` | 6 new layouts, force toggle, layout indicator, header rework, both-direction isolate |
 | 2026-09-22 | `be0b101` | PLAN.md status board |
-| 2026-09-22 | `c11553a` | Layout-switch fix, isolate depth control, compliance P0 texts (tickets 01–04) |
+| 2026-09-22 | `c11553a` / `90ce587` | Layout-switch fix, isolate depth control, compliance P0 texts (tickets 01–04) |
+| 2026-09-22 | `23d3c22` | Probe supports external `--url`; production verified |
+| 2026-09-22 | (this commit) | P1/P2 hygiene: etiquette config, LICENSE split, COMPLIANCE.md, honest deep-link audit (tickets 05, 06, 08, 09, 12) |

@@ -806,7 +806,7 @@ function renderPanelBody(n) {
            style="width:74px;flex:0 0 auto" />
   </div>
   <div class="p-section p-actions">
-    <a class="btn" href="${n.wiki}" target="_blank" rel="noopener">Wiki page ↗</a>
+    ${n.wiki ? `<a class="btn" href="${n.wiki}" target="_blank" rel="noopener">Wiki page ↗</a>` : ''}
   </div>`);
 
   panelBody.innerHTML = sections.join('');

@@ -2,6 +2,7 @@
 // the MediaWiki imageinfo API. Writes cache/icons/manifest.json {file -> url}.
 import fs from 'node:fs';
 import path from 'node:path';
+import { USER_AGENT, RATE_MS, sleep } from './wiki-config.mjs';
 
 const ICONS = new URL('../cache/icons/', import.meta.url).pathname;
 fs.mkdirSync(ICONS, { recursive: true });
@@ -34,8 +35,8 @@ for (let i = 0; i < files.length; i += 50) {
   const url = `${API}?action=query&titles=${encodeURIComponent(batch.map(f => 'File:' + f).join('|'))}&prop=imageinfo&iiprop=url&format=json&formatversion=2`;
   for (let a = 0; a < 5; a++) {
     try {
-      const res = await fetch(url, { headers: { 'User-Agent': 'DragonwildsCraftingExplorer/1.0' } });
-      if (res.status === 429) { await new Promise(r => setTimeout(r, 10000)); continue; }
+      const res = await fetch(url, { headers: { 'User-Agent': USER_AGENT } });
+      if (res.status === 429) { await sleep(10000); continue; }
       const jd = await res.json();
       for (const p of jd.query.pages) {
         if (p.imageinfo && p.imageinfo[0]) manifest[p.title.replace(/^File:/, '')] = p.imageinfo[0].url;
@@ -43,12 +44,12 @@ for (let i = 0; i < files.length; i += 50) {
       break;
     } catch (e) {
       if (a === 4) console.error('batch failed', e.message);
-      await new Promise(r => setTimeout(r, 3000 * (a + 1)));
+      await sleep(3000 * (a + 1));
     }
   }
   done += batch.length;
   if (done % 500 === 0) console.log(`${done}/${files.length}`);
-  await new Promise(r => setTimeout(r, 200));
+  await sleep(RATE_MS);
 }
 fs.writeFileSync(path.join(ICONS, 'manifest.json'), JSON.stringify(manifest, null, 1));
 console.log('resolved icons:', Object.keys(manifest).length);
