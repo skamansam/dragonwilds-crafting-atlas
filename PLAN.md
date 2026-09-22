@@ -8,7 +8,7 @@ Single source of truth for the two backlogs:
 Status legend: ✅ done · 🟡 partial · ❌ todo · ⬜ needs a human (external action)
 Evidence = commit hash, test, or verified code path. Update this file whenever a ticket changes state.
 
-Current as of **2026-09-22**, after commit `c11553a` (live at http://rudeboy.dev/dragonwilds-crafting-atlas/).
+Current as of **2026-09-22**, after commit `543d983` (live at http://rudeboy.dev/dragonwilds-crafting-atlas/).
 
 ---
 
@@ -20,17 +20,22 @@ Current as of **2026-09-22**, after commit `c11553a` (live at http://rudeboy.dev
 | 2 | Skill trees as part of the graph | ✅ done | 12 skill hubs with 1,539 gold gate edges · `576cbe0` |
 | 3 | Allow unselecting all category chips (blank screen OK) | ✅ done | Tested 1,408 → 71 visible → restore · `test-todo.mjs` |
 | 4 | Isolate tree auto-reveals hidden nodes | ✅ done | Isolate turns on every category chip first · `test-todo.mjs` |
-| 5 | Layout algorithm selector | ✅ done | 14 options in `#layoutSelect` · `576cbe0` + `29bfe91` |
-| 6 | Top-to-bottom tree layout | ✅ done | Dagre TB + ELK layered (DOWN) |
+| 5 | Layout algorithm selector | ✅ done | **23 options** in `#layoutSelect` (force / trees & layered / clustering groups) · `576cbe0` + `29bfe91` + `a615a74` |
+| 6 | Top-to-bottom tree layout | ✅ done | Dagre TB, ELK layered (DOWN), tidytree TB, klay DOWN |
 | 7 | Check off owned items, show only reachable | ✅ done | Possessions mode, persisted in localStorage · `576cbe0` |
 | 8 | Clickable facilities / items in "How to make" | ✅ done | `data-goto` chips navigate + select the node · `test-todo.mjs` |
 | 9 | Isolate walks inputs **and** outputs to leaves | ✅ done | Both-direction BFS added · `29bfe91`; verified Iron Bar → Iron Sword |
-| 10 | Layout-running feedback | ✅ done | Header spinner + `Arranging · <algo>` pill with 20s safety timeout · `29bfe91` |
+| 10 | Layout-running feedback | ✅ done | Header spinner + `Arranging · <algo>` pill with 90s safety timeout · `29bfe91` |
 | 10b | **Background/threaded layout so UI doesn't lock** *(added later to TODO.md)* | ❌ todo | See plan §3, item P1-2. Cytoscape layouts run on the main thread; off-thread is possible but non-trivial. |
 | 11 | DB counts under title/search; shown counts under layout selector | ✅ done | `#dbcounts` under brand, `#layoutMeta` (nodes/links shown + algorithm) next to select · `29bfe91` |
-| 12 | Algorithm name visible; force-directed checkbox; many algorithms | ✅ done | Name shown in `#layoutMeta`; force toggle under select; cola/euler/cise/elk×2/breadthfirst added. Tidytree ≈ ELK `mrtree`; klay is unmaintained — ELK layered is its successor (both noted in §4). |
+| 12 | Algorithm name visible; force-directed checkbox; many algorithms | ✅ done | Name shown in `#layoutMeta`; force toggle under select; 23 algorithms shipped incl. tidytree, klay, fcose, spread, d3-force, avsdf, elk×4 — user asked for **all** of them, even near-duplicates, for rendering comparisons · `a615a74` |
 | 13 | Isolate depth input (default 3, forward + backward) | ✅ done | `#isoDepth` input next to Isolate button; empty = full tree; BFS both directions to the depth; persisted in localStorage · `c11553a`; verified 44 / 1,200 / 1,408 nodes at depth 1 / 3 / all |
 | 14 | Switching layout during a running force layout does nothing | ✅ done | `runLayout()` now `stop()`s the active layout and starts the new preset; superseded layouts no longer clobber state · `c11553a`; verified mid-flight cola→dagre switch |
+| 15 | **Toggle to disable layout animations** (`animate: false`) *(added later)* | ❌ todo | Not implemented (0 hits). Planned as a checkbox next to the force toggle; would also speed up the heavy force layouts. |
+| 16 | **Speed up physics layouts** with `maxIterations` / `maxSimulationTime` caps *(added later)* | 🟡 partial | Caps exist on cola (4s), euler (6k iters/10s), cise (4s); **not** on the cose-bilkent presets. Blanket caps requested — apply per-preset with tuned values rather than one-size 1000/3000 (too tight for 1,408 nodes). |
+| 17 | **Precomputed/preset layouts** (store positions per algorithm; Cytoscape desktop to author) *(added later)* | ❌ todo | No preset-position mechanism exists. Plan: `name: 'preset'` support + `positions` JSON generated offline by a node script; dropdown entries "· saved" use them when present. |
+| 18 | **Path-to: top search panel** for picking the link target *(added later)* | 🟡 covered differently | Requested a top-of-graph search panel; shipped instead: while armed, the header search box pulses gold and accepts the target via suggestions/Enter, or tap the map · `543d983`. A dedicated top bar is still possible if this feels hidden. |
+| 19 | **Research: offload layouts to a service worker / worker thread** *(added later)* | ❌ todo | Merged into plan §3 P1-2 (Web Worker layout spike) — same mechanism, that row now also covers this research question. |
 
 ---
 
@@ -73,6 +78,12 @@ this thing from what I have now?"** first; browsing second. Three deliverables:
   The PF-1/PF-2 data structures (precomputed `recipesByOut`, BFS adjacency) are built to be
   reusable for this.
 
+### P1.5 — layout performance & presets (TODO #15, #16, #17)
+
+- **P1.5-1 · Animation disable toggle** *(TODO #15)* — checkbox next to the force toggle; forces `animate: false` in every preset (one-line override in `runLayout()`); also the cheap fix for "UI locks while animating".
+- **P1.5-2 · Per-preset simulation caps** *(TODO #16)* — audit all 23 presets; add tuned `maxSimulationTime`/`maxIterations` where missing (cose-bilkent ×2 are the gaps). Do **not** use the requested blanket 1000/3000 — verified too tight for 1,408 nodes (cola needs 4s+).
+- **P1.5-3 · Precomputed preset positions** *(TODO #17)* — node script computes positions per algorithm offline → `site/layouts/<algo>.json`; `runLayout()` prefers the saved file (via `name: 'preset'`); ship one hierarchical (ELK layered) preset as the example. Cytoscape-desktop-authored configs can drop into the same folder.
+
 ### P0·previous — broken behavior & the two new TODO items ✅ done 2026-09-22 (`c11553a`)
 
 - **P0-1 · Fix silent layout-switch drop** *(TODO #14)* — done: `activeLayout.stop()` + superseded-layout guard in `runLayout()`; verified mid-flight switch.
@@ -81,10 +92,10 @@ this thing from what I have now?"** first; browsing second. Three deliverables:
 ### P1 — high-value compliance & robustness
 
 - **P1-1 · Scraper etiquette finish** *(compliance 08)* — ✅ done: `scripts/wiki-config.mjs` shared config, ~1 req/s default, descriptive UA in all fetch scripts.
-- **P1-2 · Layout threading spike** *(TODO #10b)* — options, in order of pragmatism:
+- **P1-2 · Layout threading spike** *(TODO #10b + #19)* — options, in order of pragmatism:
   1. Run layouts on the **visible subgraph only** and keep heavy algorithms off the initial load (already partially true).
-  2. `animate: false` for ELK (already) and consider it for cose on graphs > 3k visible nodes.
-  3. Real off-thread layout: build a headless cytoscape instance inside a Web Worker, run the layout there, post positions back and apply via `cy.batch()`. Spike it behind a flag; if it proves stable, make it the default for force layouts.
+  2. `animate: false` for ELK (already) and consider it for cose on graphs > 3k visible nodes (also TODO #15's toggle).
+  3. Real off-thread layout: build a headless cytoscape instance inside a Web Worker (service workers can't touch DOM, so a dedicated Worker is the right construct), run the layout there, post positions back and apply via `cy.batch()`. Spike it behind a flag; if it proves stable, make it the default for force layouts.
 - **P1-3 · Verbatim attribution block** *(compliance 01–04)* — ✅ done `c11553a`: all four texts in README + Jagex sentence in app legend/welcome card.
 
 ### P2 — licensing & docs
@@ -105,10 +116,11 @@ this thing from what I have now?"** first; browsing second. Three deliverables:
 
 ## 4. Research notes
 
-- **Layouts evaluated** (per the cytoscape layouts blog + js-perf matrix): `preset`, `random`, `grid`, `circle`, `concentric`, `breadthfirst`, `dagre`, `cose`, `cose-bilkent`, `cola`, `euler`, `cise`, `elk` (layered/force/mrtree/radial/stress/disco/box), `klay`, `fcose`.
-- **Chosen for the dropdown:** cose-bilkent (default), cola, euler, cise, elk-layered, elk-force, breadthfirst, dagre (TB/LR), concentric, circle, grid, random — 14 total.
-- **Deliberately skipped:** `klay` (unmaintained since ~2020; ELK layered is its maintained successor), `fcose` (needs the cose-base/layout-base chain we already ship for bilkent — can add later if bilkent proves too slow at full scale; it is faster and animation-friendly), `tidytree` (not a cytoscape extension; ELK `mrtree` is the equivalent tidy-tree).
-- **Measured on the full 1,408-node view:** cola 3,529×1,773 (airiest), elk-layered ~2.4k×2.3k, euler needed gravity ≤ 0.05 to avoid collapse (tuned: 1,605×1,303). Keep these numbers as the tuning baseline.
+- **Layouts evaluated** (per the cytoscape layouts blog + js-perf matrix): `preset`, `random`, `grid`, `circle`, `concentric`, `breadthfirst`, `dagre`, `cose`, `cose-bilkent`, `cola`, `euler`, `cise`, `elk` (layered/force/mrtree/radial/stress/disco/box), `klay`, `fcose`, `tidytree`, `spread`, `avsdf`, `d3-force`.
+- **Shipped in the dropdown (23):** cose-bilkent (default) + tight, cose, fcose (patched external, dual layout-base/cose-base v1+v2 chain), spread (explicit 4600×3300 boundingBox), euler, d3-force (v2 + quadtree/dispatch/timer; `linkId` must be a function), cola, avsdf (tight nodeSeparation), tidytree (TB/LR), dagre (TB/LR), elk-layered/force/mrtree/radial, klay (`inLayerSpacingFactor` — its adapter has no `layerSpacing` key), breadthfirst, cise, concentric, circle, grid, random.
+- **Per user request all near-duplicates ship** — similar algorithms can render the same graph differently, so discrepancies are features for comparison.
+- **Known algorithm limits on this full DAG (1,408 nodes):** tidytree degenerates (tree algo on a DAG: 138k×219); elk-radial silently no-ops (needs rooted/tree graph — `runLayout()` now detects untouched positions and tells the user); avsdf/klay produce huge-but-valid layouts (one ring / few giant layers — geometrically inherent).
+- **Measured bounds baseline:** cola 3,529×1,773 (airiest), euler tuned 1,605×1,303 (gravity ≤ 0.05 or it collapses), spread 4,576×3,236, d3-force 2,982×3,198, elk-force 21,608×38,001, avsdf 20,471×21,291.
 
 ## 5. Verification toolkit
 
@@ -131,5 +143,6 @@ this thing from what I have now?"** first; browsing second. Three deliverables:
 | 2026-09-22 | `23d3c22` | Probe supports external `--url`; production verified |
 | 2026-09-22 | (this commit) | P1/P2 hygiene: etiquette config, LICENSE split, COMPLIANCE.md, honest deep-link audit (tickets 05, 06, 08, 09, 12) |
 | 2026-09-22 | `a615a74` | 10 more layouts (tidytree, fcose, spread, d3-force, avsdf, klay, elk mrtree/radial) + probe battery upgrades |
-| 2026-09-22 | (this commit) | README purpose statement; PF-1 "From nothing" plan + PF-2 two-node path query (PLAN P0 pathfinding) |
-| 2026-09-22 | (this commit) | Path-to via search pick; breadthfirst restored to dropdown; no-op layout detector; full 23-layout battery pass |
+| 2026-09-22 | `9beacd4` | README purpose statement; PF-1 "From nothing" plan + PF-2 two-node path query (PLAN P0 pathfinding) |
+| 2026-09-22 | `543d983` | Path-to via search pick; breadthfirst restored to dropdown; no-op layout detector; full 23-layout battery pass |
+| 2026-09-22 | (this commit) | PLAN.md resync with TODO.md (items 15–19 added; statuses corrected) |
