@@ -1,4 +1,5 @@
-// Self-contained live probe: serves site/ in-process, no external server needed.
+// Self-contained live probe. By default serves site/ in-process; pass --url=https://example.com/
+// to test an external deployment instead (e.g. production).
 import http from 'node:http';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
@@ -7,21 +8,26 @@ import { chromium } from 'playwright';
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'site');
 const PORT = 8490;
+const urlArg = process.argv.find(a => a.startsWith('--url='));
+const BASE = urlArg ? urlArg.slice(6).replace(/\/$/, '') : `http://localhost:${PORT}`;
 const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.png': 'image/png', '.woff2': 'font/woff2', '.ico': 'image/x-icon', '.svg': 'image/svg+xml' };
 
-const srv = http.createServer(async (req, res) => {
-  try {
-    const url = new URL(req.url, 'http://x');
-    let p = path.join(ROOT, decodeURIComponent(url.pathname));
-    if (p.endsWith('/') || p.endsWith(path.sep)) p = path.join(p, 'index.html');
-    const data = await readFile(p);
-    res.writeHead(200, { 'Content-Type': MIME[path.extname(p)] || 'application/octet-stream' });
-    res.end(data);
-  } catch {
-    res.writeHead(404); res.end('nope');
-  }
-});
-await new Promise(r => srv.listen(PORT, r));
+let srv = null;
+if (!urlArg) {
+  srv = http.createServer(async (req, res) => {
+    try {
+      const url = new URL(req.url, 'http://x');
+      let p = path.join(ROOT, decodeURIComponent(url.pathname));
+      if (p.endsWith('/') || p.endsWith(path.sep)) p = path.join(p, 'index.html');
+      const data = await readFile(p);
+      res.writeHead(200, { 'Content-Type': MIME[path.extname(p)] || 'application/octet-stream' });
+      res.end(data);
+    } catch {
+      res.writeHead(404); res.end('nope');
+    }
+  });
+  await new Promise(r => srv.listen(PORT, r));
+}
 
 const errors = [];
 const b = await chromium.launch();
@@ -33,7 +39,8 @@ const page = await b.newPage({ viewport: { width: 1600, height: 950 } });
 page.on('pageerror', e => errors.push('PAGEERROR: ' + e.message.split('\n')[0]));
 page.on('console', m => { if (m.type() === 'error') errors.push('CONSOLE: ' + m.text().split('\n')[0]); });
 
-const only = process.argv[2] || null;
+const positional = process.argv.slice(2).filter(a => !a.startsWith('--url=') && a !== '-v');
+const only = positional[0] || null;
 const verbose = process.argv.includes('-v');
 if (verbose) {
   page.on('request', r => console.log('REQ', r.url().slice(-50)));
@@ -43,7 +50,7 @@ if (verbose) {
 let loaded = false;
 for (let i = 0; i < 2 && !loaded; i++) {
   try {
-    await page.goto(`http://localhost:${PORT}/`, { waitUntil: 'commit', timeout: 20000 });
+    await page.goto(`${BASE}/`, { waitUntil: 'commit', timeout: 20000 });
     await page.waitForFunction(() => window.__cy && window.__cy.nodes().length > 0, null, { timeout: 120000, polling: 500 });
     loaded = true;
   } catch (e) {
@@ -98,7 +105,8 @@ if (!only || only === 'force') {
   console.log('meta:', meta);
   await page.evaluate(() => { document.getElementById('forceToggle').checked = true; document.getElementById('forceToggle').onchange(); });
 }
-if (!only || only === 'p0') {
+if (!only || only === 'p0' || only === 'p0depth') {
+  if (only !== 'p0depth') {
   await switchTo('cose-bilkent');
   await page.waitForTimeout(3500);
   // P0-1: mid-flight switch — start cola, then switch to dagre 400ms in
@@ -113,6 +121,7 @@ if (!only || only === 'p0') {
   const bb = await bounds();
   console.log('P0-1 mid-switch:', JSON.stringify({ midInd, newInd, settled, bounds: bb }));
   console.log('  expect: newInd starts with "Arranging · dagre", settled true, bad=0');
+  }
   // P0-2: depth-limited isolate on Iron Bar
   await switchTo('cose-bilkent');
   await page.waitForTimeout(3500);
@@ -135,11 +144,11 @@ if (!only || only === 'p0') {
 }
 console.log('errors:', errors.length ? errors.join('\n') : 'none');
 await cleanup();
-srv.close();
+srv?.close();
 process.exit(0);
 } catch (e) {
   console.error('PROBE FAIL:', e.message.split('\n')[0]);
   await cleanup();
-  srv.close();
+  srv?.close();
   process.exit(1);
 }
