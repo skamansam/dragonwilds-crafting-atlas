@@ -9,3 +9,6 @@ cache/
 # OS cruft
 .DS_Store
 Thumbs.db
+
+# agent workspace
+.freebuff/

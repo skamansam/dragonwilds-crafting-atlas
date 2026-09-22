@@ -17,6 +17,7 @@ console.log('recipes:', recipes.length);
 
 // ---------- canonical names + nodes ----------
 const iconFor = (name) => iconManifest[name] || iconManifest[name + '.png'] || null;
+const CANONICAL_SKILLS = new Set(['Attack', 'Magic', 'Ranged', 'Mining', 'Woodcutting', 'Farming', 'Fishing', 'Runecrafting', 'Construction', 'Artisan', 'Cooking', 'Agility']);
 const nodeIndex = new Map();
 
 function ensureNode(name, patch = {}) {
@@ -49,6 +50,27 @@ for (const sp of parsed.spells) {
   }
 }
 
+// skill nodes: recipes/spells requiring the skill get an edge skill -> target
+// so the skill tree becomes part of the graph.
+const skillEdges = [];
+const skillNodeNames = new Set();
+for (const sp of parsed.spells) {
+  if (sp.skill && CANONICAL_SKILLS.has(sp.skill)) {
+    skillNodeNames.add(sp.skill);
+    skillEdges.push({ from: sp.skill, to: sp.name, qty: (sp.level || 1), facility: `Level ${sp.level || '?'}`, skill: sp.skill, xp: null, blueprint: null, variant: null, deprecated: false, source: sp.name });
+  }
+}
+for (const r of recipes) {
+  if (r.skill && CANONICAL_SKILLS.has(r.skill)) {
+    skillNodeNames.add(r.skill);
+    skillEdges.push({ from: r.skill, to: r.output, qty: null, facility: r.facility, skill: r.skill, xp: r.xp, blueprint: r.blueprint, variant: r.variant, deprecated: r.deprecated, source: r.source });
+  }
+}
+for (const name of CANONICAL_SKILLS) {
+  const sp = parsed.skills.find(s => s.name === name);
+  ensureNode(name, { kind: 'skill', itemType: 'Skill', image: sp ? sp.image : null, description: sp ? sp.description : [], pageid: sp ? sp.pageid : null });
+}
+
 // implicit nodes: referenced or recipe outputs with no page
 const named = new Set(nodeIndex.keys());
 for (const r of recipes) {
@@ -58,7 +80,7 @@ for (const r of recipes) {
 for (const n of parsed.referencedNames) if (!nodeIndex.has(n)) ensureNode(n, { kind: 'implicit', itemType: 'Reference' });
 
 // ---------- edges from recipes ----------
-const edges = [...spellEdges];
+const edges = [...spellEdges, ...skillEdges];
 for (const r of recipes) {
   for (const inp of r.inputs) {
     edges.push({
@@ -78,7 +100,6 @@ for (const r of recipes) {
 console.log('edges:', edges.length);
 
 // ---------- skills & spells ----------
-const CANONICAL_SKILLS = new Set(['Attack', 'Magic', 'Ranged', 'Mining', 'Woodcutting', 'Farming', 'Fishing', 'Runecrafting', 'Construction', 'Artisan', 'Cooking', 'Agility']);
 const skills = parsed.skills.filter(s => CANONICAL_SKILLS.has(s.name)).map(s => ({
   name: s.name, image: s.image, icon: iconFor(s.image), description: s.description,
   unlocks: (parsed.levelUnlocks[s.name] || []).map(u => ({ level: u.level, text: u.raw, items: u.unlocks })),

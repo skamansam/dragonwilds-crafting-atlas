@@ -10,7 +10,9 @@ const nodeById = new Map();
 for (const n of D.nodes) nodeById.set(n.id, n);
 const outDegree = new Map();  // how many things this node is used to make
 const inDegree = new Map();   // how many recipes produce this node
+const SKILL_NAMES = new Set(D.skills.map(s => s.name));
 for (const e of D.edges) {
+  if (SKILL_NAMES.has(e.from)) continue; // skill-gate edges don't count as "made from"
   outDegree.set(e.from, (outDegree.get(e.from) || 0) + 1);
   inDegree.set(e.to, (inDegree.get(e.to) || 0) + 1);
 }
@@ -27,7 +29,8 @@ const kindColor = {
   drink:    '#6ab0c9',
   material: '#e2b95c',
   resource: '#9a8f77',
-  spell: '#6ea8ff',
+  spell:    '#6ea8ff',
+  skill:    '#f7dd9a',
   implicit: '#6d6a5e',
   other:    '#8a8577',
 };
@@ -35,15 +38,20 @@ const kindLabel = {
   weapon: 'Weapons', armour: 'Armour', tool: 'Tools', station: 'Stations',
   ammo: 'Ammo', trinket: 'Trinkets', food: 'Food', potion: 'Potions',
   drink: 'Drinks', material: 'Materials', resource: 'Resources',
-  spell: 'Spells', implicit: 'Uncatalogued', other: 'Other',
+  spell: 'Spells', skill: 'Skills', implicit: 'Uncatalogued', other: 'Other',
 };
-const kindGlyph = { station: '⌂', resource: '⛰', implicit: '?', spell: '✦' };
+const kindGlyph = { station: '⌂', resource: '⛰', implicit: '?', spell: '✦', skill: '★' };
 
 function nodeColor(n) { return kindColor[n.kind] || kindColor.other; }
 
 /* ── category filter state ───────────────────────────────────── */
 const activeCats = new Set(Object.keys(kindLabel));
 let showOrphans = false; // degree-0 items (drop-only, no recipes) hidden by default
+let selectedId = null;
+let isolatedRoot = null;
+let tracedId = null;
+let focusOwned = false;
+const owned = new Set(JSON.parse(localStorage.getItem('dw.owned') || '[]'));
 
 /* ── cytoscape setup ─────────────────────────────────────────── */
 const cy = cytoscape({
@@ -80,7 +88,6 @@ const cy = cytoscape({
         'background-image': 'data(iconUrl)',
         'background-fit': 'contain',
         'background-clip': 'none',
-        'background-image-smoothing': 'yes',
       },
     },
     {
@@ -91,12 +98,12 @@ const cy = cytoscape({
       selector: 'edge',
       style: {
         width: 1.2,
-        'line-color': 'rgba(180,170,140,0.28)',
+        'line-color': 'data(lineColor)',
         'curve-style': 'haystack',
         'haystack-radius': 0.4,
         'target-arrow-shape': 'triangle',
         'arrow-scale': 0.7,
-        'target-arrow-color': 'rgba(180,170,140,0.38)',
+        'target-arrow-color': 'data(lineColor)',
       },
     },
     {
@@ -130,15 +137,31 @@ const cy = cytoscape({
       },
     },
     {
+      selector: 'node.locked',
+      style: {
+        opacity: 0.13,
+        'text-opacity': 0.08,
+        'border-color': '#3a3f4c',
+      },
+    },
+    {
+      selector: 'edge.locked',
+      style: { opacity: 0.05 },
+    },
+    {
+      selector: 'node.reachable',
+      style: { 'border-width': 2.5, 'overlay-color': 'rgba(226,185,92,0.35)', 'overlay-padding': 2 },
+    },
+    {
+      selector: 'edge.reachable',
+      style: { 'line-color': 'rgba(226,185,92,0.5)', 'target-arrow-color': 'rgba(226,185,92,0.5)' },
+    },
+    {
       selector: '.faded',
       style: { opacity: 0.08, 'text-opacity': 0.06 },
     },
     {
-      selector: 'node.hidden',
-      style: { display: 'none' },
-    },
-    {
-      selector: 'edge.hidden',
+      selector: 'node.hidden, edge.hidden',
       style: { display: 'none' },
     },
   ],
@@ -151,9 +174,14 @@ window.__cy = cy; // debug/testing hook
 try {
   if (window.cytoscapeCoseBilkent) cytoscape.use(window.cytoscapeCoseBilkent);
 } catch (e) { console.warn('bilkent registration issue', e); }
+try {
+  if (window.cytoscapeDagre) cytoscape.use(window.cytoscapeDagre);
+} catch (e) { console.warn('dagre registration issue', e); }
 
 /* ── graph build ─────────────────────────────────────────────── */
 const eles = [];
+const SKILL_EDGE_COLOR = 'rgba(247,221,154,0.20)';
+const MAT_EDGE_COLOR = 'rgba(180,170,140,0.28)';
 for (const n of D.nodes) {
   const deg = (outDegree.get(n.id) || 0) + (inDegree.get(n.id) || 0);
   eles.push({
@@ -170,63 +198,89 @@ for (const n of D.nodes) {
   });
 }
 for (const e of D.edges) {
-  eles.push({ group: 'edges', data: { id: e.from + '→' + e.to + ':' + e.qty + (e.variant ? ':' + e.variant : ''), source: e.from, target: e.to, meta: e } });
+  const isSkillGate = SKILL_NAMES.has(e.from);
+  eles.push({
+    group: 'edges',
+    data: {
+      id: e.from + '→' + e.to + ':' + e.qty + (e.variant ? ':' + e.variant : ''),
+      source: e.from, target: e.to, meta: e,
+      lineColor: isSkillGate ? SKILL_EDGE_COLOR : MAT_EDGE_COLOR,
+    },
+  });
 }
 
 let layoutRunning = false;
-function runLayout(opts = {}) {
+const LAYOUTS = {
+  'cose-bilkent': {
+    name: 'cose-bilkent', animate: true, animationDuration: 700, animationEasing: 'ease-out',
+    randomize: true, nodeSeparation: 120, idealEdgeLength: 110, nodeRepulsion: 22000,
+  },
+  'cose-bilkent-tight': {
+    name: 'cose-bilkent', animate: true, animationDuration: 700, animationEasing: 'ease-out',
+    randomize: true, nodeSeparation: 60, idealEdgeLength: 55, nodeRepulsion: 9000,
+  },
+  dagre: {
+    name: 'dagre', animate: true, animationDuration: 700, rankDir: 'TB',
+    nodeSep: 24, edgeSep: 12, rankSep: 70,
+  },
+  'dagre-lr': {
+    name: 'dagre', animate: true, animationDuration: 700, rankDir: 'LR',
+    nodeSep: 20, edgeSep: 12, rankSep: 70,
+  },
+  circle: { name: 'circle', animate: true, animationDuration: 700, spacingFactor: 1.4 },
+  concentric: { name: 'concentric', animate: true, animationDuration: 700, spacingFactor: 1.2 },
+  grid: { name: 'grid', animate: true, animationDuration: 700, spacingFactor: 1.6 },
+  random: { name: 'random', animate: true, animationDuration: 700, spacingFactor: 1.5 },
+};
+
+function runLayout(preset = currentLayout) {
   if (layoutRunning) return;
   layoutRunning = true;
-  const lay = cy.layout({
-    name: 'cose-bilkent',
-    animate: true,
-    animationDuration: 700,
-    animationEasing: 'ease-out',
-    randomize: true,
-    nodeSeparation: 90,
-    idealEdgeLength: 70,
-    nodeRepulsion: 9000,
-    ...opts,
+  const opts = LAYOUTS[preset] || LAYOUTS['cose-bilkent'];
+  const lay = cy.layout({ ...opts, randomize: opts.name === 'cose-bilkent' ? opts.randomize : undefined });
+  lay.one('layoutstop', () => {
+    layoutRunning = false;
+    hideVeil();
+    if (!isolatedRoot) cy.fit(undefined, 60);
   });
-  lay.one('layoutstop', () => { layoutRunning = false; });
   lay.run();
 }
+let currentLayout = 'cose-bilkent';
 
-/* populate in idle chunks to keep the veil animation smooth */
+/* populate */
 const veil = document.getElementById('veil');
 const veilSub = document.getElementById('veilSub');
 veilSub.textContent = `${D.nodes.length.toLocaleString()} items · ${D.edges.length.toLocaleString()} links of fate`;
 
-function populate() {
-  cy.batch(() => {
-    cy.add(eles);
-    // tag crafting dead-ends (no recipes in or out)
-    cy.nodes().forEach(n => { if (n.degree() === 0) n.addClass('orphan'); });
-    applyCategoryVisibility();
-  });
-  runLayout();
-  setTimeout(() => veil.classList.add('hidden'), 850);
+function hideVeil() {
+  const v = document.getElementById('veil');
+  if (v) { v.classList.add('hidden'); v.style.pointerEvents = 'none'; }
 }
-requestAnimationFrame(() => setTimeout(populate, 60));
+function populate() {
+  try {
+    cy.batch(() => {
+      cy.add(eles);
+      cy.nodes().forEach(n => { if (n.degree() === 0) n.addClass('orphan'); });
+      applyCategoryVisibility();
+    });
+    runLayout();
+  } catch (e) {
+    console.error('populate failed:', e);
+  }
+  setTimeout(hideVeil, 850);
+  setTimeout(hideVeil, 2500); // hard fallback
+}
+setTimeout(populate, 60); // rAF can stall in hidden/backgrounded tabs
 
 /* ── visibility: category filter ─────────────────────────────── */
-function catAllowed(kind) {
-  if (kind === 'implicit') return true; // always show connectors
-  return activeCats.has(kind);
-}
-function ensureAllCats() {
-  for (const n of D.nodes) if (n.kind !== 'implicit' && !activeCats.has(n.kind)) activeCats.add(n.kind);
-  document.querySelectorAll('.chip[data-cat]').forEach(c => c.classList.add('on'));
-}
+function catAllowed(kind) { return activeCats.has(kind); }
 function applyCategoryVisibility() {
   cy.batch(() => {
     for (const n of cy.nodes()) {
-      const k = n.data('meta').kind;
-      const allow = catAllowed(k) && (showOrphans || !n.hasClass('orphan'));
+      const allow = catAllowed(n.data('meta').kind) && (showOrphans || !n.hasClass('orphan'));
       n.removeClass('hidden');
       if (!allow) n.addClass('hidden');
     }
-    // hide edges touching hidden nodes
     for (const e of cy.edges()) {
       e.removeClass('hidden');
       if (e.source().hasClass('hidden') || e.target().hasClass('hidden')) e.addClass('hidden');
@@ -242,9 +296,20 @@ function fitSoon() {
   fitTimer = setTimeout(() => { if (!isolatedRoot) cy.fit(undefined, 60); }, 400);
 }
 
+const edgePrefs = { materials: true, skills: true }; // toggle via header chips
+function applyEdgeVisibility() {
+  cy.batch(() => {
+    for (const e of cy.edges()) {
+      const isSkill = SKILL_NAMES.has(e.source().id());
+      e.toggleClass('hidden', (isSkill && !edgePrefs.skills) || (!isSkill && !edgePrefs.materials));
+      if (!e.hasClass('hidden') && (e.source().hasClass('hidden') || e.target().hasClass('hidden'))) e.addClass('hidden');
+    }
+  });
+}
+
 /* ── legend ──────────────────────────────────────────────────── */
 const legend = document.getElementById('legend');
-for (const k of ['weapon', 'armour', 'tool', 'station', 'trinket', 'food', 'potion', 'material', 'spell', 'other']) {
+for (const k of ['weapon', 'armour', 'tool', 'station', 'trinket', 'food', 'potion', 'material', 'spell', 'skill', 'other']) {
   const row = document.createElement('div');
   row.className = 'lg-row';
   row.innerHTML = `<span class="lg-swatch" style="background:${kindColor[k]}"></span>${kindLabel[k]}`;
@@ -265,30 +330,55 @@ document.querySelectorAll('.chip[data-cat]').forEach(chip => {
     applyCategoryVisibility();
   };
 });
+document.getElementById('resetFilters').onclick = () => {
+  for (const k of Object.keys(kindLabel)) activeCats.add(k);
+  document.querySelectorAll('.chip[data-cat]').forEach(c => c.classList.add('on'));
+  applyCategoryVisibility();
+};
+
 document.getElementById('orphansChip').onclick = () => {
   showOrphans = !showOrphans;
   document.getElementById('orphansChip').classList.toggle('on', showOrphans);
   applyCategoryVisibility();
 };
 
-document.getElementById('resetFilters').onclick = () => {
-  ensureAllCats();
-  for (const k of Object.keys(kindLabel)) activeCats.add(k);
-  document.querySelectorAll('.chip[data-cat]').forEach(c => c.classList.add('on'));
-  applyCategoryVisibility();
+document.getElementById('edgeMatChip').onclick = () => {
+  edgePrefs.materials = !edgePrefs.materials;
+  document.getElementById('edgeMatChip').classList.toggle('on', edgePrefs.materials);
+  applyEdgeVisibility();
+};
+document.getElementById('edgeSkillChip').onclick = () => {
+  edgePrefs.skills = !edgePrefs.skills;
+  document.getElementById('edgeSkillChip').classList.toggle('on', edgePrefs.skills);
+  applyEdgeVisibility();
+};
+
+document.getElementById('possessionsChip').onclick = () => {
+  focusOwned = !focusOwned;
+  document.getElementById('possessionsChip').classList.toggle('on', focusOwned);
+  applyPossessions();
+  toast(focusOwned
+    ? (owned.size ? `Showing what you can reach from ${owned.size} owned items` : 'Mark items as owned in their panel first')
+    : 'Showing everything');
 };
 
 function updateReadout() {
   const visible = cy.nodes(':visible').length;
-  const shown = D.edges.length; // full graph links
   document.getElementById('readout').innerHTML =
-    `<b>${visible.toLocaleString()}</b> nodes · <b>${shown.toLocaleString()}</b> links`;
+    `<b>${visible.toLocaleString()}</b> nodes · <b>${D.edges.length.toLocaleString()}</b> links`;
 }
 
 /* ── zoom controls ───────────────────────────────────────────── */
 document.getElementById('zoomIn').onclick = () => cy.zoom(cy.zoom() * 1.35);
 document.getElementById('zoomOut').onclick = () => cy.zoom(cy.zoom() / 1.35);
 document.getElementById('zoomFit').onclick = () => cy.fit(undefined, 60);
+
+/* ── layout selector ─────────────────────────────────────────── */
+const layoutSelect = document.getElementById('layoutSelect');
+if (layoutSelect) {
+  layoutSelect.value = currentLayout;
+  layoutSelect.onchange = () => { currentLayout = layoutSelect.value; runLayout(); };
+}
 
 /* ── toast ───────────────────────────────────────────────────── */
 let toastTimer = null;
@@ -308,11 +398,63 @@ document.getElementById('welcomeStats').innerHTML = `
   <div><b>${D.skills.length}</b>skills</div>`;
 
 /* ═══════════════════════════════════════════════════════════════
-   SELECTION / ISOLATION / PANEL
+   POSSESSIONS — mark what you have, walk the atlas as unlocked
    ═══════════════════════════════════════════════════════════════ */
-let selectedId = null;
-let isolatedRoot = null;
-let tracedId = null;
+
+function persistOwned() {
+  localStorage.setItem('dw.owned', JSON.stringify([...owned]));
+  ownedCountEl.textContent = owned.size;
+  ownedCountEl.classList.toggle('has', owned.size > 0);
+}
+const ownedCountEl = document.getElementById('ownedCount');
+
+function propagateReach() {
+  // walk forward from owned nodes through recipe + skill edges
+  const reach = new Set();
+  const stack = [...owned];
+  while (stack.length) {
+    const cur = stack.pop();
+    if (reach.has(cur)) continue;
+    reach.add(cur);
+    for (const e of D.edges) {
+      if (e.from === cur && !reach.has(e.to)) stack.push(e.to);
+    }
+  }
+  return reach;
+}
+
+function applyPossessions() {
+  if (!focusOwned) {
+    cy.batch(() => {
+      cy.nodes().removeClass('locked reachable');
+      cy.edges().removeClass('locked reachable');
+      applyCategoryVisibility();
+    });
+    updateReadout();
+    if (!isolatedRoot) fitSoon();
+    return;
+  }
+  const reach = propagateReach();
+  cy.batch(() => {
+    cy.nodes().forEach(n => {
+      const id = n.id();
+      n.removeClass('locked reachable');
+      if (owned.has(id)) n.addClass('reachable');
+      else if (reach.has(id)) n.addClass('reachable');
+      else if (!n.hasClass('hidden')) n.addClass('locked');
+    });
+    cy.edges().forEach(e => {
+      e.removeClass('locked reachable');
+      const s = e.source().id(), t = e.target().id();
+      if (reach.has(t) && (owned.has(s) || reach.has(s))) e.addClass('reachable');
+      else if (!e.source().hasClass('hidden') && !e.target().hasClass('hidden')) e.addClass('locked');
+    });
+    applyCategoryVisibility();
+  });
+  updateReadout();
+}
+
+/* ── selection / isolation / panel ──────────────────────────── */
 
 function selectNode(id, { fly = true } = {}) {
   document.getElementById('welcome').classList.add('hidden');
@@ -320,15 +462,17 @@ function selectNode(id, { fly = true } = {}) {
   const n0 = nodeById.get(id);
   if (n0 && showOrphans === false) {
     const el = cy.getElementById(id);
-    if (el.length && el.hasClass('orphan')) { showOrphans = true; document.getElementById('orphansChip').classList.add('on'); applyCategoryVisibility(); }
+    if (el.length && el.hasClass('orphan')) {
+      showOrphans = true;
+      document.getElementById('orphansChip').classList.add('on');
+      applyCategoryVisibility();
+    }
   }
   const n = cy.getElementById(id);
   if (!n || n.length === 0) return;
   cy.elements().removeClass('sel traced faded');
   cy.getElementById(id).addClass('sel');
-  if (fly) {
-    cy.animate({ center: { eles: n }, zoom: Math.max(cy.zoom(), 1.1) }, { duration: 420 });
-  }
+  if (fly) cy.animate({ center: { eles: n }, zoom: Math.max(cy.zoom(), 1.1) }, { duration: 420 });
   openPanel(id);
   updateBreadcrumb();
 }
@@ -348,7 +492,6 @@ function clearIsolation() {
 function isolateTree(id) {
   isolatedRoot = id;
   const keep = new Set([id]);
-  // all descendants (things this makes, transitively)
   const stack = [id];
   while (stack.length) {
     const cur = stack.pop();
@@ -357,7 +500,11 @@ function isolateTree(id) {
     }
   }
   cy.batch(() => {
-    applyCategoryVisibility();
+    // auto-reveal every kind so the tree is fully visible regardless of filters
+    for (const k of Object.keys(kindLabel)) activeCats.add(k);
+    document.querySelectorAll('.chip[data-cat]').forEach(c => c.classList.add('on'));
+    showOrphans = false;
+    document.getElementById('orphansChip').classList.remove('on');
     cy.nodes().forEach(n => {
       if (!keep.has(n.id())) n.addClass('hidden');
       else n.removeClass('hidden');
@@ -383,8 +530,7 @@ function traceInputs(id) {
     }
   }
   cy.batch(() => {
-    const all = cy.elements();
-    all.addClass('faded');
+    cy.elements().addClass('faded');
     cy.nodes().forEach(n => { if (keep.has(n.id())) n.removeClass('faded').addClass('traced'); });
     cy.edges().forEach(e => {
       if (keep.has(e.source().id()) && keep.has(e.target().id())) e.removeClass('faded').addClass('traced');
@@ -402,7 +548,8 @@ function clearTrace() {
 cy.on('tap', 'node', (evt) => {
   const id = evt.target.id();
   closeSuggestions();
-  if (evt.originalEvent.shiftKey) { isolateTree(id); return; }
+  const oe = evt.originalEvent || {};
+  if (oe.shiftKey) { isolateTree(id); return; }
   selectNode(id);
 });
 cy.on('tap', (evt) => {
@@ -436,16 +583,23 @@ function iconImg(id, cls = '') {
 
 function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
 
+function facilityIcon(facility) {
+  const st = D.nodes.find(n => n.id === facility && n.kind === 'station');
+  return st && st.icon ? `<img src="${st.icon}" alt="">` : '';
+}
+
 function openPanel(id) {
   const n = nodeById.get(id);
   if (!n) return;
   const sp = D.spells.find(s => s.name === id);
   document.getElementById('panelTitle').textContent = n.name;
-  document.getElementById('panelType').textContent = n.kind === 'spell' && sp
-    ? `Spell · ${sp.skill || '?'}${sp.level ? ' lvl ' + sp.level : ''}`
-    : (n.itemType || kindLabel[n.kind] || n.kind) +
-      (inDegree.get(id) ? ` · made by ${inDegree.get(id)} recipe${inDegree.get(id) > 1 ? 's' : ''}` : '') +
-      (outDegree.get(id) ? ` · used in ${outDegree.get(id)}` : '');
+  document.getElementById('panelType').textContent = n.kind === 'skill'
+    ? 'Skill'
+    : (n.kind === 'spell' && sp
+      ? `Spell · ${sp.skill || '?'}${sp.level ? ' lvl ' + sp.level : ''}`
+      : (n.itemType || kindLabel[n.kind] || n.kind) +
+        (inDegree.get(id) ? ` · made by ${inDegree.get(id)} recipe${inDegree.get(id) > 1 ? 's' : ''}` : '') +
+        (outDegree.get(id) ? ` · used in ${outDegree.get(id)}` : ''));
   document.getElementById('panelIcon').innerHTML = iconImg(id);
   renderPanelBody(n);
   panel.classList.add('open');
@@ -460,10 +614,15 @@ function closePanel() {
 
 document.getElementById('panelClose').onclick = closePanel;
 
+function ownedBtnHTML(id) {
+  const has = owned.has(id);
+  return `<button class="btn ${has ? 'primary' : ''}" id="btnOwn" data-owned="${has}">${has ? '✓ Owned' : '☆ Mark owned'}</button>`;
+}
+
 function renderPanelBody(n) {
   const id = n.id;
   const recipesIn = D.recipes.filter(r => r.output === id);
-  const usedIn = D.edges.filter(e => e.from === id);
+  const usedIn = D.edges.filter(e => e.from === id && !SKILL_NAMES.has(e.from));
   const spell = D.spells.find(s => s.name === id);
   const skill = D.skills.find(s => s.name === id);
   const unlocks = D.skillLevelForItem[id] || [];
@@ -485,6 +644,13 @@ function renderPanelBody(n) {
     }</div></div>`);
   }
 
+  // skill hub panel: its unlock ladder (only meaningful unlocks)
+  if (skill) {
+    const rows = skill.unlocks.filter(u => u.text && !/^-[\d.]+%/.test(u.text) && u.text !== '-').map(u =>
+      `<div class="unlock-row"><span class="lvl">${u.level}</span><span class="utx">${esc(u.text)}</span></div>`).join('');
+    if (rows) sections.push(`<div class="p-section"><div class="p-label">Level unlocks</div>${rows}</div>`);
+  }
+
   // spells: rune requirements + skill gate
   if (spell) {
     const runes = Object.entries(spell.runes || {});
@@ -493,23 +659,26 @@ function renderPanelBody(n) {
         <div class="p-stat"><div class="v">${esc(spell.skill || '—')}${spell.level ? ' · lvl ' + spell.level : ''}</div><div class="k">Requires</div></div>
         <div class="p-stat"><div class="v">${esc(spell.cooldown || '—')}</div><div class="k">Cooldown</div></div>
       </div>
-      ${runes.length ? `<div class="p-label" style="margin-top:10px">Cast cost</div><div class="recipe-mats">${runes.map(([r, q]) =>
-        `<span class="mat">${iconImg(r + ' rune')}${esc(r)} × ${esc(q)}</span>`).join('')}</div>` : ''}
+      ${runes.length ? `<div class="p-label" style="margin-top:10px">Cast cost</div><div class="recipe-mats">${runes.map(([r, q]) => {
+        let rn = /rune$/i.test(r) ? r : r + ' Rune';
+        if (!nodeById.get(rn)) rn = rn.replace(/\bRune\b/i, 'rune');
+        return `<span class="mat" data-goto="${esc(rn)}">${iconImg(rn)}${esc(r)} × ${esc(q)}</span>`;
+      }).join('')}</div>` : ''}
       ${spell.description && spell.description.length ? `<div class="p-desc" style="margin-top:8px">${spell.description.map(esc).join('<br>')}</div>` : ''}
     </div>`);
   }
 
-  // recipes producing this item
-  if (recipesIn.length) {
-    sections.push(`<div class="p-section"><div class="p-label">How to make ${recipesIn.length > 1 ? `(${recipesIn.length} ways)` : ''}</div>${
-      recipesIn.map(r => recipeCard(r)).join('')
-    }</div>`);
-  }
-
-  // skill level requirements gating this item
+  // skill gates on this item
   if (unlocks.length) {
     sections.push(`<div class="p-section"><div class="p-label">Skill gates</div>${
       unlocks.map(u => `<div class="unlock-row"><span class="lvl">${u.level}</span><span class="utx">${esc(u.skill)} ${u.level} — ${esc(u.text)}</span></div>`).join('')
+    }</div>`);
+  }
+
+  // recipes producing this item — facility is clickable
+  if (recipesIn.length) {
+    sections.push(`<div class="p-section"><div class="p-label">How to make ${recipesIn.length > 1 ? `(${recipesIn.length} ways)` : ''}</div>${
+      recipesIn.map(r => recipeCard(r)).join('')
     }</div>`);
   }
 
@@ -526,18 +695,21 @@ function renderPanelBody(n) {
     sections.push(`<div class="p-section"><div class="p-label">Used to make (${byOut.size})</div>${rows}</div>`);
   }
 
-  // raw materials of the first recipe — quick "needs" list
+  // direct materials of the first recipe
   if (recipesIn.length && recipesIn[0].inputs.length) {
     sections.push(`<div class="p-section"><div class="p-label">Direct materials</div><div class="recipe-mats">${
       recipesIn[0].inputs.map(i => `<span class="mat" data-goto="${esc(i.name)}">${iconImg(i.name)}<span class="q">${i.qty}×</span><span class="mn">${esc(i.name)}</span></span>`).join('')
     }</div></div>`);
   }
 
-  // wiki link + actions
+  // actions
   sections.push(`<div class="p-section p-actions">
-    <a class="btn" href="${n.wiki}" target="_blank" rel="noopener">Wiki page ↗</a>
+    ${ownedBtnHTML(id)}
     <button class="btn" id="btnTrace">Trace inputs</button>
     <button class="btn primary" id="btnIsolate">Isolate tree</button>
+  </div>
+  <div class="p-section p-actions">
+    <a class="btn" href="${n.wiki}" target="_blank" rel="noopener">Wiki page ↗</a>
   </div>`);
 
   panelBody.innerHTML = sections.join('');
@@ -551,16 +723,29 @@ function renderPanelBody(n) {
   if (bt) bt.onclick = () => traceInputs(id);
   const bi = document.getElementById('btnIsolate');
   if (bi) bi.onclick = () => isolateTree(id);
+  const bo = document.getElementById('btnOwn');
+  if (bo) bo.onclick = () => {
+    if (owned.has(id)) owned.delete(id); else owned.add(id);
+    persistOwned();
+    applyPossessions();
+    renderPanelBody(n);
+    toast(owned.has(id) ? `Marked owned: ${n.name}` : `Unmarked: ${n.name}`);
+  };
 }
 
 function recipeCard(r) {
   const facility = r.facility || (r.blueprint ? r.blueprint : '—');
   const variant = r.variant && r.variant.toLowerCase() !== String(facility).toLowerCase() ? r.variant : null;
+  // facilities that match a known station node become clickable
+  const facNode = facility !== '—' && nodeById.get(facility);
+  const facHTML = facNode
+    ? `<span class="recipe-facility fac-link" data-goto="${esc(facNode.id)}">${facilityIcon(facNode.id)}${esc(facNode.name)}</span>`
+    : `<span class="recipe-facility">${esc(facility)}</span>`;
   return `<div class="recipe ${r.deprecated ? 'deprecated' : ''}">
     <div class="recipe-head">
-      <span class="recipe-facility">⌂ ${esc(facility)}</span>
+      ${facHTML}
       ${variant ? `<span class="recipe-variant">${esc(variant)}</span>` : ''}
-      ${r.skill ? `<span class="recipe-skill">${skillIcon(r.skill)}${esc(r.skill)}${r.xp ? ' +' + r.xp + 'xp' : ''}</span>` : ''}
+      ${r.skill ? `<span class="recipe-skill" ${SKILL_NAMES.has(r.skill) ? `data-goto="${esc(r.skill)}" style="cursor:pointer"` : ''}>${skillIcon(r.skill)}${esc(r.skill)}${r.xp ? ' +' + r.xp + 'xp' : ''}</span>` : ''}
     </div>
     <div class="recipe-mats">${r.inputs.map(i =>
       `<span class="mat" data-goto="${esc(i.name)}">${iconImg(i.name)}<span class="q">${i.qty}×</span><span class="mn">${esc(i.name)}</span></span>`
@@ -577,18 +762,14 @@ function skillIcon(name) {
 /* ── breadcrumb ──────────────────────────────────────────────── */
 function updateBreadcrumb() {
   const bc = document.getElementById('breadcrumb');
-  if (!isolatedRoot || isolatedRoot !== selectedId) {
-    if (!isolatedRoot) { bc.classList.add('hidden'); return; }
-  }
-  // show root path for isolated tree
+  if (!isolatedRoot) { bc.classList.add('hidden'); return; }
   const chain = [];
   let cur = selectedId;
   const guard = new Set();
   while (cur && !guard.has(cur)) {
     guard.add(cur);
     chain.push(cur);
-    // find a recipe producing cur (prefer first)
-    const e = D.edges.find(e => e.to === cur);
+    const e = D.edges.find(e => e.to === cur && !SKILL_NAMES.has(e.from));
     if (!e) break;
     cur = e.from;
   }
@@ -616,12 +797,10 @@ function closeSuggestions() {
 }
 
 function fuzzyScore(q, text) {
-  // subsequence + prefix bonus
   const t = text.toLowerCase();
   if (t.startsWith(q)) return 1000 - t.length;
   const idx = t.indexOf(q);
   if (idx >= 0) return 700 - idx * 2 - t.length * 0.1;
-  // subsequence
   let ti = 0, score = 0, streak = 0;
   for (const ch of q) {
     const found = t.indexOf(ch, ti);
@@ -704,7 +883,7 @@ document.addEventListener('click', (e) => {
 
 /* ── keyboard shortcuts ──────────────────────────────────────── */
 document.addEventListener('keydown', (e) => {
-  if (e.target === searchInput) return;
+  if (e.target === searchInput || e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
   if (e.key === '/') { e.preventDefault(); searchInput.focus(); searchInput.select(); }
   else if (e.key === 'Escape') { if (isolatedRoot) clearIsolation(); closePanel(); clearTrace(); }
   else if (e.key === 'f' || e.key === 'F') cy.fit(undefined, 60);
@@ -741,12 +920,11 @@ function drawMinimap() {
       const oy = (h - bb.h * scale) / 2 - bb.y1 * scale;
       for (const n of cy.nodes(':visible')) {
         const p = n.position();
-        mmCtx.fillStyle = nodeColor(n.data('meta'));
-        mmCtx.globalAlpha = n.hasClass('hidden') ? 0.15 : 0.75;
+        mmCtx.fillStyle = n.hasClass('locked') ? '#333' : nodeColor(n.data('meta'));
+        mmCtx.globalAlpha = n.hasClass('locked') ? 0.25 : 0.75;
         mmCtx.fillRect(ox + p.x * scale - 1, oy + p.y * scale - 1, 2.2, 2.2);
       }
       mmCtx.globalAlpha = 1;
-      // viewport rect
       const extent = cy.extent();
       mmViewport.style.left = (ox + extent.x1 * scale) + 'px';
       mmViewport.style.top = (oy + extent.y1 * scale) + 'px';
@@ -761,7 +939,6 @@ cy.on('position resize add remove', () => { mmDirty = true; });
 cy.on('viewport', () => { mmDirty = true; });
 (function mmLoop() { drawMinimap(); requestAnimationFrame(mmLoop); })();
 minimap.onclick = (e) => {
-  // jump to tapped location
   const rect = minimap.getBoundingClientRect();
   const bb = cy.nodes(':visible').boundingBox({});
   if (!bb || bb.w <= 0) return;
@@ -775,5 +952,7 @@ minimap.onclick = (e) => {
 };
 
 /* ── boot ────────────────────────────────────────────────────── */
+persistOwned();
+applyPossessions();
 updateReadout();
 console.log(`Dragonwilds Crafting Atlas: ${D.nodes.length} nodes, ${D.edges.length} edges, ${D.recipes.length} recipes`);

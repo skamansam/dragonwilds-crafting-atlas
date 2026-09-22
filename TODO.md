@@ -21,3 +21,24 @@ things the sawmill can make or enable.
 
 the items in the How to make section of the info panel should be clickable and 
 would activate the corresponding node.
+
+The isolate tree functionality should show the items inouts and outputs all the way until 
+there are only leaf nodes left. 
+
+There should be some kind of feedback when the layout
+is happening so users will knwo when there is a layout
+change. Currently, there is no way fo rhte user to knnow
+anything is happening.
+
+There should be a number of links and nodes shown somewhere. I think you
+should move the DB counts in the right of the header to just under the title and search bar. 
+Then show the links and nodes that are shown under the layout selction. Tihs should leave more
+room for the category filtering chits.
+
+Can you add the layout algorithm name in the layout dropdown, so we know 
+which one is being used. We also need a force-directed checkbox to let the 
+algorithm know it is force-directed. This force-directed approach may solve the 
+issue of the cluster being too tight to read. There is an article on these at
+https://blog.js.cytoscape.org/2020/05/11/layouts/ . We need to add several layout 
+options/algorithms: tidytree, breadfirst, klay, elk, cola, cise, and more, for testing.
+Do a google search for a bunch of these algorithms and we can decide which ones to keep.

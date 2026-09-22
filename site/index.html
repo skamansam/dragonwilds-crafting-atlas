@@ -43,9 +43,28 @@
       <div class="chip" data-cat="food" title="Show food"><span class="dot"></span>Food</div>
       <div class="chip" data-cat="potion" title="Show potions"><span class="dot"></span>Potions</div>
       <div class="chip" data-cat="material" title="Show materials"><span class="dot"></span>Materials</div>
+      <div class="chip" data-cat="spell" title="Show spells"><span class="dot"></span>Spells</div>
+      <div class="chip" data-cat="skill" title="Show skills"><span class="dot"></span>Skills</div>
       <div class="chip" data-cat="other" title="Show everything else"><span class="dot"></span>Other</div>
       <div class="chip" id="orphansChip" title="Show items with no crafting recipes (drops, quest items, resource nodes)"><span class="dot"></span>Dead ends</div>
+      <div class="chip on" id="edgeMatChip" title="Show material (recipe) edges"><span class="dot"></span>Links</div>
+      <div class="chip on" id="edgeSkillChip" title="Show skill-gate edges (gold)"><span class="dot"></span>Skill links</div>
+      <div class="chip" id="possessionsChip" title="Mark what you own and only show what you can reach"><span class="dot"></span>🎒 Possessions</div>
+      <span id="ownedCount" title="Items marked as owned">0</span>
       <div class="chip" id="resetFilters" title="Show all categories">↺ All</div>
+    </div>
+
+    <div class="layout-wrap">
+      <select id="layoutSelect" aria-label="Layout algorithm" title="Layout algorithm">
+        <option value="cose-bilkent">Force-directed · airy</option>
+        <option value="cose-bilkent-tight">Force-directed · compact</option>
+        <option value="dagre">Tree · top to bottom</option>
+        <option value="dagre-lr">Tree · left to right</option>
+        <option value="concentric">Concentric</option>
+        <option value="circle">Circle</option>
+        <option value="grid">Grid</option>
+        <option value="random">Random</option>
+      </select>
     </div>
 
     <div class="readout" id="readout"></div>
@@ -100,6 +119,8 @@
 <script src="vendor/layout-base.js"></script>
 <script src="vendor/cose-base.js"></script>
 <script src="vendor/cytoscape-cose-bilkent.js"></script>
+<script src="vendor/dagre.min.js"></script>
+<script src="vendor/cytoscape-dagre.js"></script>
 <script src="data.js"></script>
 <script src="app.js"></script>
 </body>
