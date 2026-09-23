@@ -95,6 +95,66 @@ if (!only || only === 'isolate') {
   console.log('isolate Iron Bar:', JSON.stringify(iso));
   await page.screenshot({ path: 'cache/shots2/isolate-ironbar.png' });
 }
+if (!only || only === 'pf3') {
+  await switchTo('cose-bilkent');
+  await page.waitForTimeout(3500);
+  // seed the ledger: Iron Bar + Hard Leather owned
+  await page.evaluate(() => {
+    localStorage.setItem('dw.owned', JSON.stringify(['Iron Bar', 'Hard Leather']));
+    localStorage.setItem('dw.planUseOwned', '1');
+    window.__ownedReload = true;
+  });
+  await page.reload({ waitUntil: 'commit' });
+  await page.waitForFunction(() => window.__cy && window.__cy.nodes().length > 0, null, { timeout: 90000, polling: 500 });
+  await page.waitForTimeout(1500);
+  const count = await page.evaluate(() => document.getElementById('ownedCount').textContent);
+  console.log('owned count badge:', count);
+  // open Iron Sword panel — plan should split have/need
+  await page.evaluate(() => { window.__cy.getElementById('Iron Sword').emit('tap', {}); });
+  await page.waitForTimeout(900);
+  const plan = await page.evaluate(() => {
+    const body = document.getElementById('panelBody');
+    const el = body.querySelector('.p-section.plan');
+    if (!el) return null;
+    const subs = [...el.querySelectorAll('.p-label.sub')].map(s => s.innerText.trim());
+    const haveChips = [...el.querySelectorAll('.mat.owned .mn')].map(m => m.textContent);
+    const needChips = [...el.querySelectorAll('.recipe-mats .mat:not(.owned) .mn')].map(m => m.textContent).slice(0, 8);
+    const modeBtn = document.getElementById('btnPlanMode') && document.getElementById('btnPlanMode').textContent;
+    return { title: el.querySelector('.p-label').innerText.split('\n')[0], subs, haveChips, needChips, modeBtn, ownedMode: el.classList.contains('owned-mode') };
+  });
+  console.log('PF-3 plan Iron Sword:', JSON.stringify(plan, null, 1));
+  await page.screenshot({ path: 'cache/shots2/pf3-plan.png' });
+  // toggle back to "plan: nothing"
+  await page.evaluate(() => document.getElementById('btnPlanMode').click());
+  await page.waitForTimeout(500);
+  const reverted = await page.evaluate(() => ({
+    haveChips: document.querySelectorAll('.p-section.plan .mat.owned').length,
+    modeBtn: document.getElementById('btnPlanMode').textContent,
+  }));
+  console.log('toggle to nothing:', JSON.stringify(reverted));
+  await page.evaluate(() => document.getElementById('btnPlanMode').click()); // back to owned mode
+  await page.waitForTimeout(300);
+  // owned path: raw item panel has "From owned → this"
+  await page.evaluate(() => { window.__cy.getElementById('Ash Logs').emit('tap', {}); });
+  await page.waitForTimeout(600);
+  await page.evaluate(() => { const b = document.getElementById('btnPathOwned'); if (b) b.click(); });
+  await page.waitForTimeout(400);
+  const armed = await page.evaluate(() => ({ arming: document.body.classList.contains('path-arming-owned'), ph: document.getElementById('search').placeholder }));
+  console.log('From owned arming:', JSON.stringify(armed));
+  await page.evaluate(() => { window.__cy.getElementById('Iron Sword').emit('tap', {}); });
+  await page.waitForTimeout(900);
+  const pathState = await page.evaluate(() => {
+    const label = [...document.querySelectorAll('#panelBody .p-label')].map(l => l.innerText.split('\n')[0]).find(t => t.includes('Path from'));
+    const steps = [...document.querySelectorAll('#panelBody .path-step')].length;
+    return { label, steps, traced: window.__cy.elements('.traced').length };
+  });
+  console.log('owned path result:', JSON.stringify(pathState));
+  await page.screenshot({ path: 'cache/shots2/pf3-path.png' });
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(300);
+  // cleanup ledger so other sections are unaffected
+  await page.evaluate(() => localStorage.removeItem('dw.owned'));
+}
 if (!only || only === 'pf') {
   await switchTo('cose-bilkent');
   await page.waitForTimeout(3500);

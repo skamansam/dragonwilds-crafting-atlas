@@ -455,6 +455,18 @@ header {
   border-radius: 10px;
   padding: 11px 12px 12px;
 }
+/* PF-3: plan seeded from the possessions ledger */
+.p-section.plan.owned-mode { border-color: rgba(88, 201, 185, 0.35); background: linear-gradient(160deg, rgba(88,201,185,0.06), rgba(88,201,185,0.015) 55%); }
+.p-section.plan.owned-mode .p-label { color: var(--teal); }
+.mat.owned { opacity: 0.75; border-color: rgba(88, 201, 185, 0.4) !important; }
+.mat.owned::before { content: '✓ '; color: var(--teal); font-weight: 800; }
+#search.arming.owned-mode-pulse { animation-name: armpulse-teal; }
+@keyframes armpulse-teal {
+  0%, 100% { box-shadow: 0 0 0 3px rgba(88,201,185,0.14), 0 0 14px rgba(88,201,185,0.10); }
+  50% { box-shadow: 0 0 0 4px rgba(88,201,185,0.18), 0 0 26px rgba(88,201,185,0.28); }
+}
+body.path-arming-owned #search.arming { border-color: var(--teal); animation-name: armpulse-teal; }
+body.path-arming-owned #search.arming::placeholder { color: var(--teal); }
 .p-section.plan .p-label { color: var(--gold); }
 .p-label .p-clear.gold { color: var(--gold); border-color: rgba(226,185,92,0.35); }
 .p-label .p-clear.gold:hover { color: var(--gold-bright); border-color: var(--gold); }

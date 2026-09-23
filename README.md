@@ -56,6 +56,14 @@ Everything below is also available **in the app** — press the **?** button in 
 - **Path to…** (codex panel): arms a path query — then tap the target on the map, or type in
   the (gold-pulsing) search box and pick a suggestion. The shortest material route between the
   two items is highlighted with numbered steps + facilities in the panel. Esc cancels/clears.
+- **Plans from what you own** (PF-3): with items in the ledger and the panel's
+  **plan: owned** toggle active, the "From nothing" section becomes **"From what you own —
+  remaining"** — owned materials drop into an **Already own** bucket, their recipe branches
+  stop expanding, and the Critical chain truncates at the first thing you already hold.
+- **Path from owned** (PF-3): raw and crafted panels alike get a **From owned → this** button
+  (shown when you own at least one item and don't already own the selection). It arms a
+  multi-source path query seeded with *everything* in your ledger, so the route shown is the
+  shortest one **from anything you hold** — tap the map or pick from search as usual.
 - **Possessions** (header chip): mark items as **✓ Owned** in their panel, then flip the
   Possessions chip to see only what you can reach from what you have. The count badge next to
   the chip shows how many items you've marked; everything is persisted in your browser.

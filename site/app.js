@@ -715,12 +715,20 @@ const recipesByOut = (() => {
 
 // Walk the (primary) recipe tree of `id` down to raw materials, multiplying
 // quantities. Collects: leaf mats, stations needed, skills (+levels), and the
-// critical chain (longest run of prerequisite steps). Returns null for raw items.
+// critical chain (longest run of prerequisite steps). When `planUseOwned` is on
+// and the possessions ledger has entries, owned items satisfy subtrees: their
+// quantities land in `have` instead of `mats`, and the chain stops at the first
+// owned anchor. Returns null for raw items (nothing to plan).
+let planUseOwned = localStorage.getItem('dw.planUseOwned') !== '0'; // off = classic "from nothing"
+
 function planFromNothing(id) {
-  const mats = new Map();       // material name -> total qty for one craft
+  const mats = new Map();       // material name -> qty still needed for one craft
+  const have = new Map();       // material name -> qty already owned (owned mode)
   const stations = new Set();   // station names used anywhere up the tree
   const skillLv = new Map();    // skill name -> required level
   const inPath = new Set();     // cycle guard
+  const useOwned = planUseOwned && owned.size > 0;
+  let rootOwned = false;
 
   const primary = x => {
     const rs = recipesByOut.get(x);
@@ -729,6 +737,7 @@ function planFromNothing(id) {
   };
 
   const visit = (x, mult) => {
+    if (useOwned && owned.has(x)) { have.set(x, (have.get(x) || 0) + mult); return 0; }
     if (inPath.has(x)) { mats.set(x, (mats.get(x) || 0) + mult); return 0; }
     const r = primary(x);
     if (!r) { mats.set(x, (mats.get(x) || 0) + mult); return 0; }
@@ -744,10 +753,15 @@ function planFromNothing(id) {
   };
 
   const depth = visit(id, 1);
-  // raw/gatherable root (no recipe) would just list itself as its own material
-  if (!mats.size || (mats.size === 1 && mats.get(id) && !primary(id))) return null;
+  rootOwned = useOwned && owned.has(id);
+  // raw/gatherable root: it would just list itself as its own material — no plan
+  // (unless you own it, in which case the plan is "done")
+  if (!primary(id) && !rootOwned) return null;
+  if (!mats.size && !have.size && !rootOwned) return null;
+  const allOwned = rootOwned || (!mats.size && have.size > 0);
 
-  // critical chain: follow the input with the longest upstream depth, root -> leaf
+  // critical chain: follow the input with the longest upstream depth, root -> leaf.
+  // With owned mode, the chain stops at the first owned anchor (that's where work resumes).
   function subDepth(x, seen) { // memo-free longest depth (primary-recipe trees are small)
     if (seen.has(x)) return 0;
     seen.add(x);
@@ -761,6 +775,7 @@ function planFromNothing(id) {
   let cur = id, guard = 0;
   while (cur && guard++ < 64) {
     chain.push(cur);
+    if (useOwned && owned.has(cur)) break; // owned anchor: progress starts here
     const r = primary(cur);
     if (!r || !r.inputs.length) break;
     let bestD = -1, bestIn = null;
@@ -770,13 +785,14 @@ function planFromNothing(id) {
     }
     cur = bestIn;
   }
-  return { mats, stations, skillLv, chain, depth };
+  return { mats, have, stations, skillLv, chain, depth, allOwned, useOwned };
 }
 
-// --- path between two nodes (BFS over material edges, skills excluded) ---
+// --- path between nodes (BFS over material edges, skills excluded) ---
 let pathFrom = null;      // source id while arming
 let pathArming = false;
-let lastPath = null;      // { from, to, steps: [{from, to, e}] }
+let pathOwnedMode = false; // arming seeded by the possessions ledger (PF-3)
+let lastPath = null;      // { from, to, steps: [{from, to, e}], multi? }
 
 function findPath(a, b) {
   // undirected adjacency over non-skill edges (skill gates are metadata, not steps)
@@ -787,8 +803,10 @@ function findPath(a, b) {
     push(e.from, { to: e.to, e });
     push(e.to, { to: e.from, e });
   }
-  const prev = new Map([[a, null]]);
-  const q = [a];
+  // BFS from many sources at once (PF-3: everything you own); `a` may be a single id or a Set
+  const sources = a instanceof Set ? [...a] : [a];
+  const prev = new Map(sources.map(s => [s, null]));
+  const q = [...sources];
   while (q.length) {
     const cur = q.shift();
     if (cur === b) break;
@@ -818,7 +836,8 @@ function armPath(id) {
 function disarmPath() {
   pathArming = false;
   pathFrom = null;
-  document.body.classList.remove('path-arming');
+  pathOwnedMode = false;
+  document.body.classList.remove('path-arming', 'path-arming-owned');
   delete searchInput.dataset.armed;
   searchInput.placeholder = 'Search items, stations, materials…';
   searchInput.classList.remove('arming');
@@ -830,12 +849,19 @@ function clearPath() {
   cy.elements().removeClass('faded traced');
 }
 
-function runPath(a, b) {
+function runPath(a, b, multi = false) {
   disarmPath();
-  if (a === b) { toast('Pick a different target — that is the same item'); return; }
-  const steps = findPath(a, b);
-  if (!steps) { toast(`No crafting path between ${nodeById.get(a).name} and ${nodeById.get(b).name}`); return; }
-  lastPath = { from: a, to: b, steps };
+  const srcIds = multi ? [...a] : [a];
+  if (!multi && a === b) { toast('Pick a different target — that is the same item'); return; }
+  if (multi && srcIds.includes(b)) { toast('You already own the target — nothing to craft'); return; }
+  const steps = findPath(multi ? new Set(srcIds) : a, b);
+  if (!steps) {
+    toast(multi
+      ? `Nothing in your ledger leads to ${nodeById.get(b).name} — mark closer items as owned`
+      : `No crafting path between ${nodeById.get(a).name} and ${nodeById.get(b).name}`);
+    return;
+  }
+  lastPath = { from: multi ? srcIds : a, to: b, steps, multi };
   selectNode(b); // renders target panel (which shows the path section) and clears old classes
   cy.batch(() => {
     cy.elements().addClass('faded');
@@ -846,10 +872,35 @@ function runPath(a, b) {
       cy.getElementById(eid).removeClass('faded').addClass('traced');
     }
   });
-  toast(`Path: ${steps.length} step${steps.length > 1 ? 's' : ''} from ${nodeById.get(a).name} to ${nodeById.get(b).name}`);
+  const fromTxt = multi
+    ? `${srcIds.length} owned item${srcIds.length > 1 ? 's' : ''}`
+    : nodeById.get(a).name;
+  toast(`Path: ${steps.length} step${steps.length > 1 ? 's' : ''} from ${fromTxt} to ${nodeById.get(b).name}`);
+}
+
+// PF-3: path seeded with every item in the possessions ledger
+function runPathOwned(b) {
+  if (!owned.size) { toast('Mark items as owned first (✓ Owned in their panel)'); return; }
+  runPath(new Set(owned), b, true);
+}
+
+// PF-3: arm a path query whose source is the whole ledger; next tap = target
+function armPathOwned() {
+  if (!owned.size) { toast('Mark items as owned first (✓ Owned in their panel)'); return; }
+  pathFrom = null;
+  pathOwnedMode = true;
+  pathArming = true;
+  document.body.classList.add('path-arming', 'path-arming-owned');
+  searchInput.dataset.armed = '1';
+  searchInput.placeholder = `Path from your ${owned.size} owned item${owned.size > 1 ? 's' : ''} — pick the target…`;
+  searchInput.classList.add('arming');
+  toast(`Path FROM your ${owned.size} owned item${owned.size > 1 ? 's' : ''} — tap the target (Esc cancels)`);
 }
 
 function pathStepsHTML(p) {
+  const fromTxt = p.multi
+    ? `your ${p.from.length} owned item${p.from.length > 1 ? 's' : ''}`
+    : nodeById.get(p.from).name;
   const rows = p.steps.map((s, i) => {
     const qty = s.e.qty ? `<span class="q">${s.e.qty}×</span> ` : '';
     const fac = s.e.facility && s.e.facility !== 'Cast' ? `<span class="pstep-fac">${esc(s.e.facility)}</span>` : '';
@@ -858,7 +909,7 @@ function pathStepsHTML(p) {
       <span class="arr">→</span>${fac}${iconImg(s.to)}<span class="ptx">${esc(s.to)}</span>
     </div>`;
   }).join('');
-  return `<div class="p-section"><div class="p-label">Path from ${esc(nodeById.get(p.from).name)} (${p.steps.length} steps)
+  return `<div class="p-section"><div class="p-label">Path from ${esc(fromTxt)} (${p.steps.length} steps)
     <button class="p-clear" id="btnClearPath" title="Clear path">✕</button></div>${rows}
     <div class="p-hint">Gold trail = the shortest material route. Esc also clears.</div></div>`;
 }
@@ -868,7 +919,10 @@ cy.on('tap', 'node', (evt) => {
   const id = evt.target.id();
   closeSuggestions();
   const oe = evt.originalEvent || {};
-  if (pathArming && pathFrom && id !== pathFrom) { runPath(pathFrom, id); return; }
+  if (pathArming) {
+    if (pathOwnedMode) { if (!owned.has(id)) { runPathOwned(id); return; } }
+    else if (pathFrom && id !== pathFrom) { runPath(pathFrom, id); return; }
+  }
   if (oe.shiftKey) { isolateTree(id); return; }
   selectNode(id);
 });
@@ -950,27 +1004,37 @@ function renderPanelBody(n) {
   const sections = [];
 
   // "From nothing" plan — the atlas' core question; shown for items and raw
-  // resources alike (raw items get the Path-to query instead of a plan)
+  // resources alike (raw items get the Path-to query instead of a plan).
+  // PF-3: with the ledger populated, plans can start from what you own.
   const plan = n.kind === 'skill' || n.kind === 'spell' ? null : planFromNothing(id);
+  const ownedModeOn = plan && plan.useOwned;
+  const planTitle = ownedModeOn ? 'From what you own — remaining' : 'From nothing — what you need';
+  const planBtns = `<button class="p-clear gold" id="btnPathTo" title="Find the shortest material path from another item to this one">Path to…</button>${
+    owned.size ? `<button class="p-clear" id="btnPlanMode" title="Toggle plans between “from nothing” and “starting from your owned items”">${ownedModeOn ? 'plan: owned' : 'plan: nothing'}</button>` : ''}`;
   if (plan) {
     const matChips = [...plan.mats.entries()].sort((a, b) => b[1] - a[1]).map(([m, q]) =>
       `<span class="mat" data-goto="${esc(m)}">${iconImg(m)}<span class="q">${q}×</span><span class="mn">${esc(m)}</span></span>`).join('');
+    const haveChips = plan.useOwned && plan.have.size ? [...plan.have.entries()].sort((a, b) => b[1] - a[1]).map(([m, q]) =>
+      `<span class="mat owned" data-goto="${esc(m)}">${iconImg(m)}<span class="q">${q}×</span><span class="mn">${esc(m)}</span></span>`).join('') : '';
     const stChips = [...plan.stations].map(s =>
-      `<span class="mat" data-goto="${esc(s)}">${iconImg(s)}<span class="mn">${esc(s)}</span></span>`).join('');
+      `<span class="mat${owned.has(s) ? ' owned' : ''}" data-goto="${esc(s)}">${iconImg(s)}<span class="mn">${esc(s)}</span></span>`).join('');
     const skChips = [...plan.skillLv.entries()].map(([s, lv]) =>
       `<span class="mat sk" data-goto="${esc(s)}">${skillIcon(s)}<span class="mn">${esc(s)} ${lv}</span></span>`).join('');
     const chainHTML = plan.chain.filter(Boolean).map((c, i) =>
-      `${i ? '<span class="arr">→</span>' : ''}<span class="mat" data-goto="${esc(c)}">${iconImg(c)}<span class="mn">${esc(c)}</span></span>`).join('');
-    sections.push(`<div class="p-section plan">
-      <div class="p-label">From nothing — what you need<button class="p-clear gold" id="btnPathTo" title="Find the shortest material path from another item to this one">Path to…</button></div>
+      `${i ? '<span class="arr">→</span>' : ''}<span class="mat${owned.has(c) ? ' owned' : ''}" data-goto="${esc(c)}">${iconImg(c)}<span class="mn">${esc(c)}</span></span>`).join('');
+    sections.push(`<div class="p-section plan${ownedModeOn ? ' owned-mode' : ''}">
+      <div class="p-label">${planTitle}<span style="flex:1"></span>${planBtns}</div>
+      ${plan.allOwned ? '<div class="p-hint" style="margin-bottom:6px">✓ You can make this from your ledger — nothing left to gather.</div>' : ''}
       ${matChips ? `<div class="p-label sub">Gather</div><div class="recipe-mats">${matChips}</div>` : ''}
-      ${stChips ? `<div class="p-label sub">Build</div><div class="recipe-mats">${stChips}</div>` : ''}
+      ${haveChips ? `<div class="p-label sub">Already own</div><div class="recipe-mats">${haveChips}</div>` : ''}
+      ${stChips ? `<div class="p-label sub">Build${ownedModeOn && plan.stations.size && [...plan.stations].every(s => owned.has(s)) ? ' — have them all' : ''}</div><div class="recipe-mats">${stChips}</div>` : ''}
       ${skChips ? `<div class="p-label sub">Train</div><div class="recipe-mats">${skChips}</div>` : ''}
       ${chainHTML ? `<div class="p-label sub">Critical chain (${plan.depth} steps)</div><div class="recipe-mats">${chainHTML}</div>` : ''}
     </div>`);
   } else if (n.kind !== 'skill' && n.kind !== 'spell') {
     sections.push(`<div class="p-section plan">
-      <div class="p-label">From nothing<button class="p-clear gold" id="btnPathTo" title="Find the shortest material path from another item to this one">Path to…</button></div>
+      <div class="p-label">From nothing<span style="flex:1"></span>${planBtns}</div>
+      ${owned.size && !owned.has(id) ? `<div class="p-hint" style="margin-bottom:6px"><button class="p-clear gold" id="btnPathOwned" title="Find the shortest crafting route starting from anything in your ledger">From owned → this</button> finds a route from your ${owned.size} owned item${owned.size > 1 ? 's' : ''}.</div>` : ''}
       <div class="p-hint">Raw or gathered item — nothing to craft. Use “Path to…” to find the shortest route from this item to any other.</div>
     </div>`);
   }
@@ -1074,6 +1138,15 @@ function renderPanelBody(n) {
   if (bt) bt.onclick = () => traceInputs(id);
   const bpt = document.getElementById('btnPathTo');
   if (bpt) bpt.onclick = () => armPath(id);
+  const bpm = document.getElementById('btnPlanMode');
+  if (bpm) bpm.onclick = () => {
+    planUseOwned = !planUseOwned;
+    localStorage.setItem('dw.planUseOwned', planUseOwned ? '1' : '0');
+    renderPanelBody(n);
+    toast(planUseOwned ? `Plan now starts from your ${owned.size} owned item${owned.size > 1 ? 's' : ''}` : 'Plan starts from nothing');
+  };
+  const bpo = document.getElementById('btnPathOwned');
+  if (bpo) bpo.onclick = () => armPathOwned();
   const bcp = document.getElementById('btnClearPath');
   if (bcp) bcp.onclick = () => { clearPath(); renderPanelBody(n); };
   const bi = document.getElementById('btnIsolate');
@@ -1208,7 +1281,10 @@ searchInput.addEventListener('input', () => {
       closeSuggestions();
       searchInput.value = n.name;
       searchClear.style.display = 'block';
-      if (pathArming && pathFrom && n.id !== pathFrom) { runPath(pathFrom, n.id); searchInput.blur(); return; }
+      if (pathArming) {
+        if (pathOwnedMode) { if (!owned.has(n.id)) { runPathOwned(n.id); searchInput.blur(); return; } }
+        else if (pathFrom && n.id !== pathFrom) { runPath(pathFrom, n.id); searchInput.blur(); return; }
+      }
       selectNode(n.id);
     };
   });
@@ -1223,7 +1299,10 @@ searchInput.addEventListener('keydown', (e) => {
     const pick = sugItems[Math.max(0, sugIndex)];
     if (pick) {
       closeSuggestions();
-      if (pathArming && pathFrom && pick.id !== pathFrom) { runPath(pathFrom, pick.id); searchInput.blur(); return; }
+      if (pathArming) {
+        if (pathOwnedMode) { if (!owned.has(pick.id)) { runPathOwned(pick.id); searchInput.blur(); return; } }
+        else if (pathFrom && pick.id !== pathFrom) { runPath(pathFrom, pick.id); searchInput.blur(); return; }
+      }
       selectNode(pick.id);
       searchInput.blur();
     }

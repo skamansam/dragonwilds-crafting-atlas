@@ -73,10 +73,12 @@ this thing from what I have now?"** first; browsing second. Three deliverables:
   runs BFS over material edges (skill gates excluded), highlights the gold trail and lists
   numbered steps with facilities. Esc clears. Verified Ash Logs → Iron Sword (3 steps) and
   Copper Ore → Iron Sword via search pick (4 steps).
-- **PF-3 · Possessions-aware path (future)** — when the possessions ledger lands, paths start
-  from what you actually have (multi-source shortest path from owned items) instead of "nothing".
-  The PF-1/PF-2 data structures (precomputed `recipesByOut`, BFS adjacency) are built to be
-  reusable for this.
+- **PF-3 · Possessions-aware plans & paths** — ✅ done 2026-09-22: plans ("From nothing")
+  respect the ledger when **plan: owned** is active — owned materials move to an **Already
+  own** bucket, their branches stop expanding, and the Critical chain truncates at the first
+  owned anchor. Paths gain **From owned → this** (raw + crafted panels, hidden if the target
+  is itself owned): multi-source BFS seeded with everything in the ledger finds the shortest
+  route **from anything you hold**. Arming works from map taps and search picks alike.
 
 ### P1.5 — layout performance & presets (TODO #15, #16, #17)
 
@@ -145,5 +147,6 @@ this thing from what I have now?"** first; browsing second. Three deliverables:
 | 2026-09-22 | `a615a74` | 10 more layouts (tidytree, fcose, spread, d3-force, avsdf, klay, elk mrtree/radial) + probe battery upgrades |
 | 2026-09-22 | `9beacd4` | README purpose statement; PF-1 "From nothing" plan + PF-2 two-node path query (PLAN P0 pathfinding) |
 | 2026-09-22 | `543d983` | Path-to via search pick; breadthfirst restored to dropdown; no-op layout detector; full 23-layout battery pass |
-| 2026-09-22 | (this commit) | PLAN.md resync with TODO.md (items 15–19 added; statuses corrected) |
-| 2026-09-22 | (this commit) | README full feature tour; in-app help modal (?, header button; Esc/backdrop close) |
+| 2026-09-22 | `bf1f194` | PLAN.md resync with TODO.md (items 15–19 added; statuses corrected) |
+| 2026-09-22 | `13a2843` | README full feature tour; in-app help modal (?, header button; Esc/backdrop close) |
+| 2026-09-22 | (this commit) | PF-3: plans & paths from owned items (have/need split, chain truncation, multi-source "From owned" path) |
