@@ -807,6 +807,25 @@ function planFromNothing(id) {
 // from your possessions to the target. Kahn topological order over the needed
 // items (inputs before outputs; gathers float to the top), with un-owned
 // stations injected as "build" steps ahead of the crafts that use them.
+// Per-target progress for the waypoint checklist (persisted): remembers the
+// first step count seen for a target and how many check-off/uncheck/re-plan
+// cycles happened since. `wpReset(id)` clears it.
+function wpRecord(id) {
+  const all = JSON.parse(localStorage.getItem('dw.wpProgress') || '{}');
+  if (!all[id]) all[id] = { total: null, done: 0, replans: 0 };
+  return all[id];
+}
+function wpSave(id, rec) {
+  const all = JSON.parse(localStorage.getItem('dw.wpProgress') || '{}');
+  all[id] = rec;
+  localStorage.setItem('dw.wpProgress', JSON.stringify(all));
+}
+function wpReset(id) {
+  const all = JSON.parse(localStorage.getItem('dw.wpProgress') || '{}');
+  delete all[id];
+  localStorage.setItem('dw.wpProgress', JSON.stringify(all));
+}
+
 function planChecklist(id) {
   const useOwned = planMode !== 'nothing' && owned.size > 0;
   const w = walkPlan(id, useOwned);
@@ -1081,13 +1100,19 @@ function renderPanelBody(n) {
     owned.size ? `<button class="p-clear" id="btnPlanMode" title="Cycle plans: from nothing → from your owned items → waypoint checklist (check steps off as you craft them)">${modeBtnLabel}</button>` : ''}`;
   if (plan) {
     if (wp && wp.steps.length) {
+      // progress record: remember the original step count, count re-plans
+      const rec = wpRecord(id);
+      if (rec.total === null) { rec.total = wp.steps.length; wpSave(id, rec); }
+      const done = Math.max(0, rec.total - wp.steps.length);
       const stepRows = wp.steps.map(s => {
         const verb = s.kind === 'gather' ? 'Gather' : s.kind === 'build' ? 'Build' : 'Craft';
         const fac = s.kind === 'craft' && s.facility ? ` — ${s.facility}` : '';
         return `<div class="wp-step" data-step="${esc(s.name)}"><span class="wp-box" title="Mark ${esc(s.name)} owned"></span>${iconImg(s.name)}<span class="wp-verb">${verb}</span><span class="wp-qty">${s.qty}×</span><span class="mn" data-goto="${esc(s.name)}">${esc(s.name)}</span><span class="wp-fac">${esc(fac)}</span></div>`;
       }).join('');
+      const progress = `<div class="wp-progress"><span class="wp-count"><b>${done}</b> of <b>${rec.total}</b> steps done</span><span class="wp-replans" title="How many times the checklist re-planned (check-offs, ledger edits)">· ${rec.replans} re-plan${rec.replans === 1 ? '' : 's'}</span><span style="flex:1"></span><button class="p-clear" id="btnWpReset" title="Clear the progress record for this item (does not unmark owned items)">reset</button></div>`;
       sections.push(`<div class="p-section plan owned-mode waypoint">
         <div class="p-label">${planTitle}<span style="flex:1"></span>${planBtns}</div>
+        ${progress}
         <div class="p-hint" style="margin-bottom:6px">Work top to bottom. Checking a step adds it to your ledger and re-plans from what you'll own.</div>
         <div class="wp-list">${stepRows}</div>
       </div>`);
@@ -1235,13 +1260,20 @@ function renderPanelBody(n) {
   panelBody.querySelectorAll('.wp-box').forEach(box => {
     box.onclick = () => {
       const name = box.closest('.wp-step').dataset.step;
-      if (owned.has(name)) owned.delete(name); else owned.add(name);
+      const wasOwned = owned.has(name);
+      if (wasOwned) owned.delete(name); else owned.add(name);
       persistOwned();
       applyPossessions();
+      const rec = wpRecord(id);
+      rec.replans++;
+      if (!wasOwned) rec.done++;
+      wpSave(id, rec);
       renderPanelBody(n);
-      toast(owned.has(name) ? `Marked owned: ${name}` : `Unmarked: ${name}`);
+      toast(wasOwned ? `Unmarked: ${name}` : `Marked owned: ${name}`);
     };
   });
+  const bwr = document.getElementById('btnWpReset');
+  if (bwr) bwr.onclick = () => { wpReset(id); renderPanelBody(n); toast('Waypoint progress reset'); };
   const bcp = document.getElementById('btnClearPath');
   if (bcp) bcp.onclick = () => { clearPath(); renderPanelBody(n); };
   const bi = document.getElementById('btnIsolate');

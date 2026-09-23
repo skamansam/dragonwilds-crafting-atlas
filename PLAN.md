@@ -87,6 +87,11 @@ this thing from what I have now?"** first; browsing second. Three deliverables:
   before their first use. Checking a step adds the item to the ledger and re-plans; uncheck
   to revert. Planner refactored into shared `walkPlan()` (also collects per-item craft /
   gather quantities) + `planFromNothing()` + `planChecklist()`.
+- **PF-4b · Waypoint progress header** — ✅ done 2026-09-23: per-target progress record
+  (`dw.wpProgress`, persisted): *X of N steps done · R re-plans* with a **reset** button.
+  `total` is the first step count seen for the target, `done` = total − current steps,
+  `replans` counts check-off/uncheck/re-plan cycles; reset deletes the record and
+  re-baselines. Probe-verified (render, check-off increment, reset, cleanup hardened).
 
 ### P1.5 — layout performance & presets (TODO #15, #16, #17)
 
@@ -161,4 +166,5 @@ this thing from what I have now?"** first; browsing second. Three deliverables:
 | 2026-09-23 | `55e1032` | PF-4 waypoint checklist: 3-state plan mode, ordered checkable steps, check-off → ledger; PF-3 verified on production |
 | 2026-09-23 | `50e67c6` | biome config; canonical site/data.json export (strict JSON from DW_DATA) |
 | 2026-09-23 | `33c2fab` | `scripts/build-cyjs.mjs` → site/data.cyjs: Cytoscape Desktop-importable network (all metadata as table columns, layered seed layout) |
-| 2026-09-23 | (this commit) | Exporter → `build-exports.mjs`: adds data.graphml (typed GraphML) + atlas-style.xml (vizmap style: node kind → fill/shape, edge interaction → stroke/dash/width) |
+| 2026-09-23 | `e79a1e1` | Exporter → `build-exports.mjs`: adds data.graphml (typed GraphML) + atlas-style.xml (vizmap style: node kind → fill/shape, edge interaction → stroke/dash/width) |
+| 2026-09-23 | (this commit) | PF-4b waypoint progress header (X of N done · re-plans · reset, persisted per item) |

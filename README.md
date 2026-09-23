@@ -89,7 +89,9 @@ Everything below is also available **in the app** — press the **?** button in 
   the remaining work becomes an **ordered, checkable list** from your ledger to the target —
   Gather → Build → Craft, in dependency order (inputs before outputs, un-owned stations
   injected before their first use). Check a step off as you craft it: the item joins your
-  ledger, the list re-plans, and the next step becomes available.
+  ledger, the list re-plans, and the next step becomes available. A **progress header**
+  tracks the run — *X of N steps done · R re-plans* — persisted per item (it survives
+  reloads), with a **reset** button that re-baselines to your current ledger.
 - **Path from owned** (PF-3): raw and crafted panels alike get a **From owned → this** button
   (shown when you own at least one item and don't already own the selection). It arms a
   multi-source path query seeded with *everything* in your ledger, so the route shown is the

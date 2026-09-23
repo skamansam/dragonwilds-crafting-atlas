@@ -136,7 +136,10 @@ if (!only || only === 'pf3') {
       name: r.querySelector('.mn')?.textContent,
       fac: r.querySelector('.wp-fac')?.textContent,
     }));
-    return { title: el.querySelector('.p-label').innerText.split('\n')[0], n: steps.length, steps: steps.slice(0, 10), modeBtn: document.getElementById('btnPlanMode').textContent };
+    const prog = el.querySelector('.wp-progress');
+    return { title: el.querySelector('.p-label').innerText.split('\n')[0], n: steps.length, steps: steps.slice(0, 6), modeBtn: document.getElementById('btnPlanMode').textContent,
+      progress: prog ? prog.querySelector('.wp-count')?.textContent.replace(/\s+/g, ' ').trim() : null,
+      replans: prog ? prog.querySelector('.wp-replans')?.textContent.trim() : null };
   });
   console.log('PF-4 waypoint checklist:', JSON.stringify(wp, null, 1));
   await page.screenshot({ path: 'cache/shots2/pf4-waypoint.png' });
@@ -148,8 +151,30 @@ if (!only || only === 'pf3') {
     owned: (JSON.parse(localStorage.getItem('dw.owned') || '[]')).length,
     firstStepName: document.querySelector('.wp-step .mn')?.textContent,
     stillWaypoint: !!document.querySelector('.p-section.plan.waypoint'),
+    progress: document.querySelector('.wp-progress .wp-count')?.textContent.replace(/\s+/g, ' ').trim(),
+    replans: document.querySelector('.wp-progress .wp-replans')?.textContent.trim(),
   }));
   console.log('PF-4 check-off:', JSON.stringify({ before, after }));
+  // progress survives reload
+  await page.reload({ waitUntil: 'commit' });
+  await page.waitForFunction(() => window.__cy && window.__cy.nodes().length > 0, null, { timeout: 90000, polling: 500 });
+  await page.waitForTimeout(1200);
+  await page.evaluate(() => { window.__cy.getElementById('Iron Sword').emit('tap', {}); });
+  await page.waitForTimeout(700);
+  const persisted = await page.evaluate(() => ({
+    progress: document.querySelector('.wp-progress .wp-count')?.textContent.replace(/\s+/g, ' ').trim(),
+    replans: document.querySelector('.wp-progress .wp-replans')?.textContent.trim(),
+  }));
+  console.log('PF-4 progress after reload:', JSON.stringify(persisted));
+  // reset clears the record
+  await page.evaluate(() => document.getElementById('btnWpReset').click());
+  await page.waitForTimeout(400);
+  const reset = await page.evaluate(() => ({
+    progress: document.querySelector('.wp-progress .wp-count')?.textContent.replace(/\s+/g, ' ').trim(),
+    replans: document.querySelector('.wp-progress .wp-replans')?.textContent.trim(),
+    stored: localStorage.getItem('dw.wpProgress'),
+  }));
+  console.log('PF-4 progress after reset:', JSON.stringify(reset));
   // uncheck to restore, then cycle waypoint -> nothing
   await page.evaluate(() => document.querySelector('.wp-step .wp-box').click());
   await page.waitForTimeout(300);
@@ -180,8 +205,12 @@ if (!only || only === 'pf3') {
   await page.screenshot({ path: 'cache/shots2/pf3-path.png' });
   await page.keyboard.press('Escape');
   await page.waitForTimeout(300);
-  // cleanup ledger so other sections are unaffected
-  await page.evaluate(() => localStorage.removeItem('dw.owned'));
+  // cleanup ledger + plan mode so other sections are unaffected
+  await page.evaluate(() => {
+    localStorage.removeItem('dw.owned');
+    localStorage.removeItem('dw.planMode');
+    localStorage.removeItem('dw.wpProgress');
+  });
 }
 if (!only || only === 'pf') {
   await switchTo('cose-bilkent');

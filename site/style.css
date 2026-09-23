@@ -540,6 +540,15 @@ body.path-arming #panelBody { pointer-events: none; }
 .recipe-out b { color: var(--ink); }
 
 /* waypoint checklist (PF-4) */
+.wp-progress {
+  display: flex; align-items: center; gap: 6px;
+  margin-top: 5px; padding: 4px 8px;
+  background: var(--bg2); border: 1px solid rgba(255, 255, 255, 0.07); border-radius: 8px;
+  font-size: 11.5px; color: var(--muted);
+}
+.wp-progress .wp-count b { color: var(--gold-bright); font-weight: 800; }
+.wp-progress .wp-replans { color: var(--faint); }
+.wp-progress .p-clear { font-size: 10.5px; padding: 1px 6px; }
 .wp-list { display: flex; flex-direction: column; gap: 4px; margin-top: 6px; }
 .wp-step {
   display: flex; align-items: center; gap: 7px;
