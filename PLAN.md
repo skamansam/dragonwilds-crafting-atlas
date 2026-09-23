@@ -160,4 +160,5 @@ this thing from what I have now?"** first; browsing second. Three deliverables:
 | 2026-09-22 | `56b0c54` | PF-3: plans & paths from owned items (have/need split, chain truncation, multi-source "From owned" path) |
 | 2026-09-23 | `55e1032` | PF-4 waypoint checklist: 3-state plan mode, ordered checkable steps, check-off → ledger; PF-3 verified on production |
 | 2026-09-23 | `50e67c6` | biome config; canonical site/data.json export (strict JSON from DW_DATA) |
-| 2026-09-23 | (this commit) | `scripts/build-cyjs.mjs` → site/data.cyjs: Cytoscape Desktop-importable network (all metadata as table columns, layered seed layout) |
+| 2026-09-23 | `33c2fab` | `scripts/build-cyjs.mjs` → site/data.cyjs: Cytoscape Desktop-importable network (all metadata as table columns, layered seed layout) |
+| 2026-09-23 | (this commit) | Exporter → `build-exports.mjs`: adds data.graphml (typed GraphML) + atlas-style.xml (vizmap style: node kind → fill/shape, edge interaction → stroke/dash/width) |

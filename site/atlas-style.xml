@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<vizmap id="DragonwildsAtlas-VizMap" documentVersion="3.0">
+    <visualStyle name="Dragonwilds Atlas">
+        <network>
+            <visualProperty default="#0a0c11" name="NETWORK_BACKGROUND_PAINT"/>
+            <visualProperty default="true" name="NETWORK_NODE_SELECTION"/>
+            <visualProperty default="true" name="NETWORK_EDGE_SELECTION"/>
+        </network>
+        <node>
+            <dependency value="true" name="nodeSizeLocked"/>
+                            <visualProperty default="#a49d8c" name="NODE_FILL_COLOR">
+                <discreteMapping attributeName="kind" attributeType="string">
+                    <discreteMappingEntry attributeValue="resource" value="#8fbf6a"/>
+                    <discreteMappingEntry attributeValue="material" value="#e2b95c"/>
+                    <discreteMappingEntry attributeValue="station" value="#7fa7c9"/>
+                    <discreteMappingEntry attributeValue="weapon" value="#d96a5f"/>
+                    <discreteMappingEntry attributeValue="armour" value="#c98f6a"/>
+                    <discreteMappingEntry attributeValue="tool" value="#c9b47f"/>
+                    <discreteMappingEntry attributeValue="ammo" value="#b0a08a"/>
+                    <discreteMappingEntry attributeValue="trinket" value="#d9b3e2"/>
+                    <discreteMappingEntry attributeValue="food" value="#a8c97f"/>
+                    <discreteMappingEntry attributeValue="drink" value="#9fc9c4"/>
+                    <discreteMappingEntry attributeValue="potion" value="#c96fa8"/>
+                    <discreteMappingEntry attributeValue="spell" value="#8f9fd9"/>
+                    <discreteMappingEntry attributeValue="skill" value="#f7dd9a"/>
+                    <discreteMappingEntry attributeValue="implicit" value="#6d6a5e"/>
+                    <discreteMappingEntry attributeValue="other" value="#a49d8c"/>
+                </discreteMapping>
+            </visualProperty>
+                            <visualProperty default="ELLIPSE" name="NODE_SHAPE">
+                <discreteMapping attributeName="kind" attributeType="string">
+                    <discreteMappingEntry attributeValue="resource" value="ELLIPSE"/>
+                    <discreteMappingEntry attributeValue="material" value="ELLIPSE"/>
+                    <discreteMappingEntry attributeValue="station" value="ROUND_RECTANGLE"/>
+                    <discreteMappingEntry attributeValue="weapon" value="RECTANGLE"/>
+                    <discreteMappingEntry attributeValue="armour" value="RECTANGLE"/>
+                    <discreteMappingEntry attributeValue="tool" value="RECTANGLE"/>
+                    <discreteMappingEntry attributeValue="ammo" value="RECTANGLE"/>
+                    <discreteMappingEntry attributeValue="trinket" value="DIAMOND"/>
+                    <discreteMappingEntry attributeValue="food" value="ELLIPSE"/>
+                    <discreteMappingEntry attributeValue="drink" value="ELLIPSE"/>
+                    <discreteMappingEntry attributeValue="potion" value="ELLIPSE"/>
+                    <discreteMappingEntry attributeValue="spell" value="HEXAGON"/>
+                    <discreteMappingEntry attributeValue="skill" value="OCTAGON"/>
+                    <discreteMappingEntry attributeValue="implicit" value="ELLIPSE"/>
+                    <discreteMappingEntry attributeValue="other" value="ELLIPSE"/>
+                </discreteMapping>
+            </visualProperty>
+                            <visualProperty default="#0a0c11" name="NODE_BORDER_PAINT">
+                <discreteMapping attributeName="kind" attributeType="string">
+                    <discreteMappingEntry attributeValue="resource" value="#0f1219"/>
+                    <discreteMappingEntry attributeValue="material" value="#0f1219"/>
+                    <discreteMappingEntry attributeValue="station" value="#0f1219"/>
+                    <discreteMappingEntry attributeValue="weapon" value="#0f1219"/>
+                    <discreteMappingEntry attributeValue="armour" value="#0f1219"/>
+                    <discreteMappingEntry attributeValue="tool" value="#0f1219"/>
+                    <discreteMappingEntry attributeValue="ammo" value="#0f1219"/>
+                    <discreteMappingEntry attributeValue="trinket" value="#0f1219"/>
+                    <discreteMappingEntry attributeValue="food" value="#0f1219"/>
+                    <discreteMappingEntry attributeValue="drink" value="#0f1219"/>
+                    <discreteMappingEntry attributeValue="potion" value="#0f1219"/>
+                    <discreteMappingEntry attributeValue="spell" value="#0f1219"/>
+                    <discreteMappingEntry attributeValue="skill" value="#0f1219"/>
+                    <discreteMappingEntry attributeValue="implicit" value="#0f1219"/>
+                    <discreteMappingEntry attributeValue="other" value="#0f1219"/>
+                </discreteMapping>
+            </visualProperty>
+                            <visualProperty default="2.0" name="NODE_BORDER_WIDTH"></visualProperty>
+                            <visualProperty default="42.0" name="NODE_WIDTH"></visualProperty>
+                            <visualProperty default="42.0" name="NODE_HEIGHT"></visualProperty>
+                            <visualProperty default="#e9e4d6" name="NODE_LABEL_COLOR"></visualProperty>
+                            <visualProperty default="11" name="NODE_LABEL_FONT_SIZE"></visualProperty>
+                            <visualProperty default="C,C,c,0.00,0.00" name="NODE_LABEL_POSITION"></visualProperty>
+                            <visualProperty default="220" name="NODE_LABEL_TRANSPARENCY"></visualProperty>
+                            <visualProperty default="235" name="NODE_TRANSPARENCY"></visualProperty>
+                            <visualProperty default="" name="NODE_LABEL">
+                <passthroughMapping attributeName="name" attributeType="string"/>
+            </visualProperty>
+        </node>
+        <edge>
+                            <visualProperty default="#c9a24a" name="EDGE_STROKE_UNSELECTED_PAINT">
+                <discreteMapping attributeName="interaction" attributeType="string">
+                    <discreteMappingEntry attributeValue="craft" value="#c9a24a"/>
+                    <discreteMappingEntry attributeValue="spell" value="#8f9fd9"/>
+                    <discreteMappingEntry attributeValue="skill-gate" value="#6d6a5e"/>
+                </discreteMapping>
+            </visualProperty>
+                            <visualProperty default="#c9a24a" name="EDGE_TARGET_ARROW_UNSELECTED_PAINT">
+                <discreteMapping attributeName="interaction" attributeType="string">
+                    <discreteMappingEntry attributeValue="craft" value="#c9a24a"/>
+                    <discreteMappingEntry attributeValue="spell" value="#8f9fd9"/>
+                    <discreteMappingEntry attributeValue="skill-gate" value="#6d6a5e"/>
+                </discreteMapping>
+            </visualProperty>
+                            <visualProperty default="ARROW" name="EDGE_TARGET_ARROW_SHAPE">
+                <discreteMapping attributeName="interaction" attributeType="string">
+                    <discreteMappingEntry attributeValue="craft" value="ARROW"/>
+                    <discreteMappingEntry attributeValue="spell" value="ARROW"/>
+                    <discreteMappingEntry attributeValue="skill-gate" value="DELTA"/>
+                </discreteMapping>
+            </visualProperty>
+                            <visualProperty default="SOLID" name="EDGE_LINE_TYPE">
+                <discreteMapping attributeName="interaction" attributeType="string">
+                    <discreteMappingEntry attributeValue="craft" value="SOLID"/>
+                    <discreteMappingEntry attributeValue="spell" value="LONG_DASH"/>
+                    <discreteMappingEntry attributeValue="skill-gate" value="DASH"/>
+                </discreteMapping>
+            </visualProperty>
+                            <visualProperty default="2.0" name="EDGE_WIDTH">
+                <discreteMapping attributeName="interaction" attributeType="string">
+                    <discreteMappingEntry attributeValue="craft" value="2"/>
+                    <discreteMappingEntry attributeValue="spell" value="1.6"/>
+                    <discreteMappingEntry attributeValue="skill-gate" value="1.2"/>
+                </discreteMapping>
+            </visualProperty>
+                            <visualProperty default="170" name="EDGE_TRANSPARENCY"></visualProperty>
+        </edge>
+    </visualStyle>
+</vizmap>
