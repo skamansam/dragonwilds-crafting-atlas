@@ -79,6 +79,14 @@ this thing from what I have now?"** first; browsing second. Three deliverables:
   owned anchor. Paths gain **From owned → this** (raw + crafted panels, hidden if the target
   is itself owned): multi-source BFS seeded with everything in the ledger finds the shortest
   route **from anything you hold**. Arming works from map taps and search picks alike.
+  Verified on the deployed site via `probe-live.mjs pf3 --url=…`.
+- **PF-4 · Waypoint checklist** — ✅ done 2026-09-22: the plan button cycles **nothing →
+  owned → waypoint** (persisted). Waypoint mode renders the remaining work as an ordered,
+  checkable list from the ledger to the target: Kahn topological order over needed items
+  (gathers first, inputs before outputs) with un-owned stations injected as Build steps
+  before their first use. Checking a step adds the item to the ledger and re-plans; uncheck
+  to revert. Planner refactored into shared `walkPlan()` (also collects per-item craft /
+  gather quantities) + `planFromNothing()` + `planChecklist()`.
 
 ### P1.5 — layout performance & presets (TODO #15, #16, #17)
 
@@ -143,10 +151,11 @@ this thing from what I have now?"** first; browsing second. Three deliverables:
 | 2026-09-22 | `be0b101` | PLAN.md status board |
 | 2026-09-22 | `c11553a` / `90ce587` | Layout-switch fix, isolate depth control, compliance P0 texts (tickets 01–04) |
 | 2026-09-22 | `23d3c22` | Probe supports external `--url`; production verified |
-| 2026-09-22 | (this commit) | P1/P2 hygiene: etiquette config, LICENSE split, COMPLIANCE.md, honest deep-link audit (tickets 05, 06, 08, 09, 12) |
+| 2026-09-22 | (this commit) | P1/P2 hygiene: etiquette config, LICENSE split, COMPLIANCE.md, honest deep-link audit (tickets 05, 06, 08, 09, 12) · see `git log` for hash |
 | 2026-09-22 | `a615a74` | 10 more layouts (tidytree, fcose, spread, d3-force, avsdf, klay, elk mrtree/radial) + probe battery upgrades |
 | 2026-09-22 | `9beacd4` | README purpose statement; PF-1 "From nothing" plan + PF-2 two-node path query (PLAN P0 pathfinding) |
 | 2026-09-22 | `543d983` | Path-to via search pick; breadthfirst restored to dropdown; no-op layout detector; full 23-layout battery pass |
 | 2026-09-22 | `bf1f194` | PLAN.md resync with TODO.md (items 15–19 added; statuses corrected) |
 | 2026-09-22 | `13a2843` | README full feature tour; in-app help modal (?, header button; Esc/backdrop close) |
-| 2026-09-22 | (this commit) | PF-3: plans & paths from owned items (have/need split, chain truncation, multi-source "From owned" path) |
+| 2026-09-22 | `56b0c54` | PF-3: plans & paths from owned items (have/need split, chain truncation, multi-source "From owned" path) |
+| 2026-09-22 | (this commit) | PF-4 waypoint checklist: 3-state plan mode, ordered checkable steps, check-off → ledger; PF-3 verified on production |

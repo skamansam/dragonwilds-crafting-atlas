@@ -60,6 +60,11 @@ Everything below is also available **in the app** — press the **?** button in 
   **plan: owned** toggle active, the "From nothing" section becomes **"From what you own —
   remaining"** — owned materials drop into an **Already own** bucket, their recipe branches
   stop expanding, and the Critical chain truncates at the first thing you already hold.
+- **Waypoint checklist** (PF-4): cycle the plan button one more step (**plan: waypoint**) and
+  the remaining work becomes an **ordered, checkable list** from your ledger to the target —
+  Gather → Build → Craft, in dependency order (inputs before outputs, un-owned stations
+  injected before their first use). Check a step off as you craft it: the item joins your
+  ledger, the list re-plans, and the next step becomes available.
 - **Path from owned** (PF-3): raw and crafted panels alike get a **From owned → this** button
   (shown when you own at least one item and don't already own the selection). It arms a
   multi-source path query seeded with *everything* in your ledger, so the route shown is the

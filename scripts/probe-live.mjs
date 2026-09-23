@@ -96,8 +96,8 @@ if (!only || only === 'isolate') {
   await page.screenshot({ path: 'cache/shots2/isolate-ironbar.png' });
 }
 if (!only || only === 'pf3') {
-  await switchTo('cose-bilkent');
-  await page.waitForTimeout(3500);
+  // NOTE: no pre-reload layout switch — reloading mid-layout crashes the
+  // renderer on constrained boxes and the app re-runs its default after boot.
   // seed the ledger: Iron Bar + Hard Leather owned
   await page.evaluate(() => {
     localStorage.setItem('dw.owned', JSON.stringify(['Iron Bar', 'Hard Leather']));
@@ -124,9 +124,37 @@ if (!only || only === 'pf3') {
   });
   console.log('PF-3 plan Iron Sword:', JSON.stringify(plan, null, 1));
   await page.screenshot({ path: 'cache/shots2/pf3-plan.png' });
-  // toggle back to "plan: nothing"
+  // 3-state cycle: owned -> waypoint -> nothing; verify the waypoint checklist
   await page.evaluate(() => document.getElementById('btnPlanMode').click());
   await page.waitForTimeout(500);
+  const wp = await page.evaluate(() => {
+    const el = document.querySelector('.p-section.plan.waypoint');
+    if (!el) return null;
+    const steps = [...el.querySelectorAll('.wp-step')].map(r => ({
+      verb: r.querySelector('.wp-verb')?.textContent,
+      qty: r.querySelector('.wp-qty')?.textContent,
+      name: r.querySelector('.mn')?.textContent,
+      fac: r.querySelector('.wp-fac')?.textContent,
+    }));
+    return { title: el.querySelector('.p-label').innerText.split('\n')[0], n: steps.length, steps: steps.slice(0, 10), modeBtn: document.getElementById('btnPlanMode').textContent };
+  });
+  console.log('PF-4 waypoint checklist:', JSON.stringify(wp, null, 1));
+  await page.screenshot({ path: 'cache/shots2/pf4-waypoint.png' });
+  // check off a step -> it should become owned and the checklist re-plan
+  const before = await page.evaluate(() => (JSON.parse(localStorage.getItem('dw.owned') || '[]')).length);
+  await page.evaluate(() => document.querySelector('.wp-step .wp-box').click());
+  await page.waitForTimeout(500);
+  const after = await page.evaluate(() => ({
+    owned: (JSON.parse(localStorage.getItem('dw.owned') || '[]')).length,
+    firstStepName: document.querySelector('.wp-step .mn')?.textContent,
+    stillWaypoint: !!document.querySelector('.p-section.plan.waypoint'),
+  }));
+  console.log('PF-4 check-off:', JSON.stringify({ before, after }));
+  // uncheck to restore, then cycle waypoint -> nothing
+  await page.evaluate(() => document.querySelector('.wp-step .wp-box').click());
+  await page.waitForTimeout(300);
+  await page.evaluate(() => document.getElementById('btnPlanMode').click());
+  await page.waitForTimeout(400);
   const reverted = await page.evaluate(() => ({
     haveChips: document.querySelectorAll('.p-section.plan .mat.owned').length,
     modeBtn: document.getElementById('btnPlanMode').textContent,

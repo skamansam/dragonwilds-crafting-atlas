@@ -714,21 +714,21 @@ const recipesByOut = (() => {
 })();
 
 // Walk the (primary) recipe tree of `id` down to raw materials, multiplying
-// quantities. Collects: leaf mats, stations needed, skills (+levels), and the
-// critical chain (longest run of prerequisite steps). When `planUseOwned` is on
-// and the possessions ledger has entries, owned items satisfy subtrees: their
-// quantities land in `have` instead of `mats`, and the chain stops at the first
-// owned anchor. Returns null for raw items (nothing to plan).
-let planUseOwned = localStorage.getItem('dw.planUseOwned') !== '0'; // off = classic "from nothing"
+// quantities. Collects: leaf mats, stations needed, skills (+levels), and — for
+// the waypoint checklist — every non-owned item on the remaining tree with its
+// craft/gather quantity. When plans start from the ledger (owned/waypoint
+// modes), owned items satisfy subtrees: their quantities land in `have` instead
+// of `mats`, and subtree expansion stops there.
+let planMode = localStorage.getItem('dw.planMode')
+  || (localStorage.getItem('dw.planUseOwned') !== '0' ? 'owned' : 'nothing'); // nothing | owned | waypoint
 
-function planFromNothing(id) {
+function walkPlan(id, useOwned) {
   const mats = new Map();       // material name -> qty still needed for one craft
   const have = new Map();       // material name -> qty already owned (owned mode)
   const stations = new Set();   // station names used anywhere up the tree
   const skillLv = new Map();    // skill name -> required level
+  const needed = new Map();     // item -> { qty, kind: 'gather'|'craft'|'build', facility?, skill? }
   const inPath = new Set();     // cycle guard
-  const useOwned = planUseOwned && owned.size > 0;
-  let rootOwned = false;
 
   const primary = x => {
     const rs = recipesByOut.get(x);
@@ -740,7 +740,12 @@ function planFromNothing(id) {
     if (useOwned && owned.has(x)) { have.set(x, (have.get(x) || 0) + mult); return 0; }
     if (inPath.has(x)) { mats.set(x, (mats.get(x) || 0) + mult); return 0; }
     const r = primary(x);
-    if (!r) { mats.set(x, (mats.get(x) || 0) + mult); return 0; }
+    if (!r) {
+      mats.set(x, (mats.get(x) || 0) + mult);
+      const n = needed.get(x);
+      needed.set(x, { qty: (n ? n.qty : 0) + mult, kind: 'gather' });
+      return 0;
+    }
     if (r.facility && nodeById.get(r.facility) && nodeById.get(r.facility).kind === 'station') stations.add(r.facility);
     if (r.skill) skillLv.set(r.skill, Math.max(skillLv.get(r.skill) || 1, 1));
     for (const g of (D.skillLevelForItem[x] || [])) skillLv.set(g.skill, Math.max(skillLv.get(g.skill) || 1, g.level || 1));
@@ -749,23 +754,33 @@ function planFromNothing(id) {
     let best = 0;
     for (const i of r.inputs) best = Math.max(best, visit(i.name, crafts * i.qty) + 1);
     inPath.delete(x);
+    const n = needed.get(x);
+    needed.set(x, { qty: (n ? n.qty : 0) + crafts, kind: 'craft', facility: r.facility || null, skill: r.skill || null });
     return best;
   };
 
   const depth = visit(id, 1);
-  rootOwned = useOwned && owned.has(id);
+  const rootOwned = useOwned && owned.has(id);
+  if (rootOwned) needed.delete(id);
+  return { mats, have, stations, skillLv, depth, rootOwned, needed, primary };
+}
+
+function planFromNothing(id) {
+  const useOwned = planMode !== 'nothing' && owned.size > 0;
+  const w = walkPlan(id, useOwned);
+  const { mats, have, depth, rootOwned } = w;
   // raw/gatherable root: it would just list itself as its own material — no plan
   // (unless you own it, in which case the plan is "done")
-  if (!primary(id) && !rootOwned) return null;
+  if (!w.primary(id) && !rootOwned) return null;
   if (!mats.size && !have.size && !rootOwned) return null;
   const allOwned = rootOwned || (!mats.size && have.size > 0);
 
   // critical chain: follow the input with the longest upstream depth, root -> leaf.
-  // With owned mode, the chain stops at the first owned anchor (that's where work resumes).
+  // With the ledger in play, the chain stops at the first owned anchor (that's where work resumes).
   function subDepth(x, seen) { // memo-free longest depth (primary-recipe trees are small)
     if (seen.has(x)) return 0;
     seen.add(x);
-    const r = primary(x);
+    const r = w.primary(x);
     if (!r) return 0;
     let m = 0;
     for (const i of r.inputs) m = Math.max(m, subDepth(i.name, seen) + 1);
@@ -776,7 +791,7 @@ function planFromNothing(id) {
   while (cur && guard++ < 64) {
     chain.push(cur);
     if (useOwned && owned.has(cur)) break; // owned anchor: progress starts here
-    const r = primary(cur);
+    const r = w.primary(cur);
     if (!r || !r.inputs.length) break;
     let bestD = -1, bestIn = null;
     for (const i of r.inputs) {
@@ -785,7 +800,57 @@ function planFromNothing(id) {
     }
     cur = bestIn;
   }
-  return { mats, have, stations, skillLv, chain, depth, allOwned, useOwned };
+  return { mats, have, stations: w.stations, skillLv: w.skillLv, chain, depth, allOwned, useOwned };
+}
+
+// Waypoint checklist (PF-4): the remaining work as an ordered, checkable list
+// from your possessions to the target. Kahn topological order over the needed
+// items (inputs before outputs; gathers float to the top), with un-owned
+// stations injected as "build" steps ahead of the crafts that use them.
+function planChecklist(id) {
+  const useOwned = planMode !== 'nothing' && owned.size > 0;
+  const w = walkPlan(id, useOwned);
+  if (w.rootOwned || !w.primary(id)) return { ...w, steps: [] };
+  const need = w.needed;
+  for (const [, info] of [...need]) { // inject un-owned stations (materials: see the station's panel)
+    if (info.kind !== 'craft' || !info.facility) continue;
+    const fNode = nodeById.get(info.facility);
+    if (!fNode || fNode.kind !== 'station' || owned.has(info.facility) || need.has(info.facility)) continue;
+    need.set(info.facility, { qty: 1, kind: 'build' });
+  }
+  const kindRank = k => (k === 'gather' ? 0 : 1);
+  const outs = new Map();   // prerequisite -> [dependents]
+  const indeg = new Map([...need.keys()].map(k => [k, 0]));
+  for (const [x, info] of need) {
+    if (info.kind !== 'craft') continue;
+    const r = w.primary(x);
+    for (const i of r.inputs) {
+      if (!need.has(i.name) || i.name === x) continue;
+      indeg.set(x, indeg.get(x) + 1);
+      if (!outs.has(i.name)) outs.set(i.name, []);
+      outs.get(i.name).push(x);
+    }
+    const f = info.facility;
+    if (need.has(f) && f !== x) { // station must exist before its first use
+      indeg.set(x, indeg.get(x) + 1);
+      if (!outs.has(f)) outs.set(f, []);
+      outs.get(f).push(x);
+    }
+  }
+  const byKind = (a, b) => kindRank(need.get(a).kind) - kindRank(need.get(b).kind) || a.localeCompare(b);
+  const ready = [...need.keys()].filter(k => indeg.get(k) === 0).sort(byKind);
+  const order = [];
+  while (ready.length) {
+    const x = ready.shift();
+    order.push(x);
+    for (const y of (outs.get(x) || [])) {
+      indeg.set(y, indeg.get(y) - 1);
+      if (indeg.get(y) === 0) ready.push(y);
+    }
+    ready.sort(byKind);
+  }
+  for (const k of [...need.keys()].sort()) if (!order.includes(k)) order.push(k); // cycle fallback
+  return { ...w, steps: order.map(name => ({ name, ...need.get(name) })) };
 }
 
 // --- path between nodes (BFS over material edges, skills excluded) ---
@@ -1006,12 +1071,27 @@ function renderPanelBody(n) {
   // "From nothing" plan — the atlas' core question; shown for items and raw
   // resources alike (raw items get the Path-to query instead of a plan).
   // PF-3: with the ledger populated, plans can start from what you own.
-  const plan = n.kind === 'skill' || n.kind === 'spell' ? null : planFromNothing(id);
+  const isSkillOrSpell = n.kind === 'skill' || n.kind === 'spell';
+  const plan = isSkillOrSpell ? null : planFromNothing(id);
+  const wp = !isSkillOrSpell && planMode === 'waypoint' && owned.size > 0 ? planChecklist(id) : null;
   const ownedModeOn = plan && plan.useOwned;
-  const planTitle = ownedModeOn ? 'From what you own — remaining' : 'From nothing — what you need';
+  const planTitle = wp ? 'Waypoint checklist' : ownedModeOn ? 'From what you own — remaining' : 'From nothing — what you need';
+  const modeBtnLabel = wp ? 'plan: waypoint' : ownedModeOn ? 'plan: owned' : 'plan: nothing';
   const planBtns = `<button class="p-clear gold" id="btnPathTo" title="Find the shortest material path from another item to this one">Path to…</button>${
-    owned.size ? `<button class="p-clear" id="btnPlanMode" title="Toggle plans between “from nothing” and “starting from your owned items”">${ownedModeOn ? 'plan: owned' : 'plan: nothing'}</button>` : ''}`;
+    owned.size ? `<button class="p-clear" id="btnPlanMode" title="Cycle plans: from nothing → from your owned items → waypoint checklist (check steps off as you craft them)">${modeBtnLabel}</button>` : ''}`;
   if (plan) {
+    if (wp && wp.steps.length) {
+      const stepRows = wp.steps.map(s => {
+        const verb = s.kind === 'gather' ? 'Gather' : s.kind === 'build' ? 'Build' : 'Craft';
+        const fac = s.kind === 'craft' && s.facility ? ` — ${s.facility}` : '';
+        return `<div class="wp-step" data-step="${esc(s.name)}"><span class="wp-box" title="Mark ${esc(s.name)} owned"></span>${iconImg(s.name)}<span class="wp-verb">${verb}</span><span class="wp-qty">${s.qty}×</span><span class="mn" data-goto="${esc(s.name)}">${esc(s.name)}</span><span class="wp-fac">${esc(fac)}</span></div>`;
+      }).join('');
+      sections.push(`<div class="p-section plan owned-mode waypoint">
+        <div class="p-label">${planTitle}<span style="flex:1"></span>${planBtns}</div>
+        <div class="p-hint" style="margin-bottom:6px">Work top to bottom. Checking a step adds it to your ledger and re-plans from what you'll own.</div>
+        <div class="wp-list">${stepRows}</div>
+      </div>`);
+    } else {
     const matChips = [...plan.mats.entries()].sort((a, b) => b[1] - a[1]).map(([m, q]) =>
       `<span class="mat" data-goto="${esc(m)}">${iconImg(m)}<span class="q">${q}×</span><span class="mn">${esc(m)}</span></span>`).join('');
     const haveChips = plan.useOwned && plan.have.size ? [...plan.have.entries()].sort((a, b) => b[1] - a[1]).map(([m, q]) =>
@@ -1031,6 +1111,7 @@ function renderPanelBody(n) {
       ${skChips ? `<div class="p-label sub">Train</div><div class="recipe-mats">${skChips}</div>` : ''}
       ${chainHTML ? `<div class="p-label sub">Critical chain (${plan.depth} steps)</div><div class="recipe-mats">${chainHTML}</div>` : ''}
     </div>`);
+    }
   } else if (n.kind !== 'skill' && n.kind !== 'spell') {
     sections.push(`<div class="p-section plan">
       <div class="p-label">From nothing<span style="flex:1"></span>${planBtns}</div>
@@ -1140,13 +1221,27 @@ function renderPanelBody(n) {
   if (bpt) bpt.onclick = () => armPath(id);
   const bpm = document.getElementById('btnPlanMode');
   if (bpm) bpm.onclick = () => {
-    planUseOwned = !planUseOwned;
-    localStorage.setItem('dw.planUseOwned', planUseOwned ? '1' : '0');
+    planMode = planMode === 'nothing' ? 'owned' : planMode === 'owned' ? 'waypoint' : 'nothing';
+    localStorage.setItem('dw.planMode', planMode);
     renderPanelBody(n);
-    toast(planUseOwned ? `Plan now starts from your ${owned.size} owned item${owned.size > 1 ? 's' : ''}` : 'Plan starts from nothing');
+    toast(planMode === 'owned'
+      ? `Plan starts from your ${owned.size} owned item${owned.size > 1 ? 's' : ''}`
+      : planMode === 'waypoint'
+        ? 'Waypoint checklist — check steps off as you craft them'
+        : 'Plan starts from nothing');
   };
   const bpo = document.getElementById('btnPathOwned');
   if (bpo) bpo.onclick = () => armPathOwned();
+  panelBody.querySelectorAll('.wp-box').forEach(box => {
+    box.onclick = () => {
+      const name = box.closest('.wp-step').dataset.step;
+      if (owned.has(name)) owned.delete(name); else owned.add(name);
+      persistOwned();
+      applyPossessions();
+      renderPanelBody(n);
+      toast(owned.has(name) ? `Marked owned: ${name}` : `Unmarked: ${name}`);
+    };
+  });
   const bcp = document.getElementById('btnClearPath');
   if (bcp) bcp.onclick = () => { clearPath(); renderPanelBody(n); };
   const bi = document.getElementById('btnIsolate');
