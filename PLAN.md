@@ -156,6 +156,7 @@ this thing from what I have now?"** first; browsing second. Three deliverables:
 | `node scripts/probe-live.mjs [section]` | Self-contained smoke probe (in-process server): layouts, isolate, force toggle; no external server needed |
 | `node scripts/test-todo.mjs` | Full TODO-fix regression suite (server on :8477 required) |
 | `node scripts/test-site.mjs` | Original site smoke test |
+| `python3` + networkx | GraphML round-trip: read `site/data.graphml`, verify counts/attrs/types/positions, write-back re-export (verified 3.7: 1,963/4,912, MultiDiGraph, interactions craft 3309 / spell 64 / skill-gate 1539, zero dangling) |
 | GitHub Actions | Deploys `site/` on every push to `main` — the live check |
 
 ## 6. Change log
