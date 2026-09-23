@@ -40,6 +40,16 @@ const PRESETS = {
     nodeSeparation: FORCE ? 120 : 170, idealEdgeLength: FORCE ? 110 : 170, nodeRepulsion: FORCE ? 22000 : 42000,
     numIter: 2500,
   },
+  // P3-1 companion: the calm boot variant — fixed spread spacing regardless of
+  // the force toggle, so the saved snapshot and the live preset always agree.
+  'elk-layered-wide': {
+    name: 'elk', animate: false, padding: 30,
+    elk: {
+      algorithm: 'layered', 'elk.direction': 'DOWN', 'elk.edgeRouting': 'ORTHOGONAL',
+      'elk.layered.spacing.nodeNodeBetweenLayers': 130,
+      'elk.spacing.nodeNode': 54,
+    },
+  },
 };
 
 const only = process.argv.slice(2);

@@ -293,6 +293,17 @@ const LAYOUTS = {
       'elk.spacing.nodeNode': forceDir ? 24 : 46,
     },
   }),
+  // P3-1 companion: calm-by-definition layered view — fixed spread spacing no
+  // matter the force toggle, with a matching precomputed snapshot so the boot
+  // is instant (saved positions) as well as airy.
+  'elk-layered-wide': () => ({
+    name: 'elk', animate: false, padding: 30,
+    elk: {
+      algorithm: 'layered', 'elk.direction': 'DOWN', 'elk.edgeRouting': 'ORTHOGONAL',
+      'elk.layered.spacing.nodeNodeBetweenLayers': 130,
+      'elk.spacing.nodeNode': 54,
+    },
+  }),
   'elk-force': () => ({
     name: 'elk', animate: false, padding: 30,
     elk: { algorithm: 'force', 'elk.force.repulsion': forceDir ? 4000 : 12000, 'elk.force.iterations': 300 },
@@ -409,7 +420,9 @@ function runLayout(preset = currentLayout) {
   });
   lay.run();
 }
-let currentLayout = 'cose-bilkent';
+// layout choice persists (P3-1: a calm boot you only configure once)
+let currentLayout = localStorage.getItem('dw.layout');
+if (!LAYOUTS[currentLayout]) currentLayout = 'cose-bilkent';
 
 /* populate */
 const veil = document.getElementById('veil');
@@ -576,7 +589,7 @@ function syncForceToggleUI() {
 }
 if (layoutSelect) {
   layoutSelect.value = currentLayout;
-  layoutSelect.onchange = () => { currentLayout = layoutSelect.value; syncForceToggleUI(); updateReadout(); runLayout(); };
+  layoutSelect.onchange = () => { currentLayout = layoutSelect.value; localStorage.setItem('dw.layout', currentLayout); syncForceToggleUI(); updateReadout(); runLayout(); };
 }
 if (forceToggle) {
   forceToggle.onchange = () => {

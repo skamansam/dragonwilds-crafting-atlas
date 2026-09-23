@@ -391,6 +391,65 @@ if (!only || only === 'p0' || only === 'p0depth') {
   console.log('  expect: depth1 < depth3 < all(1408), all equals previous full-tree count');
   await page.screenshot({ path: 'cache/shots2/p0-depth.png' });
 }
+if (!only || only === 'p18') {
+  // P3-1 + TODO #18 verification: calm first load + dedicated Path-to bar.
+  // A fresh playwright profile means fresh localStorage — this IS first load.
+  const firstLoad = await page.evaluate(() => ({
+    stored: localStorage.getItem('dw.showSkillEdges'),
+    chipOn: document.getElementById('edgeSkillChip').classList.contains('on'),
+    total: window.__cy.edges().length,
+    visible: window.__cy.edges(':visible').length,
+  }));
+  console.log('first load:', JSON.stringify(firstLoad));
+  console.log('  expect: stored null, chip off, visible < total (skill gates hidden)');
+
+  // dedicated Path-to bar: arming state visible at top of map
+  await page.evaluate(() => { window.__cy.getElementById('Ash Logs').emit('tap', {}); });
+  await page.waitForTimeout(700);
+  await page.evaluate(() => document.getElementById('btnPathTo').click());
+  await page.waitForTimeout(300);
+  const armed = await page.evaluate(() => {
+    const pb = document.getElementById('pathbar');
+    return { shown: pb && !pb.classList.contains('hidden'), text: document.getElementById('pathbarText').textContent, arming: document.body.classList.contains('path-arming') };
+  });
+  console.log('pathbar armed:', JSON.stringify(armed));
+  await page.screenshot({ path: 'cache/shots2/p18-armed.png' });
+
+  // resolve: tap target → calm summary stays visible
+  await page.evaluate(() => { window.__cy.getElementById('Iron Sword').emit('tap', {}); });
+  await page.waitForTimeout(900);
+  const resolved = await page.evaluate(() => ({
+    text: document.getElementById('pathbarText').textContent,
+    result: document.body.classList.contains('path-result'),
+    armingOff: !document.body.classList.contains('path-arming'),
+    traced: window.__cy.elements('.traced').length,
+  }));
+  console.log('pathbar resolved:', JSON.stringify(resolved));
+  await page.screenshot({ path: 'cache/shots2/p18-resolved.png' });
+
+  // Esc clears the bar entirely
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(300);
+  const cleared = await page.evaluate(() => ({ hidden: document.getElementById('pathbar').classList.contains('hidden'), traced: window.__cy.elements('.traced').length }));
+  console.log('pathbar after Esc:', JSON.stringify(cleared));
+
+  // ✕ cancel button also clears while armed
+  await page.evaluate(() => { window.__cy.getElementById('Ash Logs').emit('tap', {}); });
+  await page.waitForTimeout(500);
+  await page.evaluate(() => document.getElementById('btnPathTo').click());
+  await page.waitForTimeout(300);
+  await page.evaluate(() => document.getElementById('pathbarCancel').click());
+  await page.waitForTimeout(300);
+  const cancelled = await page.evaluate(() => document.getElementById('pathbar').classList.contains('hidden'));
+  console.log('pathbar cancel button clears:', cancelled);
+
+  // skill chip still reveals the hidden gates (and persists)
+  await page.evaluate(() => document.getElementById('edgeSkillChip').click());
+  await page.waitForTimeout(400);
+  const revealed = await page.evaluate(() => ({ visible: window.__cy.edges(':visible').length, stored: localStorage.getItem('dw.showSkillEdges') }));
+  console.log('skill chip reveals:', JSON.stringify(revealed), `(expect visible === ${firstLoad.total}, stored "1")`);
+  await page.evaluate(() => document.getElementById('edgeSkillChip').click()); // restore calm default
+}
 console.log('errors:', errors.length ? errors.join('\n') : 'none');
 await cleanup();
 srv?.close();

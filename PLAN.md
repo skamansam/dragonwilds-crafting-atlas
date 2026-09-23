@@ -16,7 +16,7 @@ Current as of **2026-09-22**, after commit `543d983` (live at http://rudeboy.dev
 
 | # | Request | Status | Evidence / notes |
 |---|---------|--------|------------------|
-| 1 | Graph "WAY too dense" | ✅ done (P3-1) | Skill-gate edges hidden by default (−1,477 edges on first load, persisted pref, ↺ All restores the calm default) + airier cose-bilkent default (idealEdgeLength 135, repulsion 30000) + regenerated snapshot · (this commit) |
+| 1 | Graph "WAY too dense" | ✅ done (P3-1) | Skill-gate edges hidden by default (−1,477 edges on first load, persisted pref, ↺ All restores the calm default) + airier cose-bilkent default (idealEdgeLength 135, repulsion 30000) + regenerated snapshot + `elk-layered-wide` calm-boot preset with its own snapshot + persisted layout choice · `db538e0` |
 | 2 | Skill trees as part of the graph | ✅ done | 12 skill hubs with 1,539 gold gate edges · `576cbe0` |
 | 3 | Allow unselecting all category chips (blank screen OK) | ✅ done | Tested 1,408 → 71 visible → restore · `test-todo.mjs` |
 | 4 | Isolate tree auto-reveals hidden nodes | ✅ done | Isolate turns on every category chip first · `test-todo.mjs` |
@@ -182,4 +182,5 @@ this thing from what I have now?"** first; browsing second. Three deliverables:
 | 2026-09-23 | `e79a1e1` | Exporter → `build-exports.mjs`: adds data.graphml (typed GraphML) + atlas-style.xml (vizmap style: node kind → fill/shape, edge interaction → stroke/dash/width) |
 | 2026-09-23 | `802a419` | PF-4b waypoint progress header (X of N done · re-plans · reset, persisted per item) |
 | 2026-09-23 | `01faff1` | P1.5 batch: animate toggle, per-preset simulation caps (CAPS table), precomputed layout snapshots (gen-layouts.mjs + saved-positions toggle + '· saved' badge) |
-| 2026-09-23 | (this commit) | P3-1 density pass (skill edges hidden by default, calmer cose-bilkent + fresh snapshot) + Path-to bar (TODO #18) |
+| 2026-09-23 | `db538e0` | P3-1 density pass (skill edges hidden by default, calmer cose-bilkent + fresh snapshot) + Path-to bar (TODO #18) |
+| 2026-09-23 | (this commit) | `elk-layered-wide` calm-boot preset + snapshot (gen-layouts.mjs); layout choice persisted (`dw.layout`); probe `p18` section (first-load density + pathbar flow) |
