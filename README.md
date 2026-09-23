@@ -79,8 +79,11 @@ Everything below is also available **in the app** — press the **?** button in 
   levels), and the **Critical chain** — the longest run of prerequisite steps, which is what
   actually gates your progress. Click any chip to jump to that item.
 - **Path to…** (codex panel): arms a path query — then tap the target on the map, or type in
-  the (gold-pulsing) search box and pick a suggestion. The shortest material route between the
-  two items is highlighted with numbered steps + facilities in the panel. Esc cancels/clears.
+  the (gold-pulsing) search box and pick a suggestion. A **gold bar at the top of the map**
+  tracks the query end to end: pulsing while armed ("Path from \"Ash Logs\" — tap the target…"),
+  then a calm summary ("Path: Ash Logs → Iron Sword · 3 steps") until cleared. The shortest
+  material route is highlighted with numbered steps + facilities in the panel. Esc or the bar's
+  ✕ cancels/clears.
 - **Plans from what you own** (PF-3): with items in the ledger and the panel's
   **plan: owned** toggle active, the "From nothing" section becomes **"From what you own —
   remaining"** — owned materials drop into an **Already own** bucket, their recipe branches
@@ -109,7 +112,8 @@ Everything below is also available **in the app** — press the **?** button in 
 - **Search**: fuzzy matching across all 1,900+ nodes with icon suggestions; **/** focuses it.
 - **Filter chips**: show/hide categories; **Dead ends** reveals the items with no crafting
   recipes (drops, quest items, resource nodes); **Links** / **Skill links** toggle the two edge
-  kinds; **↺ All** resets.
+  kinds (**skill links start hidden** on a fresh browser — the default map is calmer without
+  the 1,539 gold skill spokes; the choice persists); **↺ All** resets to that calm default.
 
 ### Layouts
 
@@ -118,6 +122,9 @@ Everything below is also available **in the app** — press the **?** button in 
   breadthfirst), and clustering & simple (cise, concentric, circle, grid, random). Similar
   algorithms ship deliberately — the same graph can render very differently, and one of them
   may be exactly what you need for a subtree.
+- **Calm by default** (P3-1): the default cose-bilkent preset uses airy spacing
+  (idealEdgeLength 135, stronger repulsion) and skill-gate edges are hidden until you ask for
+  them, so the first thing you see is the crafting graph, not a hairball.
 - **force-directed toggle**: off swaps force presets to "spread" presets (larger spacing,
   weaker pull) for a more readable map.
 - **animate toggle**: off jumps straight to the final arrangement — faster, less CPU, no

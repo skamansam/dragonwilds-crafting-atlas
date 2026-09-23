@@ -49,7 +49,7 @@
       <div class="chip" data-cat="other" title="Show everything else"><span class="dot"></span>Other</div>
       <div class="chip" id="orphansChip" title="Show items with no crafting recipes (drops, quest items, resource nodes)"><span class="dot"></span>Dead ends</div>
       <div class="chip on" id="edgeMatChip" title="Show material (recipe) edges"><span class="dot"></span>Links</div>
-      <div class="chip on" id="edgeSkillChip" title="Show skill-gate edges (gold)"><span class="dot"></span>Skill links</div>
+      <div class="chip" id="edgeSkillChip" title="Show skill-gate edges (gold) — hidden by default to keep the map readable; click to reveal"><span class="dot"></span>Skill links</div>
       <div class="chip" id="possessionsChip" title="Mark what you own and only show what you can reach"><span class="dot"></span>🎒 Possessions</div>
       <span id="ownedCount" title="Items marked as owned">0</span>
       <div class="chip" id="resetFilters" title="Show all categories">↺ All</div>
@@ -118,6 +118,13 @@
       <button id="zoomIn" title="Zoom in">+</button>
       <button id="zoomOut" title="Zoom out">−</button>
       <button id="zoomFit" title="Fit to view">⤢</button>
+    </div>
+
+    <div class="pathbar hidden" id="pathbar">
+      <span class="pb-rune">⌖</span>
+      <span id="pathbarText">Pick the target…</span>
+      <span style="flex:1"></span>
+      <button class="p-clear" id="pathbarCancel" title="Cancel the path query (Esc)">✕ cancel</button>
     </div>
 
     <div class="breadcrumb hidden" id="breadcrumb"></div>

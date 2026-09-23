@@ -1,6 +1,10 @@
 # TODO:
 
-[] First off, the graph is WAY too dense. I can't see or reead anything - it looks 
+[x] First off, the graph is WAY too dense. I can't see or reead anything - it looks 
+— DENSITY PASS (P3-1): skill-gate edges now start hidden (1,477 fewer edges on first
+load, persisted preference), and the default cose-bilkent preset is airier
+(idealEdgeLength 135, nodeRepulsion 30000). Combined with the Dead-ends toggle and the
+saved-positions snapshot, the first view is readable.
 like a big blob with a bunch of stuff around it.
 
 [] The skill trees should be a part of the graph as well, so you know 
@@ -70,7 +74,10 @@ please do.
 them instantly. Desktop-authored configs: export positions and add them to the manifest as
 `"<algo>": { "<node id>": { "x": …, "y": … } }`.
 
-[] When clicking on the path to.. button, a new panel should show at the top of the graph that allows
+[x] When clicking on the path to.. button, a new panel should show at the top of the graph that allows
+— DONE: a gold **Path-to bar** appears at the top of the map while a query is armed
+(pulsing, shows the source and instructions), then summarizes the result
+("Path: Ash Logs → Iron Sword · 3 steps") until cleared; ✕ cancel + Esc both clear.
 the user to search for a node to link to.
 
 [] We have feedback now for layouts, but it is not showing up due to the blocking nature of the layout algorithms.

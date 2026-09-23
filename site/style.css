@@ -351,6 +351,30 @@ header {
 .breadcrumb.hidden { display: none; }
 .breadcrumb a { color: var(--gold); text-decoration: none; cursor: pointer; }
 .breadcrumb a:hover { color: var(--gold-bright); text-decoration: underline; }
+
+/* ── path-to bar (armed path query, TODO #18) ────────────────── */
+.pathbar {
+  position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
+  z-index: 26;
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 14px;
+  background: var(--panel); border: 1px solid var(--gold-dim); border-radius: 999px;
+  backdrop-filter: blur(8px);
+  color: var(--gold-bright); font-size: 12.5px; font-weight: 700;
+  letter-spacing: 0.02em;
+  box-shadow: 0 0 18px rgba(226, 185, 92, 0.18);
+  max-width: 60vw; white-space: nowrap; overflow: hidden;
+  animation: pathbar-pulse 1.6s ease-in-out infinite;
+}
+.pathbar.hidden { display: none; }
+.pathbar .pb-rune { font-size: 15px; }
+.pathbar #pathbarText { overflow: hidden; text-overflow: ellipsis; }
+.pathbar .p-clear { font-size: 10.5px; padding: 2px 8px; }
+@keyframes pathbar-pulse {
+  0%, 100% { box-shadow: 0 0 12px rgba(226, 185, 92, 0.14); }
+  50% { box-shadow: 0 0 22px rgba(226, 185, 92, 0.32); }
+}
+body.path-result .pathbar { animation: none; border-color: var(--line); color: var(--ink); box-shadow: none; }
 .breadcrumb .sep { color: var(--faint); }
 
 /* ── loading veil ───────────────────────────────────────────── */

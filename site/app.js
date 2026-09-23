@@ -231,7 +231,8 @@ const CAPS = {
 const LAYOUTS = {
   'cose-bilkent': () => ({
     name: 'cose-bilkent', animate: true, animationDuration: 700, animationEasing: 'ease-out',
-    randomize: true, nodeSeparation: forceDir ? 120 : 170, idealEdgeLength: forceDir ? 110 : 170, nodeRepulsion: forceDir ? 22000 : 42000,
+    // P3-1: calmer force-on default (was 120/110/22000 — the map read cramped)
+    randomize: true, nodeSeparation: forceDir ? 150 : 180, idealEdgeLength: forceDir ? 135 : 180, nodeRepulsion: forceDir ? 30000 : 46000,
   }),
   'cose-bilkent-tight': () => ({
     name: 'cose-bilkent', animate: true, animationDuration: 700, animationEasing: 'ease-out',
@@ -425,6 +426,7 @@ function populate() {
       cy.add(eles);
       cy.nodes().forEach(n => { if (n.degree() === 0) n.addClass('orphan'); });
       applyCategoryVisibility();
+      applyEdgeVisibility();
     });
     runLayout();
   } catch (e) {
@@ -459,7 +461,12 @@ function fitSoon() {
   fitTimer = setTimeout(() => { if (!isolatedRoot) cy.fit(undefined, 60); }, 400);
 }
 
-const edgePrefs = { materials: true, skills: true }; // toggle via header chips
+// Skill-gate edges start HIDDEN on a fresh browser (P3-1: the default view is
+// calmer without 1,539 gold spokes); the choice persists via dw.showSkillEdges.
+const edgePrefs = {
+  materials: true,
+  skills: localStorage.getItem('dw.showSkillEdges') === '1', // default OFF first load
+}; // toggle via header chips
 function applyEdgeVisibility() {
   cy.batch(() => {
     for (const e of cy.edges()) {
@@ -501,7 +508,12 @@ document.querySelectorAll('.chip[data-cat]').forEach(chip => {
 document.getElementById('resetFilters').onclick = () => {
   for (const k of Object.keys(kindLabel)) activeCats.add(k);
   document.querySelectorAll('.chip[data-cat]').forEach(c => c.classList.add('on'));
+  // ↺ All resets filters to the calm first-load default: skill edges hidden too
+  edgePrefs.skills = false;
+  localStorage.setItem('dw.showSkillEdges', '0');
+  document.getElementById('edgeSkillChip').classList.remove('on');
   applyCategoryVisibility();
+  applyEdgeVisibility();
 };
 
 document.getElementById('orphansChip').onclick = () => {
@@ -517,6 +529,7 @@ document.getElementById('edgeMatChip').onclick = () => {
 };
 document.getElementById('edgeSkillChip').onclick = () => {
   edgePrefs.skills = !edgePrefs.skills;
+  localStorage.setItem('dw.showSkillEdges', edgePrefs.skills ? '1' : '0');
   document.getElementById('edgeSkillChip').classList.toggle('on', edgePrefs.skills);
   applyEdgeVisibility();
 };
@@ -572,6 +585,9 @@ if (forceToggle) {
     if (FORCE_LAYOUTS.has(currentLayout)) runLayout();
   };
 }
+// chip visuals must match persisted edge prefs (skill links default OFF, P3-1)
+const edgeSkillChipEl = document.getElementById('edgeSkillChip');
+if (edgeSkillChipEl) edgeSkillChipEl.classList.toggle('on', edgePrefs.skills);
 const animToggle = document.getElementById('animToggle');
 if (animToggle) {
   animToggle.checked = animateOn;
@@ -971,6 +987,21 @@ function findPath(a, b) {
   return steps;
 }
 
+// dedicated top bar for the armed path query (TODO #18) — visible from arming
+// until the path is cleared, so the query state is never invisible
+const pathbar = document.getElementById('pathbar');
+function showPathbar(text, pulsing = true) {
+  if (!pathbar) return;
+  document.getElementById('pathbarText').textContent = text;
+  pathbar.classList.remove('hidden');
+  document.body.classList.toggle('path-result', !pulsing);
+}
+function hidePathbar() {
+  if (pathbar) pathbar.classList.add('hidden');
+  document.body.classList.remove('path-result');
+}
+if (pathbar) document.getElementById('pathbarCancel').onclick = () => { clearPath(); toast('Path query cancelled'); };
+
 function armPath(id) {
   pathFrom = id;
   pathArming = true;
@@ -978,6 +1009,7 @@ function armPath(id) {
   searchInput.dataset.armed = '1';
   searchInput.placeholder = `Path from “${nodeById.get(id).name}” — pick or type the target…`;
   searchInput.classList.add('arming');
+  showPathbar(`Path from “${nodeById.get(id).name}” — tap the target on the map, or pick it via search`);
   toast(`Path FROM ${nodeById.get(id).name} — tap the target on the map, or pick it via search (Esc cancels)`);
 }
 
@@ -989,11 +1021,13 @@ function disarmPath() {
   delete searchInput.dataset.armed;
   searchInput.placeholder = 'Search items, stations, materials…';
   searchInput.classList.remove('arming');
+  hidePathbar();
 }
 
 function clearPath() {
   lastPath = null;
   disarmPath();
+  hidePathbar();
   cy.elements().removeClass('faded traced');
 }
 
@@ -1023,6 +1057,7 @@ function runPath(a, b, multi = false) {
   const fromTxt = multi
     ? `${srcIds.length} owned item${srcIds.length > 1 ? 's' : ''}`
     : nodeById.get(a).name;
+  showPathbar(`Path: ${fromTxt} → ${nodeById.get(b).name} · ${steps.length} step${steps.length > 1 ? 's' : ''}`, false);
   toast(`Path: ${steps.length} step${steps.length > 1 ? 's' : ''} from ${fromTxt} to ${nodeById.get(b).name}`);
 }
 
@@ -1042,6 +1077,7 @@ function armPathOwned() {
   searchInput.dataset.armed = '1';
   searchInput.placeholder = `Path from your ${owned.size} owned item${owned.size > 1 ? 's' : ''} — pick the target…`;
   searchInput.classList.add('arming');
+  showPathbar(`Path from your ${owned.size} owned item${owned.size > 1 ? 's' : ''} — tap the target on the map, or pick it via search`);
   toast(`Path FROM your ${owned.size} owned item${owned.size > 1 ? 's' : ''} — tap the target (Esc cancels)`);
 }
 

@@ -16,7 +16,7 @@ Current as of **2026-09-22**, after commit `543d983` (live at http://rudeboy.dev
 
 | # | Request | Status | Evidence / notes |
 |---|---------|--------|------------------|
-| 1 | Graph "WAY too dense" | 🟡 partial | Dead-ends toggle (591 leaf items) removed the worst clutter; force toggle + spacing presets + Cola (3.5k×1.8k spread) offer relief. Full density rework still open. |
+| 1 | Graph "WAY too dense" | ✅ done (P3-1) | Skill-gate edges hidden by default (−1,477 edges on first load, persisted pref, ↺ All restores the calm default) + airier cose-bilkent default (idealEdgeLength 135, repulsion 30000) + regenerated snapshot · (this commit) |
 | 2 | Skill trees as part of the graph | ✅ done | 12 skill hubs with 1,539 gold gate edges · `576cbe0` |
 | 3 | Allow unselecting all category chips (blank screen OK) | ✅ done | Tested 1,408 → 71 visible → restore · `test-todo.mjs` |
 | 4 | Isolate tree auto-reveals hidden nodes | ✅ done | Isolate turns on every category chip first · `test-todo.mjs` |
@@ -34,7 +34,7 @@ Current as of **2026-09-22**, after commit `543d983` (live at http://rudeboy.dev
 | 15 | **Toggle to disable layout animations** (`animate: false`) *(added later)* | ✅ done | **animate** checkbox in the header, persisted; `runLayout()` strips animation options · `01faff1` |
 | 16 | **Speed up physics layouts** with `maxIterations` / `maxSimulationTime` caps *(added later)* | ✅ done | Audited per extension: `numIter` for bilkent/fcose, existing `maxSimulationTime` on cise/cola/euler; tuned `CAPS` table (blanket 1000/3000 rejected — too tight for 1,408 nodes) · `01faff1` |
 | 17 | **Precomputed/preset layouts** (store positions per algorithm; Cytoscape desktop to author) *(added later)* | ✅ done | `scripts/gen-layouts.mjs` → `site/layouts/manifest.js` (elk-layered + cose-bilkent snapshots); **saved positions** toggle applies instantly, **· saved** badge; Desktop-authored configs drop into the manifest · `01faff1` |
-| 18 | **Path-to: top search panel** for picking the link target *(added later)* | 🟡 covered differently | Requested a top-of-graph search panel; shipped instead: while armed, the header search box pulses gold and accepts the target via suggestions/Enter, or tap the map · `543d983`. A dedicated top bar is still possible if this feels hidden. |
+| 18 | **Path-to: top search panel** for picking the link target *(added later)* | ✅ done | Dedicated **Path-to bar** at the top of the map: pulsing gold while armed (source + instructions), calm summary with step count once resolved, ✕ cancel + Esc · (this commit); search-pick and map-tap targeting unchanged · `543d983` |
 | 19 | **Research: offload layouts to a service worker / worker thread** *(added later)* | ❌ todo | Merged into plan §3 P1-2 (Web Worker layout spike) — same mechanism, that row now also covers this research question. |
 
 ---
@@ -181,4 +181,5 @@ this thing from what I have now?"** first; browsing second. Three deliverables:
 | 2026-09-23 | `33c2fab` | `scripts/build-cyjs.mjs` → site/data.cyjs: Cytoscape Desktop-importable network (all metadata as table columns, layered seed layout) |
 | 2026-09-23 | `e79a1e1` | Exporter → `build-exports.mjs`: adds data.graphml (typed GraphML) + atlas-style.xml (vizmap style: node kind → fill/shape, edge interaction → stroke/dash/width) |
 | 2026-09-23 | `802a419` | PF-4b waypoint progress header (X of N done · re-plans · reset, persisted per item) |
-| 2026-09-23 | (this commit) | P1.5 batch: animate toggle, per-preset simulation caps (CAPS table), precomputed layout snapshots (gen-layouts.mjs + saved-positions toggle + '· saved' badge) |
+| 2026-09-23 | `01faff1` | P1.5 batch: animate toggle, per-preset simulation caps (CAPS table), precomputed layout snapshots (gen-layouts.mjs + saved-positions toggle + '· saved' badge) |
+| 2026-09-23 | (this commit) | P3-1 density pass (skill edges hidden by default, calmer cose-bilkent + fresh snapshot) + Path-to bar (TODO #18) |
