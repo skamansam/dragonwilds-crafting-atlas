@@ -124,9 +124,9 @@ Everything below is also available **in the app** — press the **?** button in 
   differently, and one of them may be exactly what you need for a subtree.
 - **Your layout choice persists** — pick once and every future visit boots that algorithm
   (calm *elk · layered TB (calm)* + saved snapshot is the zen option).
-- **Calm by default** (P3-1): the default cose-bilkent preset uses airy spacing
-  (idealEdgeLength 135, stronger repulsion) and skill-gate edges are hidden until you ask for
-  them, so the first thing you see is the crafting graph, not a hairball.
+- **Calm by default** (P3-1): **elk · layered TB (calm)** is the out-of-the-box layout — an
+  airy hierarchical view that boots instantly from its precomputed snapshot. Pick any other
+  algorithm once and that choice is remembered forever.
 - **force-directed toggle**: off swaps force presets to "spread" presets (larger spacing,
   weaker pull) for a more readable map.
 - **animate toggle**: off jumps straight to the final arrangement — faster, less CPU, no
@@ -139,6 +139,12 @@ Everything below is also available **in the app** — press the **?** button in 
 - **Per-preset simulation caps** (P1.5-2): force presets bound their worst-case runtime via
   each extension's own knob (`numIter` for bilkent/fcose, `maxSimulationTime` for
   cise/cola/euler) so the UI never locks for minutes.
+- **Density slider** (elk layered layouts): scales layer/in-layer spacing from 50% to 200%
+  and re-runs live (debounced, persisted). **💾 saves the current arrangement as a custom
+  snapshot** for that layout + density — it boots instantly from then on, shown as **·
+  custom** (a 💾 snapshot outranks the bundled one). **✕ clears it.** Snapshots that look
+  degenerate (captured mid-flight or corrupted) are detected and dropped rather than
+  collapsing the map.
 - **Arranging indicator**: the gold pill in the header shows which algorithm is running and
   spins until it settles (up to 90s for the heavy ones).
 - **No-op detection**: algorithms that need a rooted/tree subgraph (e.g. elk radial) tell you

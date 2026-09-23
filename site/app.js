@@ -289,8 +289,8 @@ const LAYOUTS = {
     name: 'elk', animate: false, padding: 30,
     elk: {
       algorithm: 'layered', 'elk.direction': 'DOWN', 'elk.edgeRouting': 'ORTHOGONAL',
-      'elk.layered.spacing.nodeNodeBetweenLayers': forceDir ? 60 : 110,
-      'elk.spacing.nodeNode': forceDir ? 24 : 46,
+      'elk.layered.spacing.nodeNodeBetweenLayers': (forceDir ? 60 : 110) * densFactor(),
+      'elk.spacing.nodeNode': (forceDir ? 24 : 46) * densFactor(),
     },
   }),
   // P3-1 companion: calm-by-definition layered view — fixed spread spacing no
@@ -300,8 +300,8 @@ const LAYOUTS = {
     name: 'elk', animate: false, padding: 30,
     elk: {
       algorithm: 'layered', 'elk.direction': 'DOWN', 'elk.edgeRouting': 'ORTHOGONAL',
-      'elk.layered.spacing.nodeNodeBetweenLayers': 130,
-      'elk.spacing.nodeNode': 54,
+      'elk.layered.spacing.nodeNodeBetweenLayers': 130 * densFactor(),
+      'elk.spacing.nodeNode': 54 * densFactor(),
     },
   }),
   'elk-force': () => ({
@@ -358,28 +358,122 @@ function setLayoutIndicator(on, label) {
 let activeLayout = null;
 let savedLayouts = null;      // algo -> { x, y } map from site/layouts/manifest.js (P1.5-3)
 let usingSavedPositions = false;
+let usingCustomPositions = false; // density-slider 💾 snapshot (P3-1b)
 const savedToggleOn = () => { const t = document.getElementById('savedToggle'); return !t || t.checked; };
+
+// P3-1b: density slider — scales elk layered spacing 50–200%, live re-runs; 💾 saves
+// the current arrangement per layout+density as a custom snapshot that boots instantly.
+let densPct = parseFloat(localStorage.getItem('dw.dens')) || 100;
+const DENS_BASE = {
+  'elk-layered': true,
+  'elk-layered-wide': true,
+};
+function densFactor() { return Math.min(2, Math.max(0.5, (densPct || 100) / 100)); }
+function isElkDenseable(p) { return !!DENS_BASE[p]; }
+function densKey(p) { return p + '@' + densPct; }
+let customLayouts = null;
+function loadCustomLayouts() {
+  if (customLayouts) return customLayouts;
+  try { customLayouts = JSON.parse(localStorage.getItem('dw.customLayouts') || '{}') || {}; } catch { customLayouts = {}; }
+  return customLayouts;
+}
+// a degenerate snapshot (captured mid-layout, or corrupted) must never boot —
+// it would collapse the map to a tiny blob or scatter NaNs
+function isSaneSnapshot(map) {
+  const ids = Object.keys(map);
+  if (ids.length < 2) return false;
+  let x1 = Infinity, x2 = -Infinity, y1 = Infinity, y2 = -Infinity;
+  for (const id of ids) {
+    const p = map[id];
+    if (!p || !isFinite(p.x) || !isFinite(p.y)) return false;
+    if (p.x < x1) x1 = p.x; if (p.x > x2) x2 = p.x;
+    if (p.y < y1) y1 = p.y; if (p.y > y2) y2 = p.y;
+  }
+  return x2 - x1 > 400 && y2 - y1 > 400;
+}
+// 💾 arms this, and the positions are captured at layoutstop — never mid-flight
+let pendingSave = null;
+let lastSpacing = null; // spacing of the most recent live layout run
+function doCustomSave(preset, spacing, dens) {
+  if (!spacing) { toast('Open an elk layered layout first — snapshots save its arrangement'); return; }
+  const map = {};
+  for (const n of cy.nodes()) map[n.id()] = { x: Math.round(n.position().x), y: Math.round(n.position().y) };
+  const all = loadCustomLayouts();
+  // flat id→{x,y} at the key (same shape as the bundled manifest / Desktop-authored
+  // snapshots); spacing + timestamp ride along under a sibling ~meta key
+  all[`${preset}@${dens}`] = map;
+  all[`${preset}@${dens}~meta`] = { spacing, savedAt: Date.now() };
+  try { localStorage.setItem('dw.customLayouts', JSON.stringify(all)); } catch { toast('Could not save — browser storage is full'); return; }
+  toast(`Arrangement saved for ${preset} @ ${dens}% — it boots instantly from now on`);
+  runLayout(preset);
+}
 function loadSavedLayouts() {
   if (savedLayouts || window.DW_LAYOUTS === undefined) return savedLayouts || null;
   savedLayouts = window.DW_LAYOUTS || {};
   return savedLayouts;
 }
-function runLayout(preset = currentLayout) {
+function runLayout(preset = currentLayout, { skipSaved = false } = {}) {
   // stop any in-flight layout so a new selection always wins
   if (activeLayout) { try { activeLayout.stop(); } catch {} activeLayout = null; }
   layoutRunning = true;
-  const make = LAYOUTS[preset] || LAYOUTS['cose-bilkent'];
+  const make = LAYOUTS[preset] || LAYOUTS['elk-layered-wide'];
   const opts = make();
   // P1.5-1: animation kill-switch — jump straight to the final arrangement
   if (!animateOn) { opts.animate = false; delete opts.animationDuration; delete opts.animationEasing; }
   // P1.5-2: per-preset simulation caps
   const cap = CAPS[preset];
   if (cap) Object.assign(opts, cap);
+  // current spacing — captured for 💾 custom snapshots (P3-1b)
+  const curSpacing = opts.elk ? { between: opts.elk['elk.layered.spacing.nodeNodeBetweenLayers'], in: opts.elk['elk.spacing.nodeNode'] } : null;
+  lastSpacing = curSpacing || lastSpacing;
+  // slider + 💾/✕ only make sense for (or around) the elk layered layouts
+  const cl = loadCustomLayouts();
+  const hasCustom = !!(cl[densKey(preset)] || cl[preset]);
+  const densRelevant = isElkDenseable(preset) || hasCustom;
+  const densWrap = document.getElementById('densWrap');
+  const saveBtn = document.getElementById('densSave');
+  const clearBtn = document.getElementById('densClear');
+  if (densWrap) densWrap.classList.toggle('off', !densRelevant);
+  if (saveBtn) saveBtn.style.display = densRelevant ? '' : 'none';
+  if (clearBtn) clearBtn.style.display = hasCustom ? '' : 'none';
+  if (saveBtn) saveBtn.onclick = () => {
+    if (!curSpacing) { toast('Open an elk layered layout first — snapshots save its arrangement'); return; }
+    pendingSave = { preset, dens: densPct };
+    if (layoutRunning) { toast('Arranging — the snapshot is captured the moment the layout settles'); return; }
+    const p = pendingSave; pendingSave = null;
+    doCustomSave(p.preset, lastSpacing, p.dens); // already settled — capture now
+  };
+  if (clearBtn) clearBtn.onclick = () => {
+    const all = loadCustomLayouts();
+    delete all[densKey(preset)];
+    delete all[densKey(preset) + '~meta'];
+    delete all[preset];
+    delete all[preset + '~meta'];
+    try { localStorage.setItem('dw.customLayouts', JSON.stringify(all)); } catch {}
+    toast(`Custom snapshot cleared for ${preset} @ ${densPct}%`);
+    runLayout(preset);
+  };
   // P1.5-3: precomputed positions — instant, deterministic, no physics
-  const savedMap = (savedToggleOn() && loadSavedLayouts() && loadSavedLayouts()[preset]) || null;
+  // a 💾 custom snapshot (this layout + this density) wins over the bundled one
+  const customMap = skipSaved ? null : (cl[densKey(preset)] || cl[preset] || null);
+  let savedMap = (savedToggleOn() && !skipSaved && (customMap || (loadSavedLayouts() && loadSavedLayouts()[preset]))) || null;
+  if (savedMap && !isSaneSnapshot(savedMap)) {
+    if (customMap) {
+      const all = loadCustomLayouts();
+      delete all[densKey(preset)];
+      delete all[densKey(preset) + '~meta'];
+      delete all[preset];
+      delete all[preset + '~meta'];
+      try { localStorage.setItem('dw.customLayouts', JSON.stringify(all)); } catch {}
+      toast('Custom snapshot looked degenerate — cleared; recomputing live');
+    }
+    savedMap = null;
+  }
   usingSavedPositions = false;
+  usingCustomPositions = false;
   if (savedMap) {
     usingSavedPositions = true;
+    usingCustomPositions = !!customMap && savedMap === customMap;
     cy.batch(() => {
       for (const n of cy.nodes()) {
         const p = savedMap[n.id()];
@@ -387,7 +481,7 @@ function runLayout(preset = currentLayout) {
       }
     });
     layoutRunning = false;
-    setLayoutIndicator(false, `saved · ${preset}`); // brief 'saved · algo' flash
+    setLayoutIndicator(false, `${usingCustomPositions ? 'custom' : 'saved'} · ${preset}`); // brief flash
     setTimeout(() => { if (!layoutRunning) setLayoutIndicator(false); }, 1200);
     hideVeil();
     if (!isolatedRoot) cy.fit(undefined, 60);
@@ -409,6 +503,11 @@ function runLayout(preset = currentLayout) {
     hideVeil();
     if (!isolatedRoot) cy.fit(undefined, 60);
     updateReadout();
+    // 💾 armed during the run? capture now — positions are final (P3-1b)
+    if (pendingSave && pendingSave.preset === preset) {
+      const p = pendingSave; pendingSave = null;
+      doCustomSave(p.preset, lastSpacing, p.dens);
+    }
     // warn when an algorithm leaves the graph untouched
     let moved = 0;
     const sample = cy.nodes().length > 300 ? cy.nodes().slice(0, 300) : cy.nodes();
@@ -421,8 +520,9 @@ function runLayout(preset = currentLayout) {
   lay.run();
 }
 // layout choice persists (P3-1: a calm boot you only configure once)
+// P3-1: calm elk default for first-time visitors; a persisted choice wins after that
 let currentLayout = localStorage.getItem('dw.layout');
-if (!LAYOUTS[currentLayout]) currentLayout = 'cose-bilkent';
+if (!LAYOUTS[currentLayout]) currentLayout = 'elk-layered-wide';
 
 /* populate */
 const veil = document.getElementById('veil');
@@ -566,10 +666,10 @@ function updateReadout() {
   // shown counts + active algorithm under the layout selector
   const meta = document.getElementById('layoutMeta');
   if (meta) {
-    const algo = (LAYOUTS[currentLayout] || LAYOUTS['cose-bilkent'])().name;
+    const algo = (LAYOUTS[currentLayout] || LAYOUTS['elk-layered-wide'])().name;
     meta.innerHTML =
       `<span><b>${visible.toLocaleString()}</b> nodes shown · <b>${shownLinks.toLocaleString()}</b> links shown</span>` +
-      `<span>algorithm: <span class="algo">${esc(algo)}</span>${FORCE_LAYOUTS.has(currentLayout) ? (forceDir ? ' · force' : ' · spread') : ''}${usingSavedPositions ? ' · saved' : ''}</span>`;
+      `<span>algorithm: <span class="algo">${esc(algo)}</span>${FORCE_LAYOUTS.has(currentLayout) ? (forceDir ? ' · force' : ' · spread') : ''}${usingCustomPositions ? ' · custom' : usingSavedPositions ? ' · saved' : ''}</span>`;
   }
 }
 
@@ -616,6 +716,20 @@ if (savedToggle) {
   savedToggle.onchange = () => {
     localStorage.setItem('dw.savedLayouts', savedToggle.checked ? '1' : '0');
     runLayout();
+  };
+}
+const densSlider = document.getElementById('densSlider');
+if (densSlider) {
+  densSlider.value = densPct;
+  const densVal = document.getElementById('densVal');
+  if (densVal) densVal.textContent = densPct + '%';
+  let densTimer = null;
+  densSlider.oninput = () => {
+    densPct = parseFloat(densSlider.value) || 100;
+    localStorage.setItem('dw.dens', String(densPct));
+    if (densVal) densVal.textContent = densPct + '%';
+    clearTimeout(densTimer);
+    densTimer = setTimeout(() => { if (isElkDenseable(currentLayout)) runLayout(currentLayout, { skipSaved: true }); }, 260);
   };
 }
 syncForceToggleUI();

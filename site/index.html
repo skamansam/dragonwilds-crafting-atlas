@@ -74,7 +74,7 @@
           <option value="dagre">dagre · top to bottom</option>
           <option value="dagre-lr">dagre · left to right</option>
           <option value="elk-layered">elk · layered TB</option>
-          <option value="elk-layered-wide">elk · layered TB (calm)</option>
+          <option value="elk-layered-wide" selected>elk · layered TB (calm) — default</option>
           <option value="elk-mrtree">elk · mrtree</option>
           <option value="elk-radial">elk · radial</option>
           <option value="klay">klay · layered legacy</option>
@@ -97,6 +97,11 @@
       </label>
       <label id="savedToggleWrap" title="Use the precomputed layout positions bundled in site/layouts/ (instant); off always recomputes live">
         <input type="checkbox" id="savedToggle" checked> saved positions
+      </label>
+      <label id="densWrap" title="Spread for the elk layered layouts — 100% is the tuned default. Drag to re-run live; 💾 saves the current arrangement as your instant-boot snapshot, ✕ clears it.">
+        <input type="range" id="densSlider" min="50" max="200" step="10" value="100" aria-label="Elk layout density"> density <span id="densVal">100%</span>
+        <button id="densSave" title="Save the current arrangement as a custom snapshot for this layout + density — it will boot instantly">💾</button>
+        <button id="densClear" title="Clear the saved custom snapshot for this layout">✕</button>
       </label>
     </div>
 
@@ -192,13 +197,15 @@
           </div>
           <div class="h-col">
             <h3>Layouts</h3>
-            <p><b>23 algorithms</b>, grouped force / trees / simple. Similar ones ship on purpose —
+            <p><b>24 algorithms</b>, grouped force / trees / simple. Similar ones ship on purpose —
             the same graph renders differently under each, and subtrees can prefer different
             algorithms than the whole. <b>force-directed</b> off = spread presets; <b>animate</b>
             off = jump straight to the result; <b>saved positions</b> applies the bundled
-            snapshot instantly (marked <b>· saved</b>). The gold <b>Arranging</b> pill spins until
-            the layout settles; algorithms that can't run here (rooted-tree ones on the full map)
-            tell you so instead of failing silently.</p>
+            snapshot instantly (marked <b>· saved</b>). The <b>density</b> slider tunes elk layer
+            spacing live (50–200%), and <b>💾</b> saves the current arrangement as a custom
+            snapshot that boots instantly (marked <b>· custom</b>; <b>✕</b> clears it). The gold
+            <b>Arranging</b> pill spins until the layout settles; algorithms that can't run here
+            (rooted-tree ones on the full map) tell you so instead of failing silently.</p>
           </div>
           <div class="h-col">
             <h3>Keys</h3>
