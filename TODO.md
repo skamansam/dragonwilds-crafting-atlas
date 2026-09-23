@@ -52,15 +52,23 @@ show that depth forward and backwards in the tree.
 directed algorithms continue to calculate layout and the selected algorithm does not appear to 
 do anythng.
 
-[] We should add a toggle for disabling animations for layouts. (add `animate: false` to the layout options) 
+[x] We should add a toggle for disabling animations for layouts. (add `animate: false` to the layout options) — DONE: **animate** checkbox in the header, persisted.
 
 [] It looks like physics-based layouts are taking forever. We can speed them up by running them in
 memory before showing them by adding  `maxIterations: 1000, maxSimulationTime: 3000` to the layout options.
+— PARTIAL: each extension exposes a different knob (`numIter` for bilkent/fcose,
+`maxSimulationTime`/`maxIterations` for cise/cola/euler); caps are now tuned per preset
+(a literal 1000/3000 was measured too tight for 1,408 nodes — cola needs 4s+). For the
+full speed-up, use **saved positions** (next item) or **animate off**.
 
 [] We can also have precaclulated layouts for the graphs. The available nodes should be 
 able to store a preset config for layouts. I can use the cytoscape desktop app to configure
 these, but if you could give me a start with what you think a good heirarchical layout would look like,
 please do.
+— DONE: `scripts/gen-layouts.mjs` computes snapshots into `site/layouts/manifest.js`
+(elk-layered hierarchical + cose-bilkent bundled); the **saved positions** checkbox applies
+them instantly. Desktop-authored configs: export positions and add them to the manifest as
+`"<algo>": { "<node id>": { "x": …, "y": … } }`.
 
 [] When clicking on the path to.. button, a new panel should show at the top of the graph that allows
 the user to search for a node to link to.

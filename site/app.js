@@ -213,6 +213,19 @@ let layoutRunning = false;
 let layoutIndTimer = null;
 const FORCE_LAYOUTS = new Set(['cose-bilkent', 'cose-bilkent-tight', 'cose', 'fcose', 'spread', 'cola', 'euler', 'd3-force', 'avsdf']);
 let forceDir = true; // force-directed physics on/off
+let animateOn = localStorage.getItem('dw.animate') !== '0'; // animate layouts (P1.5-1)
+
+// Simulation caps per preset (P1.5-2): every extension exposes its own knob —
+// bilkent/fcose use `numIter` (default 2500), cise/cola/euler use
+// `maxSimulationTime`/`maxIterations`. These bound the worst case so the UI
+// never locks for minutes on the 1,400-node DAG. Tune, don't strangle: cola
+// needs 4s+ at this size, so a blanket 1000/3000 would flatten it.
+const CAPS = {
+  'cose-bilkent': { numIter: 2500 },
+  'cose-bilkent-tight': { numIter: 2000 },
+  cose: { numIter: 2500 },
+  fcose: { numIter: 1800 },
+};
 
 // each preset is a function so it can react to the force toggle
 const LAYOUTS = {
@@ -327,16 +340,48 @@ function setLayoutIndicator(on, label) {
   ind.classList.toggle('on', !!on);
   if (label) document.getElementById('layoutIndText').textContent = label;
   clearTimeout(layoutIndTimer);
-  if (on) layoutIndTimer = setTimeout(() => ind.classList.remove('on'), 90000); // safety net (spread/avsdf take 40-70s)
+  if (on) layoutIndTimer = setTimeout(() => ind.classList.remove('on'), animateOn ? 90000 : 25000); // safety net (spread/avsdf take 40-70s)
 }
 
 let activeLayout = null;
+let savedLayouts = null;      // algo -> { x, y } map from site/layouts/manifest.js (P1.5-3)
+let usingSavedPositions = false;
+const savedToggleOn = () => { const t = document.getElementById('savedToggle'); return !t || t.checked; };
+function loadSavedLayouts() {
+  if (savedLayouts || window.DW_LAYOUTS === undefined) return savedLayouts || null;
+  savedLayouts = window.DW_LAYOUTS || {};
+  return savedLayouts;
+}
 function runLayout(preset = currentLayout) {
   // stop any in-flight layout so a new selection always wins
   if (activeLayout) { try { activeLayout.stop(); } catch {} activeLayout = null; }
   layoutRunning = true;
   const make = LAYOUTS[preset] || LAYOUTS['cose-bilkent'];
   const opts = make();
+  // P1.5-1: animation kill-switch — jump straight to the final arrangement
+  if (!animateOn) { opts.animate = false; delete opts.animationDuration; delete opts.animationEasing; }
+  // P1.5-2: per-preset simulation caps
+  const cap = CAPS[preset];
+  if (cap) Object.assign(opts, cap);
+  // P1.5-3: precomputed positions — instant, deterministic, no physics
+  const savedMap = (savedToggleOn() && loadSavedLayouts() && loadSavedLayouts()[preset]) || null;
+  usingSavedPositions = false;
+  if (savedMap) {
+    usingSavedPositions = true;
+    cy.batch(() => {
+      for (const n of cy.nodes()) {
+        const p = savedMap[n.id()];
+        if (p) n.position({ x: p.x, y: p.y });
+      }
+    });
+    layoutRunning = false;
+    setLayoutIndicator(false, `saved · ${preset}`); // brief 'saved · algo' flash
+    setTimeout(() => { if (!layoutRunning) setLayoutIndicator(false); }, 1200);
+    hideVeil();
+    if (!isolatedRoot) cy.fit(undefined, 60);
+    updateReadout();
+    return;
+  }
   setLayoutIndicator(true, `Arranging · ${opts.name}${FORCE_LAYOUTS.has(preset) ? (forceDir ? ' · force' : ' · spread') : ''}…`);
   // snapshot positions so we can detect algorithms that silently no-op
   // (e.g. elk-radial needs a rooted/tree graph — degenerate on the full DAG)
@@ -347,9 +392,11 @@ function runLayout(preset = currentLayout) {
     if (activeLayout !== lay) return; // superseded by a newer layout
     activeLayout = null;
     layoutRunning = false;
+    usingSavedPositions = false;
     setLayoutIndicator(false);
     hideVeil();
     if (!isolatedRoot) cy.fit(undefined, 60);
+    updateReadout();
     // warn when an algorithm leaves the graph untouched
     let moved = 0;
     const sample = cy.nodes().length > 300 ? cy.nodes().slice(0, 300) : cy.nodes();
@@ -496,7 +543,7 @@ function updateReadout() {
     const algo = (LAYOUTS[currentLayout] || LAYOUTS['cose-bilkent'])().name;
     meta.innerHTML =
       `<span><b>${visible.toLocaleString()}</b> nodes shown · <b>${shownLinks.toLocaleString()}</b> links shown</span>` +
-      `<span>algorithm: <span class="algo">${esc(algo)}</span>${FORCE_LAYOUTS.has(currentLayout) ? (forceDir ? ' · force' : ' · spread') : ''}</span>`;
+      `<span>algorithm: <span class="algo">${esc(algo)}</span>${FORCE_LAYOUTS.has(currentLayout) ? (forceDir ? ' · force' : ' · spread') : ''}${usingSavedPositions ? ' · saved' : ''}</span>`;
   }
 }
 
@@ -523,6 +570,23 @@ if (forceToggle) {
     forceDir = forceToggle.checked;
     updateReadout();
     if (FORCE_LAYOUTS.has(currentLayout)) runLayout();
+  };
+}
+const animToggle = document.getElementById('animToggle');
+if (animToggle) {
+  animToggle.checked = animateOn;
+  animToggle.onchange = () => {
+    animateOn = animToggle.checked;
+    localStorage.setItem('dw.animate', animateOn ? '1' : '0');
+    runLayout();
+  };
+}
+const savedToggle = document.getElementById('savedToggle');
+if (savedToggle) {
+  savedToggle.checked = localStorage.getItem('dw.savedLayouts') !== '0';
+  savedToggle.onchange = () => {
+    localStorage.setItem('dw.savedLayouts', savedToggle.checked ? '1' : '0');
+    runLayout();
   };
 }
 syncForceToggleUI();

@@ -91,6 +91,12 @@
       <label id="forceToggleWrap" title="Force-directed layouts pull connected nodes together; off keeps nodes spread out">
         <input type="checkbox" id="forceToggle" checked> force-directed
       </label>
+      <label id="animToggleWrap" title="Animate layouts as they run; off jumps straight to the final arrangement (faster, less CPU)">
+        <input type="checkbox" id="animToggle" checked> animate
+      </label>
+      <label id="savedToggleWrap" title="Use the precomputed layout positions bundled in site/layouts/ (instant); off always recomputes live">
+        <input type="checkbox" id="savedToggle" checked> saved positions
+      </label>
     </div>
 
     <div class="layout-meta" id="layoutMeta"></div>
@@ -180,9 +186,11 @@
             <h3>Layouts</h3>
             <p><b>23 algorithms</b>, grouped force / trees / simple. Similar ones ship on purpose —
             the same graph renders differently under each, and subtrees can prefer different
-            algorithms than the whole. <b>force-directed</b> off = spread presets. The gold
-            <b>Arranging</b> pill spins until the layout settles; algorithms that can't run here
-            (rooted-tree ones on the full map) tell you so instead of failing silently.</p>
+            algorithms than the whole. <b>force-directed</b> off = spread presets; <b>animate</b>
+            off = jump straight to the result; <b>saved positions</b> applies the bundled
+            snapshot instantly (marked <b>· saved</b>). The gold <b>Arranging</b> pill spins until
+            the layout settles; algorithms that can't run here (rooted-tree ones on the full map)
+            tell you so instead of failing silently.</p>
           </div>
           <div class="h-col">
             <h3>Keys</h3>
@@ -232,6 +240,7 @@
 <script src="vendor/dagre.min.js"></script>
 <script src="vendor/cytoscape-dagre.js"></script>
 <script src="data.js"></script>
+<script src="layouts/manifest.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

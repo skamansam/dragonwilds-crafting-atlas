@@ -93,11 +93,23 @@ this thing from what I have now?"** first; browsing second. Three deliverables:
   `replans` counts check-off/uncheck/re-plan cycles; reset deletes the record and
   re-baselines. Probe-verified (render, check-off increment, reset, cleanup hardened).
 
-### P1.5 — layout performance & presets (TODO #15, #16, #17)
+### P1.5 — layout performance & presets (TODO #15, #16, #17) — ✅ done 2026-09-23
 
-- **P1.5-1 · Animation disable toggle** *(TODO #15)* — checkbox next to the force toggle; forces `animate: false` in every preset (one-line override in `runLayout()`); also the cheap fix for "UI locks while animating".
-- **P1.5-2 · Per-preset simulation caps** *(TODO #16)* — audit all 23 presets; add tuned `maxSimulationTime`/`maxIterations` where missing (cose-bilkent ×2 are the gaps). Do **not** use the requested blanket 1000/3000 — verified too tight for 1,408 nodes (cola needs 4s+).
-- **P1.5-3 · Precomputed preset positions** *(TODO #17)* — node script computes positions per algorithm offline → `site/layouts/<algo>.json`; `runLayout()` prefers the saved file (via `name: 'preset'`); ship one hierarchical (ELK layered) preset as the example. Cytoscape-desktop-authored configs can drop into the same folder.
+- **P1.5-1 · Animation disable toggle** *(TODO #15)* — ✅ **animate** checkbox in the header
+  (persisted `dw.animate`); `runLayout()` strips `animate`/`animationDuration`/`animationEasing`
+  when off; the 90s indicator safety-net drops to 25s in that mode.
+- **P1.5-2 · Per-preset simulation caps** *(TODO #16)* — ✅ audited all vendor extensions:
+  bilkent/fcose expose `numIter` (default 2500), cise/cola/euler already had
+  `maxSimulationTime`/`maxIterations` in their presets, avsdf/spread have no cap hook.
+  Added a `CAPS` table (cose-bilkent 2500, tight 2000, cose 2500, fcose 1800). The requested
+  blanket 1000/3000 remains rejected — cola alone needs 4s+ at 1,408 nodes.
+- **P1.5-3 · Precomputed preset positions** *(TODO #17)* — ✅ `scripts/gen-layouts.mjs` runs
+  layouts headlessly (playwright) and merges results into `site/layouts/manifest.js`
+  (`window.DW_LAYOUTS`); bundled snapshots: **elk-layered** (17s) and **cose-bilkent** (47s).
+  `runLayout()` applies a snapshot instantly when the **saved positions** checkbox is on
+  (persisted `dw.savedLayouts`) and the algorithm line shows **· saved**; live recompute
+  clears the badge. Desktop-authored positions can be added to the manifest in the same
+  `{ algo: { nodeId: { x, y } } }` shape.
 
 ### P0·previous — broken behavior & the two new TODO items ✅ done 2026-09-22 (`c11553a`)
 
@@ -167,4 +179,5 @@ this thing from what I have now?"** first; browsing second. Three deliverables:
 | 2026-09-23 | `50e67c6` | biome config; canonical site/data.json export (strict JSON from DW_DATA) |
 | 2026-09-23 | `33c2fab` | `scripts/build-cyjs.mjs` → site/data.cyjs: Cytoscape Desktop-importable network (all metadata as table columns, layered seed layout) |
 | 2026-09-23 | `e79a1e1` | Exporter → `build-exports.mjs`: adds data.graphml (typed GraphML) + atlas-style.xml (vizmap style: node kind → fill/shape, edge interaction → stroke/dash/width) |
-| 2026-09-23 | (this commit) | PF-4b waypoint progress header (X of N done · re-plans · reset, persisted per item) |
+| 2026-09-23 | `802a419` | PF-4b waypoint progress header (X of N done · re-plans · reset, persisted per item) |
+| 2026-09-23 | (this commit) | P1.5 batch: animate toggle, per-preset simulation caps (CAPS table), precomputed layout snapshots (gen-layouts.mjs + saved-positions toggle + '· saved' badge) |
