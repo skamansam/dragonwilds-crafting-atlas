@@ -31,6 +31,23 @@ python3 -m http.server 8477
 
 (Any static file server works; double-clicking `index.html` also works in most browsers.)
 
+## Open it in Cytoscape Desktop
+
+`site/data.cyjs` is the same dataset as a [Cytoscape.js JSON](https://manual.cytoscape.org/en/latest/Supported_Network_File_Formats.html)
+network (array style). In **Cytoscape Desktop 3.1+**: *File ▸ Import ▸ Network ▸ File…* and pick
+`data.cyjs` (format: *Cytoscape.js JSON*).
+
+- Every item/station/skill/spell is a node named by its in-game name; all wiki metadata
+  (kind, item type, wiki URL, stats, weight…) becomes a node **table column**, so you can
+  style/filter by it.
+- Edges carry an **interaction** column — `craft` (recipe input, with qty/facility/skill/xp
+  columns), `spell` (cast cost), `skill-gate` (unlock ladder) — so the three edge kinds can
+  be styled or filtered independently.
+- A deterministic **layered seed layout** is baked in (raw materials at the bottom,
+  end-game items on top); re-layout any time from Desktop's Layout menu.
+
+Regenerate it after a data refresh with `node scripts/build-cyjs.mjs`.
+
 ## Using the atlas
 
 Everything below is also available **in the app** — press the **?** button in the header
@@ -132,6 +149,7 @@ node scripts/fetch-wiki.mjs        # ~3,650 raw wiki pages → cache/raw/
 node scripts/parse-wiki.mjs        # infoboxes + Recipe templates → cache/parsed/dataset.json
 node scripts/fetch-icons.mjs       # resolve icon URLs → cache/icons/manifest.json
 node scripts/build-data.mjs        # nodes/edges/recipes/spells/skills → site/data.js
+node scripts/build-cyjs.mjs        # site/data.js → site/data.cyjs (Cytoscape Desktop import)
 node scripts/fetch-icon-files.mjs  # download icons → site/icons/ (then shrink >60 KB files)
 node scripts/test-site.mjs         # Playwright smoke test (site must be served on :8477)
 ```
