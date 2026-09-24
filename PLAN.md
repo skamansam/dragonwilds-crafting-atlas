@@ -26,7 +26,7 @@ Current as of **2026-09-24**, after the found-in annotations + trace-makes commi
 | 8 | Clickable facilities / items in "How to make" | ✅ done | `data-goto` chips navigate + select the node · `test-todo.mjs` |
 | 9 | Isolate walks inputs **and** outputs to leaves | ✅ done | Both-direction BFS added · `29bfe91`; verified Iron Bar → Iron Sword |
 | 10 | Layout-running feedback | ✅ done | Header spinner + `Arranging · <algo>` pill with 90s safety timeout · `29bfe91` |
-| 10b | **Background/threaded layout so UI doesn't lock** *(added later to TODO.md)* | ❌ todo | See plan §3, item P1-2. Cytoscape layouts run on the main thread; off-thread is possible but non-trivial. |
+| 10b | **Background/threaded layout so UI doesn't lock** *(added later to TODO.md)* | ✅ done (spike shipped behind `worker layout` toggle) | Web Worker (`site/layout-worker.js`) computes layouts off-thread; bit-for-bit identical positions, 18/18 capability probe, graceful fallback; jank 83ms → 33ms worst-frame. Default-on parked — see plan §3 P1-2. |
 | 11 | DB counts under title/search; shown counts under layout selector | ✅ done | `#dbcounts` under brand, `#layoutMeta` (nodes/links shown + algorithm) next to select · `29bfe91` |
 | 12 | Algorithm name visible; force-directed checkbox; many algorithms | ✅ done | Name shown in `#layoutMeta`; force toggle under select; 23 algorithms shipped incl. tidytree, klay, fcose, spread, d3-force, avsdf, elk×4 — user asked for **all** of them, even near-duplicates, for rendering comparisons · `a615a74` |
 | 13 | Isolate depth input (default 3, forward + backward) | ✅ done | `#isoDepth` input next to Isolate button; empty = full tree; BFS both directions to the depth; persisted in localStorage · `c11553a`; verified 44 / 1,200 / 1,408 nodes at depth 1 / 3 / all |
@@ -35,7 +35,7 @@ Current as of **2026-09-24**, after the found-in annotations + trace-makes commi
 | 16 | **Speed up physics layouts** with `maxIterations` / `maxSimulationTime` caps *(added later)* | ✅ done | Audited per extension: `numIter` for bilkent/fcose, existing `maxSimulationTime` on cise/cola/euler; tuned `CAPS` table (blanket 1000/3000 rejected — too tight for 1,408 nodes) · `01faff1` |
 | 17 | **Precomputed/preset layouts** (store positions per algorithm; Cytoscape desktop to author) *(added later)* | ✅ done | `scripts/gen-layouts.mjs` → `site/layouts/manifest.js` (elk-layered + cose-bilkent snapshots); **saved positions** toggle applies instantly, **· saved** badge; Desktop-authored configs drop into the manifest · `01faff1` |
 | 18 | **Path-to: top search panel** for picking the link target *(added later)* | ✅ done | Dedicated **Path-to bar** at the top of the map: pulsing gold while armed (source + instructions), calm summary with step count once resolved, ✕ cancel + Esc · (this commit); search-pick and map-tap targeting unchanged · `543d983` |
-| 19 | **Research: offload layouts to a service worker / worker thread** *(added later)* | ❌ todo | Merged into plan §3 P1-2 (Web Worker layout spike) — same mechanism, that row now also covers this research question. |
+| 19 | **Research: offload layouts to a service worker / worker thread** *(added later)* | ✅ done | Answered: dedicated Worker (not service worker); see row 10b + plan §3 P1-2 for the numbers and verdict. |
 
 ---
 
@@ -119,10 +119,31 @@ this thing from what I have now?"** first; browsing second. Three deliverables:
 ### P1 — high-value compliance & robustness
 
 - **P1-1 · Scraper etiquette finish** *(compliance 08)* — ✅ done: `scripts/wiki-config.mjs` shared config, ~1 req/s default, descriptive UA in all fetch scripts.
-- **P1-2 · Layout threading spike** *(TODO #10b + #19)* — options, in order of pragmatism:
-  1. Run layouts on the **visible subgraph only** and keep heavy algorithms off the initial load (already partially true).
-  2. `animate: false` for ELK (already) and consider it for cose on graphs > 3k visible nodes (also TODO #15's toggle).
-  3. Real off-thread layout: build a headless cytoscape instance inside a Web Worker (service workers can't touch DOM, so a dedicated Worker is the right construct), run the layout there, post positions back and apply via `cy.batch()`. Spike it behind a flag; if it proves stable, make it the default for force layouts.
+- **P1-2 · Layout threading spike** *(TODO #10b + #19)* — ✅ **shipped 2026-09-24, behind the `worker layout` checkbox (off by default) — verdict: WORKS, default-on deferred** (saved-positions already makes the common paths instant; the worker only pays off for live recomputes, and the checkbox documents the choice). Implementation:
+  - `site/layout-worker.js`: headless cytoscape in a dedicated Worker with DOM shims
+    (inert elements, rAF → setTimeout 16ms), all vendor extensions imported in the exact
+    index.html order — the `window['d3-force'] = window.d3` shim must sit **between**
+    d3-force.js and cytoscape-d3-force.js (webpack external read at registration time),
+    FDLayout-family presets need `animate:false` ('during' animation needs main-thread
+    machinery). Protocol: `ping` → empirical capability probe (each preset on a 3-node
+    graph, 5s window; d3 needs `alphaDecay` — the d3-timer setTimeout(17ms) fallback makes
+    the default decay ~5s), `layout` → positions at layoutstop, deferred destroy (d3-force
+    fires a second end() after layoutstop — an immediate destroy kills the worker).
+  - app.js: persisted toggle (`dw.worker`), job-map + run-sequence token so superseded
+    results are dropped, functions stripped before postMessage (d3 `linkId` re-injected
+    worker-side), degenerate-result guard, graceful main-thread fallback with a toast.
+  - Measured (1,963 nodes, headless box): worker elk-layered-wide **bit-for-bit identical**
+    to the main thread AND to the shipped bundled manifest (maxΔ 0); cose-bilkent
+    ≈26s worker vs ≈27s main; d3-force 3.8s main vs 5.4s worker (d3-timer 17ms tick
+    shim overhead); capabilities 18/18.
+  - **Jank (the spike's question):** during an animate-off cose-bilkent re-layout of the
+    visible graph, frames >50ms drop from 1 to 0 and worst-frame 83ms → 33ms with the
+    worker on. Layout compute no longer blocks the UI thread.
+  - **Ship/park:** shipped behind the toggle (probe section `p12` verifies capabilities,
+    fidelity and the app path end-to-end). Making it default-on is parked until the
+    per-preset progress bar EMA learns worker durations (it shares `runTimes`, so this is
+    already true) and the 6% elk penalty is acceptable on low-end boxes — revisit if live
+    recompute frequency grows (density-slider drag storms are the main candidate).
 - **P1-3 · Verbatim attribution block** *(compliance 01–04)* — ✅ done `c11553a`: all four texts in README + Jagex sentence in app legend/welcome card.
 
 ### P2 — licensing & docs
@@ -212,7 +233,8 @@ this thing from what I have now?"** first; browsing second. Three deliverables:
 | 2026-09-23 | (this commit) | `elk-layered-wide` calm-boot preset + snapshot (gen-layouts.mjs); layout choice persisted (`dw.layout`); probe `p18` section (first-load density + pathbar flow) |
 | 2026-09-23 | `835e647` | OOTB default → elk-layered-wide; density slider (50–200%, live, persisted) + 💾 custom snapshots per layout@density (flat manifest-shape, layoutstop capture, sanity guard, '· custom' badge, ✕ clear) |
 | 2026-09-24 | `65ddc30` | Legend fix: repaired corrupted `.lg-title` CSS block; legend now lists all 15 node kinds (Ammo/Drinks/Resources/Uncatalogued added; chip-less kinds non-clickable) |
-| 2026-09-24 | (this commit) | Time-calibrated **progress bar** in the Arranging pill (per-preset seed table + EMA of finished runs; decelerating tail; correct cleanup on supersede/saved paths). Partially addresses TODO "layout feedback" (P1-2 worker spike still open) |
-| 2026-09-24 | (this commit) | **Shared curated snapshots**: ⤓ export button (downloads the 💾 snapshot as `dw-snapshot` JSON), `scripts/merge-snapshots.mjs` (validates: bbox/coords/node-ids — then merges into `site/layouts/curated.js`, `--list`/`--drop`), app precedence own 💾 → curated → bundled, '· curated' badge |
-| 2026-09-24 | (this commit) | **Legend becomes the filter surface**: all 15 item kinds + both link kinds toggle from the legend (Recipe links cool-blue vs gold Skill gates; persisted `dw.showMatEdges`), new **Show everything** master row; header kind/link chips retired (hidden, mirrored); fixed `applyCategoryVisibility` clobbering edge-pref hiding (category toggles used to reveal the 1,539 hidden skill edges) |
-| 2026-09-24 | (this commit) | **Found-in annotations + Trace makes ⤴ (P4-1/P4-2)**: `build-found-in.mjs` mines wiki prose → `site/found-in.js` (575 items: region + gather method + tool; clause-proximity pairing, except-clause exclusions, infobox location/tool); **Found in** panel section; **Trace makes ⤴** forward-trace button (downstream subtree + counts). P4-3 recorded: explore-tree isolation may be too greedy — parked, unchanged |
+| 2026-09-24 | `0d4e6a8` | Time-calibrated **progress bar** in the Arranging pill (per-preset seed table + EMA of finished runs; decelerating tail; correct cleanup on supersede/saved paths). Partially addresses TODO "layout feedback" (P1-2 worker spike still open) |
+| 2026-09-24 | `0138446` | **Shared curated snapshots**: ⤓ export button (downloads the 💾 snapshot as `dw-snapshot` JSON), `scripts/merge-snapshots.mjs` (validates: bbox/coords/node-ids — then merges into `site/layouts/curated.js`, `--list`/`--drop`), app precedence own 💾 → curated → bundled, '· curated' badge |
+| 2026-09-24 | `f129a20` | **Legend becomes the filter surface**: all 15 item kinds + both link kinds toggle from the legend (Recipe links cool-blue vs gold Skill gates; persisted `dw.showMatEdges`), new **Show everything** master row; header kind/link chips retired (hidden, mirrored); fixed `applyCategoryVisibility` clobbering edge-pref hiding (category toggles used to reveal the 1,539 hidden skill edges) |
+| 2026-09-24 | `ac5c295` | **Found-in annotations + Trace makes ⤴ (P4-1/P4-2)**: `build-found-in.mjs` mines wiki prose → `site/found-in.js` (575 items: region + gather method + tool; clause-proximity pairing, except-clause exclusions, infobox location/tool); **Found in** panel section; **Trace makes ⤴** forward-trace button (downstream subtree + counts). P4-3 recorded: explore-tree isolation may be too greedy — parked, unchanged |
+| 2026-09-24 | (this commit) | **P1-2 Web Worker layout spike shipped** behind the `worker layout` toggle (`site/layout-worker.js`: headless cytoscape + all extensions in a Worker, DOM shims, empirical capability probe 18/18, deferred destroy for d3-force's second end()). app.js: persisted toggle, supersede-safe job map, function-stripping + linkId re-injection, degenerate guard, main-thread fallback. Verified bit-for-bit fidelity + jank 83→33ms worst-frame; default-on parked — full verdict in plan §3 P1-2 |

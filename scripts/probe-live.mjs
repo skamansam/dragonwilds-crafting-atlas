@@ -450,6 +450,100 @@ if (!only || only === 'p18') {
   console.log('skill chip reveals:', JSON.stringify(revealed), `(expect visible === ${firstLoad.total}, stored "1")`);
   await page.evaluate(() => document.getElementById('edgeSkillChip').click()); // restore calm default
 }
+if (!only || only === 'p12') {
+  // P1-2 worker spike: background layout thread. Verifies worker capabilities,
+  // worker == main-thread fidelity, and the app's worker path end-to-end.
+  const caps = await page.evaluate(async () => {
+    const w = new Worker('layout-worker.js');
+    const algos = await new Promise((resolve, reject) => {
+      const to = setTimeout(() => reject(new Error('ping timeout')), 60000);
+      w.onmessage = e => { if (e.data && e.data.type === 'capabilities') { clearTimeout(to); resolve(e.data.algos); } };
+      w.onerror = e => { clearTimeout(to); reject(new Error('worker error: ' + (e.message || 'x'))); };
+      w.postMessage({ type: 'ping' });
+    });
+    w.terminate();
+    return algos;
+  });
+  console.log('worker capabilities:', caps.length, 'of 18 ·', caps.includes('d3-force') ? 'd3-force ok' : 'd3-force MISSING');
+  if (caps.length !== 18) throw new Error('FAIL: expected all 18 layouts runnable in worker');
+
+  // worker == main fidelity on identical input (app preset elk-layered-wide @ 100%)
+  const fid = await page.evaluate(async () => {
+    const opts = { name: 'elk', animate: false, padding: 30, elk: { algorithm: 'layered', 'elk.direction': 'DOWN', 'elk.edgeRouting': 'ORTHOGONAL', 'elk.layered.spacing.nodeNodeBetweenLayers': 130, 'elk.spacing.nodeNode': 54 } };
+    const mk = () => {
+      const d = window.DW_DATA;
+      const ids = new Set(d.nodes.map(n => n.id));
+      const sk = new Set((d.skills || []).map(s => s.name));
+      return {
+        nodes: d.nodes.map(n => ({ data: { id: n.id, kind: n.kind } })),
+        edges: d.edges.filter(e => ids.has(e.from) && ids.has(e.to)).map((e, i) => ({ data: { id: 'e' + i, source: e.from, target: e.to, interaction: sk.has(e.from) ? 'skill-gate' : 'craft' } })),
+      };
+    };
+    const g = mk();
+    const main = await new Promise(resolve => {
+      const cy = cytoscape({ headless: true, elements: { nodes: g.nodes, edges: g.edges } });
+      cy.layout({ ...opts, fit: false, stop: () => {
+        const out = {};
+        cy.nodes().forEach(n => { out[n.id()] = { x: Math.round(n.position().x), y: Math.round(n.position().y) }; });
+        cy.destroy();
+        resolve(out);
+      } }).run();
+    });
+    const wk = await new Promise((resolve, reject) => {
+      const w = new Worker('layout-worker.js');
+      const to = setTimeout(() => reject(new Error('worker elk timeout')), 120000);
+      w.onmessage = e => { if (e.data && e.data.type === 'done') { clearTimeout(to); resolve(e.data); } };
+      w.postMessage({ type: 'layout', jobId: 77, preset: 'elk-layered-wide', opts, nodes: g.nodes, edges: g.edges });
+    });
+    let maxD = 0;
+    for (const [id, p] of Object.entries(wk.positions)) {
+      const m = main[id];
+      const d = m ? Math.hypot(p.x - m.x, p.y - m.y) : Infinity;
+      if (d > maxD) maxD = d;
+    }
+    return { maxD, n: Object.keys(wk.positions).length };
+  });
+  console.log(`fidelity worker vs main: maxΔ=${fid.maxD} (${fid.n} nodes)`);
+  if (fid.maxD > 0.5) throw new Error('FAIL: worker positions diverge from main thread');
+
+  // app path: flip the toggle, run a live layout, expect worker marker + settled map
+  await page.evaluate(() => {
+    localStorage.setItem('dw.animate', '0');
+    document.getElementById('workerToggle').checked = true;
+    document.getElementById('workerToggle').onchange({ target: { checked: true } });
+    document.getElementById('savedToggle').checked = false;
+    document.getElementById('savedToggle').dispatchEvent(new Event('change'));
+  });
+  await page.evaluate(() => {
+    const sel = document.getElementById('layoutSelect');
+    sel.value = 'dagre';
+    sel.onchange({ target: { value: 'dagre' } });
+  });
+  await page.waitForFunction(() => !document.getElementById('layoutInd').classList.contains('on'), null, { timeout: 60000, polling: 300 });
+  const appPath = await page.evaluate(() => {
+    const c = window.__cy;
+    const bb = c.nodes(':visible').boundingBox({});
+    return { w: Math.round(bb.w), h: Math.round(bb.h), bad: c.nodes(':visible').filter(n => !isFinite(n.position().x)).length };
+  });
+  console.log('app worker path (dagre):', JSON.stringify(appPath));
+  if (appPath.bad > 0 || appPath.w < 300) throw new Error('FAIL: worker app path produced a degenerate map');
+
+  // toggle off restores main-thread runs
+  await page.evaluate(() => {
+    document.getElementById('workerToggle').checked = false;
+    document.getElementById('workerToggle').onchange({ target: { checked: false } });
+    localStorage.setItem('dw.animate', '1');
+    document.getElementById('savedToggle').checked = true;
+  });
+  await page.evaluate(() => {
+    const sel = document.getElementById('layoutSelect');
+    sel.value = 'elk-layered-wide';
+    sel.onchange({ target: { value: 'elk-layered-wide' } });
+  });
+  await page.waitForFunction(() => !document.getElementById('layoutInd').classList.contains('on'), null, { timeout: 60000, polling: 300 });
+  console.log('p12 worker spike: OK');
+  await page.screenshot({ path: 'cache/shots2/p12-worker.png' });
+}
 console.log('errors:', errors.length ? errors.join('\n') : 'none');
 await cleanup();
 srv?.close();

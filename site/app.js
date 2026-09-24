@@ -416,6 +416,76 @@ let usingCustomPositions = false; // density-slider 💾 snapshot (P3-1b)
 let usingCuratedPositions = false; // shared curated snapshot (site/layouts/curated.js)
 const savedToggleOn = () => { const t = document.getElementById('savedToggle'); return !t || t.checked; };
 
+/* ── P1-2 worker spike: background layout thread ─────────────── */
+// site/layout-worker.js builds a headless cytoscape with every vendor extension
+// loaded and runs the layout there, returning { id → {x,y} }. The main thread
+// stays free to animate/pan while physics chews. Off by default (spike); the
+// saved-positions path above is instant anyway, so the worker only matters for
+// live recomputes (density slider, non-elk presets).
+let layoutWorker = null;
+let workerJobId = 0;
+let workerRunSeq = 0;   // runLayout-generation token — stale worker results are dropped
+const workerJobs = new Map(); // jobId → resolve, for in-flight (supersede-safe) jobs
+const workerToggleEl = document.getElementById('workerToggle');
+if (workerToggleEl) workerToggleEl.checked = localStorage.getItem('dw.worker') === '1';
+if (workerToggleEl) workerToggleEl.onchange = () => {
+  localStorage.setItem('dw.worker', workerToggleEl.checked ? '1' : '0');
+  toast(workerToggleEl.checked
+    ? 'Worker layout on — heavy layouts compute in a background thread'
+    : 'Worker layout off — layouts run on the main thread again');
+  if (!workerToggleEl.checked && activeLayout === 'worker-stale') activeLayout = null;
+};
+function workerOn() { return !!(workerToggleEl && workerToggleEl.checked && typeof Worker !== 'undefined'); }
+function getLayoutWorker() {
+  if (layoutWorker) return layoutWorker;
+  try {
+    layoutWorker = new Worker('layout-worker.js');
+    layoutWorker.onmessage = e => {
+      const m = e.data || {};
+      if (m.type === 'capabilities') { workerCaps = m.algos; return; }
+      if (m.type === 'done') {
+        const r = workerJobs.get(m.jobId);
+        if (r) { workerJobs.delete(m.jobId); r(m); } // late results for superseded jobs land nowhere
+      }
+    };
+    layoutWorker.onerror = e => {
+      for (const [, r] of workerJobs) r({ type: 'error', message: e.message || 'worker error' });
+      workerJobs.clear();
+      try { layoutWorker.terminate(); } catch {}
+      layoutWorker = null;
+    };
+  } catch { layoutWorker = null; }
+  return layoutWorker;
+}
+let workerCaps = null;
+function workerSupports(preset) {
+  if (workerCaps === null) return true; // probe not back yet — attempt anyway
+  return workerCaps.includes(LAYOUTS[preset] ? LAYOUTS[preset]().name : preset);
+}
+// pre-warm the worker (and its capability probe) when the toggle is on
+if (workerOn()) getLayoutWorker().postMessage({ type: 'ping' });
+async function runWorkerLayout(preset, opts, timeoutMs = 120000) {
+  const w = getLayoutWorker();
+  if (!w) return { type: 'error', message: 'worker unavailable' };
+  const jobId = ++workerJobId;
+  const nodes = cy.nodes().map(n => ({ data: { id: n.id() }, position: { x: n.position().x, y: n.position().y } }));
+  const edges = cy.edges().map(e => ({ data: { source: e.source().id(), target: e.target().id() } }));
+  // functions (d3-force's linkId accessor) can't cross postMessage — strip them;
+  // the worker re-injects the standard accessor for d3-force
+  let safeOpts;
+  try { safeOpts = JSON.parse(JSON.stringify(opts, (k, v) => typeof v === 'function' ? undefined : v)); }
+  catch { safeOpts = { name: opts.name }; }
+  return Promise.race([
+    new Promise(resolve => {
+      workerJobs.set(jobId, resolve);
+      w.postMessage({ type: 'layout', jobId, preset, opts: safeOpts, nodes, edges });
+    }),
+    new Promise(resolve => setTimeout(() => {
+      if (workerJobs.has(jobId)) { workerJobs.delete(jobId); resolve({ type: 'error', message: 'worker timed out' }); }
+    }, timeoutMs)),
+  ]);
+}
+
 // P3-1b: density slider — scales elk layered spacing 50–200%, live re-runs; 💾 saves
 // the current arrangement per layout+density as a custom snapshot that boots instantly.
 let densPct = parseFloat(localStorage.getItem('dw.dens')) || 100;
@@ -501,7 +571,7 @@ function shareSnapshot(preset, dens) {
   setTimeout(() => URL.revokeObjectURL(a.href), 2000);
   toast('Snapshot downloaded — send it in and it can ship with the atlas for everyone');
 }
-function runLayout(preset = currentLayout, { skipSaved = false } = {}) {
+function runLayout(preset = currentLayout, { skipSaved = false, forceMain = false } = {}) {
   // stop any in-flight layout so a new selection always wins — and kill its
   // progress bar: a superseded layout's layoutstop early-returns, so the bar
   // must not depend on that handler for cleanup
@@ -591,6 +661,45 @@ function runLayout(preset = currentLayout, { skipSaved = false } = {}) {
     hideVeil();
     if (!isolatedRoot) cy.fit(undefined, 60);
     updateReadout();
+    return;
+  }
+  // P1-2 worker spike: compute off-thread, apply positions in one batch. The
+  // page keeps animating/panning while physics chews in the background.
+  // Supersede: a newer runLayout bumps the token; a stale worker result is
+  // dropped (the worker itself keeps computing until done — accepted waste).
+  if (!forceMain && workerOn() && workerSupports(preset)) {
+    const wOpts = { ...opts, animate: false }; // worker can't animate (no main-thread machinery)
+    delete wOpts.animationDuration; delete wOpts.animationEasing;
+    setLayoutIndicator(true, `Arranging · ${opts.name} (worker)…`);
+    startProgressBar(preset);
+    const jobToken = ++workerRunSeq;
+    runWorkerLayout(preset, wOpts).then(res => {
+      if (jobToken !== workerRunSeq) return; // superseded — drop the stale result
+      if (res && res.type === 'done' && isSaneSnapshot(res.positions)) {
+        usingSavedPositions = false; usingCustomPositions = false; usingCuratedPositions = false;
+        cy.batch(() => {
+          for (const n of cy.nodes()) {
+            const p = res.positions[n.id()];
+            if (p) n.position({ x: p.x, y: p.y });
+          }
+        });
+        activeLayout = null;
+        layoutRunning = false;
+        setLayoutIndicator(false);
+        stopProgressBar(preset, true); // worker durations feed the same EMA
+        hideVeil();
+        if (!isolatedRoot) cy.fit(undefined, 60);
+        updateReadout();
+        if (pendingSave && pendingSave.preset === preset) {
+          const p = pendingSave; pendingSave = null;
+          doCustomSave(p.preset, lastSpacing, p.dens);
+        }
+      } else {
+        const why = res && res.type === 'done' ? 'returned a degenerate result' : ((res && res.message) || 'failed');
+        toast(`Worker layout ${why} — running on the main thread`);
+        runLayout(preset, { skipSaved: true, forceMain: true }); // graceful fallback
+      }
+    });
     return;
   }
   setLayoutIndicator(true, `Arranging · ${opts.name}${FORCE_LAYOUTS.has(preset) ? (forceDir ? ' · force' : ' · spread') : ''}…`);
