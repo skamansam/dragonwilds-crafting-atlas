@@ -176,6 +176,21 @@ this thing from what I have now?"** first; browsing second. Three deliverables:
   Bramblemead Valley, Fractured Plains, Bloodblight Swamp, Whispering Swamp, Ghornfell,
   Bleakfields Valley (Ashenfall = the whole world, never a region).
   **Follow-up (not started):** region pseudo-nodes on the map so the rows can jump.
+- **P4-1b · Region pseudo-nodes** — ✅ done 2026-09-24: the seven canonical Ashenfall
+  regions become green hub nodes built at boot from `DW_FOUND_IN` (NOT in data.json —
+  exports, db counts and every `D.edges` walk stay recipe-only). Each hub spokes to the
+  items the wiki prose places there (`regionEdge` class, soft green). Design details:
+  regions only materialize when the parser found ≥1 annotated find (Bleakfields Valley is
+  named only in quest/lore prose, so it correctly gets no hub); hubs are visible but muted
+  (opacity 0.35) until **legend → LINKS → Region links** is enabled (persisted
+  `dw.showRegionEdges`, default off — geography ≠ crafting); Found-in panel rows now jump
+  (`data-goto`) to the hub, whose panel lists everything found there (clickable back);
+  regions are searchable; orphan detection ignores region spokes (drop-only items stay
+  orphans); snapshot fallback places region hubs at the centroid of their laid-out
+  neighbours (they are absent from pre-region manifests); isolate/trace never include
+  regions. Probe `isolate` fixed: it "simulated" shift-tap via `emit('tap', {originalEvent})`
+  — cytoscape drops synthetic originalEvents, so the old assertion was vacuous (it was
+  counting boot-visible nodes); it now calls `isolateTree` directly and asserts 1,408.
 - **P4-2 · "What does this item allow me to craft?"** — ✅ done: the panel already lists
   **Used to make** (direct recipes); the new **Trace makes ⤴** button runs the forward
   trace (`traceOutputs`, mirror of `traceInputs`): highlights the whole downstream subtree
@@ -238,3 +253,4 @@ this thing from what I have now?"** first; browsing second. Three deliverables:
 | 2026-09-24 | `f129a20` | **Legend becomes the filter surface**: all 15 item kinds + both link kinds toggle from the legend (Recipe links cool-blue vs gold Skill gates; persisted `dw.showMatEdges`), new **Show everything** master row; header kind/link chips retired (hidden, mirrored); fixed `applyCategoryVisibility` clobbering edge-pref hiding (category toggles used to reveal the 1,539 hidden skill edges) |
 | 2026-09-24 | `ac5c295` | **Found-in annotations + Trace makes ⤴ (P4-1/P4-2)**: `build-found-in.mjs` mines wiki prose → `site/found-in.js` (575 items: region + gather method + tool; clause-proximity pairing, except-clause exclusions, infobox location/tool); **Found in** panel section; **Trace makes ⤴** forward-trace button (downstream subtree + counts). P4-3 recorded: explore-tree isolation may be too greedy — parked, unchanged |
 | 2026-09-24 | (this commit) | **P1-2 Web Worker layout spike shipped** behind the `worker layout` toggle (`site/layout-worker.js`: headless cytoscape + all extensions in a Worker, DOM shims, empirical capability probe 18/18, deferred destroy for d3-force's second end()). app.js: persisted toggle, supersede-safe job map, function-stripping + linkId re-injection, degenerate guard, main-thread fallback. Verified bit-for-bit fidelity + jank 83→33ms worst-frame; default-on parked — full verdict in plan §3 P1-2 |
+| 2026-09-24 | (this commit) | **Region pseudo-nodes (P4-1b)**: 6 green region hubs built from found-in data (Bleakfields Valley legitimately empty); Found-in rows jump to them, hub panels list their items; **Region links** legend row (persisted, default off); muted hubs until revealed; searchable; excluded from exports/plans/isolation; snapshot centroid fallback; probe `isolate` un-vacuumed (direct isolateTree call, asserts 1,408) |

@@ -86,7 +86,9 @@ if (!only || only === 'cola') {
 if (!only || only === 'isolate') {
   await switchTo('cose-bilkent');
   await page.waitForTimeout(3500);
-  await page.evaluate(() => { window.__cy.getElementById('Iron Bar').emit('tap', { originalEvent: { shiftKey: true } }); });
+  // cytoscape drops the synthetic originalEvent on emit('tap'), so shift-tap
+  // can't be simulated that way — call the handler's action directly
+  await page.evaluate(() => { window.isolateTree('Iron Bar', null); });
   await page.waitForTimeout(1500);
   const iso = await page.evaluate(() => {
     const c = window.__cy;

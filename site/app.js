@@ -37,14 +37,16 @@ const kindColor = {
   skill:    '#f7dd9a',
   implicit: '#6d6a5e',
   other:    '#8a8577',
+  region:   '#7fc9a6',
 };
 const kindLabel = {
   weapon: 'Weapons', armour: 'Armour', tool: 'Tools', station: 'Stations',
   ammo: 'Ammo', trinket: 'Trinkets', food: 'Food', potion: 'Potions',
   drink: 'Drinks', material: 'Materials', resource: 'Resources',
   spell: 'Spells', skill: 'Skills', implicit: 'Uncatalogued', other: 'Other',
+  region: 'Regions',
 };
-const kindGlyph = { station: '⌂', resource: '⛰', implicit: '?', spell: '✦', skill: '★' };
+const kindGlyph = { station: '⌂', resource: '⛰', implicit: '?', spell: '✦', skill: '★', region: '⌖' };
 
 function nodeColor(n) { return kindColor[n.kind] || kindColor.other; }
 
@@ -149,6 +151,11 @@ const cy = cytoscape({
       },
     },
     {
+      // region pseudo-nodes stay quiet geography until their green links are on (P4-1b)
+      selector: 'node.regionMuted',
+      style: { opacity: 0.35, 'text-opacity': 0.45 },
+    },
+    {
       selector: 'edge.locked',
       style: { opacity: 0.05 },
     },
@@ -213,6 +220,49 @@ for (const e of D.edges) {
       lineColor: isSkillGate ? SKILL_EDGE_COLOR : MAT_EDGE_COLOR,
     },
   });
+}
+
+/* ── region pseudo-nodes (P4-1b) ───────────────────────────── */
+// Canonical Ashenfall regions become green hub nodes so the panel's "Found in"
+// rows can jump somewhere real. Built from DW_FOUND_IN at boot — they are NOT
+// part of data.json, so exports (GraphML/CyJS), the db counts and every D.edges
+// walk (plans, paths, traces, isolation, possessions) stay recipe-only.
+const REGION_EDGE_COLOR = 'rgba(140,200,170,0.30)'; // soft green — geography, not crafting
+const REGION_EDGE_SWATCH = '#8cc8aa';
+const CANON_REGIONS = ['Temple Woods', 'Bramblemead Valley', 'Fractured Plains', 'Bloodblight Swamp', 'Whispering Swamp', 'Ghornfell', 'Bleakfields Valley'];
+const regionMembers = new Map(); // region → Map(item → Set(method))
+if (foundIn.size) {
+  for (const [itemId, list] of foundIn) {
+    for (const f of list) {
+      if (!f.region || !CANON_REGIONS.includes(f.region)) continue;
+      if (!regionMembers.has(f.region)) regionMembers.set(f.region, new Map());
+      const members = regionMembers.get(f.region);
+      if (!members.has(itemId)) members.set(itemId, new Set());
+      members.get(itemId).add(f.method || 'other');
+    }
+  }
+  for (const [region, members] of regionMembers) {
+    const deg = members.size;
+    nodeById.set(region, { id: region, name: region, kind: 'region' }); // searchable + openable
+    eles.push({
+      group: 'nodes',
+      data: {
+        id: region,
+        label: region,
+        borderColor: kindColor.region,
+        nodeSize: 26 + Math.min(20, deg * 0.35),
+        meta: { kind: 'region', deg, description: `Region of Ashenfall — ${deg} annotated find${deg > 1 ? 's' : ''}` },
+      },
+      classes: 'noIcon',
+    });
+    for (const item of members.keys()) {
+      eles.push({
+        group: 'edges',
+        data: { id: region + ' ⌖ ' + item, source: region, target: item, meta: { region: true }, lineColor: REGION_EDGE_COLOR },
+        classes: 'regionEdge',
+      });
+    }
+  }
 }
 
 let layoutRunning = false;
@@ -653,6 +703,17 @@ function runLayout(preset = currentLayout, { skipSaved = false, forceMain = fals
         const p = savedMap[n.id()];
         if (p) n.position({ x: p.x, y: p.y });
       }
+      // nodes absent from the snapshot (region pseudo-nodes added after it was
+      // captured) sit at the centroid of their laid-out neighbours instead of
+      // piling up at the origin
+      for (const n of cy.nodes()) {
+        if (savedMap[n.id()]) continue;
+        const nb = n.neighborhood('node').filter(x => savedMap[x.id()]);
+        if (!nb.length) continue;
+        let sx = 0, sy = 0;
+        nb.forEach(x => { const p = savedMap[x.id()]; sx += p.x; sy += p.y; });
+        n.position({ x: Math.round(sx / nb.length), y: Math.round(sy / nb.length) });
+      }
     });
     layoutRunning = false;
     stopProgressBar(null, false); // saved path never fires layoutstop — stop the bar here
@@ -753,7 +814,13 @@ function populate() {
   try {
     cy.batch(() => {
       cy.add(eles);
-      cy.nodes().forEach(n => { if (n.degree() === 0) n.addClass('orphan'); });
+      // orphan = no crafting edges (region spokes don't rescue drop-only items);
+      // region nodes themselves are hubs, never orphans
+      cy.nodes().forEach(n => {
+        const craftDeg = n.degree(false) - n.connectedEdges('.regionEdge').length;
+        if (n.data('meta').kind === 'region') n.removeClass('orphan');
+        else if (craftDeg === 0) n.addClass('orphan');
+      });
       applyCategoryVisibility();
       applyEdgeVisibility();
     });
@@ -793,13 +860,21 @@ function fitSoon() {
 
 // Skill-gate edges start HIDDEN on a fresh browser (P3-1: the default view is
 // calmer without 1,539 gold spokes); the choice persists via dw.showSkillEdges.
+// Region links (P4-1b) start hidden too — they are geography, not crafting, and
+// the default map is a crafting view.
 const edgePrefs = {
   materials: localStorage.getItem('dw.showMatEdges') !== '0', // recipe links (default ON, persisted)
   skills: localStorage.getItem('dw.showSkillEdges') === '1', // default OFF first load
+  regions: localStorage.getItem('dw.showRegionEdges') === '1', // default OFF first load
 }; // toggle via the legend's LINKS rows (retired header chips kept in sync)
 function applyEdgeVisibility() {
   cy.batch(() => {
     for (const e of cy.edges()) {
+      if (e.hasClass('regionEdge')) {
+        e.source().toggleClass('regionMuted', !edgePrefs.regions); // quiet hubs until the green links are on
+        e.toggleClass('hidden', !edgePrefs.regions || e.source().hasClass('hidden') || e.target().hasClass('hidden'));
+        continue;
+      }
       const isSkill = SKILL_NAMES.has(e.source().id());
       e.toggleClass('hidden', (isSkill && !edgePrefs.skills) || (!isSkill && !edgePrefs.materials));
       if (!e.hasClass('hidden') && (e.source().hasClass('hidden') || e.target().hasClass('hidden'))) e.addClass('hidden');
@@ -869,6 +944,18 @@ const lgSkillRow = lgMakeRow({
     applyEdgeVisibility();
   },
 });
+const lgRegionRow = lgMakeRow({
+  cls: 'lg-line',
+  swatch: `<span class="lg-swatch line" style="background:${REGION_EDGE_SWATCH}"></span>`,
+  label: 'Region links',
+  on: edgePrefs.regions,
+  onclick: () => {
+    edgePrefs.regions = !edgePrefs.regions;
+    localStorage.setItem('dw.showRegionEdges', edgePrefs.regions ? '1' : '0');
+    lgRegionRow.classList.toggle('off', !edgePrefs.regions);
+    applyEdgeVisibility();
+  },
+});
 // master switch — everything back on in one click (was impossible before:
 // with every item row off there was no way to recover short of a reload)
 lgMakeRow({
@@ -889,9 +976,12 @@ lgMakeRow({
     localStorage.setItem('dw.showSkillEdges', '1');
     lgSkillRow.classList.remove('off');
     document.getElementById('edgeSkillChip').classList.add('on');
+    edgePrefs.regions = true;
+    localStorage.setItem('dw.showRegionEdges', '1');
+    lgRegionRow.classList.remove('off');
     applyCategoryVisibility();
     applyEdgeVisibility();
-    toast('Everything is showing — items, dead ends and both link kinds');
+    toast('Everything is showing — items, dead ends and all link kinds');
   },
 });
 // required Jagex Fan Content Policy attribution (must stay verbatim)
@@ -914,12 +1004,15 @@ document.querySelectorAll('.chip[data-cat]').forEach(chip => {
 document.getElementById('resetFilters').onclick = () => {
   for (const k of Object.keys(kindLabel)) activeCats.add(k);
   document.querySelectorAll('.chip[data-cat]').forEach(c => c.classList.add('on'));
-  // ↺ All resets filters to the calm first-load default: skill edges hidden too
+  // ↺ All resets filters to the calm first-load default: skill + region edges hidden too
   edgePrefs.skills = false;
   localStorage.setItem('dw.showSkillEdges', '0');
   document.getElementById('edgeSkillChip').classList.remove('on');
-  for (const k of Object.keys(lgRows)) lgSyncKind(k); // legend rows stay in step
   lgSkillRow.classList.add('off');
+  edgePrefs.regions = false;
+  localStorage.setItem('dw.showRegionEdges', '0');
+  lgRegionRow.classList.add('off');
+  for (const k of Object.keys(lgRows)) lgSyncKind(k); // legend rows stay in step
   applyCategoryVisibility();
   applyEdgeVisibility();
 };
@@ -1634,6 +1727,21 @@ function renderPanelBody(n) {
 
   const sections = [];
 
+  // region pseudo-node (P4-1b): what is found here, jumpable
+  if (n.kind === 'region') {
+    const members = regionMembers.get(id) || new Map();
+    const verb = { mined: 'mined', chopped: 'chopped', picked: 'picked', farmed: 'farmed', caught: 'fished', drops: 'drops', chest: 'in chests', dungeon: 'in dungeons', other: 'found' };
+    const rows = [...members.entries()].sort((a, b) => a[0].localeCompare(b[0])).map(([item, methods]) =>
+      `<div class="found-row fi-jump" data-goto="${esc(item)}">${iconImg(item)}<span class="fr">${esc(item)}</span><span class="fw">${[...methods].map(m => esc(verb[m] || m)).join(' · ')}</span></div>`
+    ).join('');
+    sections.push(`<div class="p-section"><div class="p-label">What you find here (${members.size})</div>${rows}</div>`);
+    sections.push(`<div class="p-section"><div class="p-hint">Region hubs are map aids mined from the wiki's location prose — recipes and plans ignore them. Toggle their green links in the legend (LINKS → Region links).</div></div>`);
+    panelBody.innerHTML = sections.join('');
+    panelBody.scrollTop = 0;
+    panelBody.querySelectorAll('[data-goto]').forEach(el => { el.onclick = () => selectNode(el.dataset.goto); });
+    return;
+  }
+
   // "From nothing" plan — the atlas' core question; shown for items and raw
   // resources alike (raw items get the Path-to query instead of a plan).
   // PF-3: with the ledger populated, plans can start from what you own.
@@ -1748,7 +1856,8 @@ function renderPanelBody(n) {
     }</div>`);
   }
 
-  // found in — regions, gather method and tool (P4-1)
+  // found in — regions, gather method and tool (P4-1); rows jump to the region
+  // pseudo-node (P4-1b), which now always exists for canonical regions
   if (foundIn.get(id)) {
     const byRegion = new Map();
     for (const f of foundIn.get(id)) {
@@ -1955,7 +2064,7 @@ searchInput.addEventListener('input', () => {
   searchClear.style.display = q ? 'block' : 'none';
   if (q.length < 1) { closeSuggestions(); return; }
   const scored = [];
-  for (const n of D.nodes) {
+  for (const n of nodeById.values()) { // includes region pseudo-nodes (P4-1b)
     const s = fuzzyScore(q.toLowerCase(), n.name.toLowerCase());
     if (s > 0) scored.push([s, n]);
   }

@@ -112,6 +112,10 @@ Everything below is also available **in the app** — press the **?** button in 
   (mined / chopped / picked / farmed / fished / chest / dungeon / drops) and the tool when the
   wiki names one (e.g. Ash Tree → Bramblemead Valley, chopped with a logging axe). Mined from
   the wiki's location prose; 575 items annotated. Raw gatherables show it alongside the recipes.
+  **Click a region row to jump to the region hub** on the map — a green pseudo-node listing
+  everything the wiki places there. Region hubs are map aids, not crafting steps: recipes,
+  plans and exports ignore them, their green spokes start hidden (**legend → LINKS →
+  Region links** turns them on), and the hubs stay quiet until then. Regions are searchable too.
 - **Isolate tree** (panel button): shows only the subtree, auto-revealing every category.
   The **depth input** beside it limits how many recipe steps to walk (default 3; empty = the
   whole tree to the leaves).
