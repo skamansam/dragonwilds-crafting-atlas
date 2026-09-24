@@ -73,6 +73,7 @@ importScripts(
   'vendor/cytoscape-dagre.js'
 );
 
+const activeJobs = new Map(); // jobId → cy.layout handle, for cancellation
 function runLayoutJob(msg) {
   let { jobId, preset, opts, nodes, edges } = msg;
   const t0 = performance.now();
@@ -96,12 +97,16 @@ function runLayoutJob(msg) {
     setTimeout(() => { try { cy.destroy(); } catch {} }, 300);
   };
   try {
-    cy.layout({ ...opts, fit: false, stop: () => {
+    const lay = cy.layout({ ...opts, fit: false, stop: () => {
       const out = {};
       cy.nodes().forEach(n => { out[n.id()] = { x: Math.round(n.position().x), y: Math.round(n.position().y) }; });
+      activeJobs.delete(jobId);
       finish(out);
-    } }).run();
+    } });
+    activeJobs.set(jobId, lay);
+    lay.run();
   } catch (e) {
+    activeJobs.delete(jobId);
     try { cy.destroy(); } catch {}
     self.postMessage({ type: 'error', jobId, preset, message: String(e && e.message || e) });
   }
@@ -157,4 +162,8 @@ self.onmessage = async e => {
   const msg = e.data || {};
   if (msg.type === 'ping') self.postMessage({ type: 'capabilities', algos: await capabilities() });
   else if (msg.type === 'layout') runLayoutJob(msg);
+  else if (msg.type === 'cancel') { // superseded job: stop computing, free the thread
+    const lay = activeJobs.get(msg.jobId);
+    if (lay) { try { lay.stop(); } catch {} activeJobs.delete(msg.jobId); }
+  }
 };

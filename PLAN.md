@@ -160,6 +160,11 @@ this thing from what I have now?"** first; browsing second. Three deliverables:
 ### P3 — polish / backlog grooming
 
 - **P3-1 · Density pass** *(TODO #1)* — after P0-1/P0-2, re-evaluate the default view: candidate defaults are Cola (airy) or cose-bilkent with `idealEdgeLength ≥ 130`; consider edge-bundling or hiding skill edges by default on first load.
+- **P3-1c · Drag-storm batching** *(2026-09-24)* — ✅ the density slider debounce (260→450ms)
+  now coalesces a continuous drag into 1–2 layout runs (verified: 16 input events → 1 run),
+  and the worker gained a `cancel` protocol: a superseded job is stopped via `layout.stop()`
+  in the worker instead of running to completion, so the single worker thread never queues
+  stale elk passes behind a storm. Slider label + `dw.dens` persistence stay per-input (live).
 - **P3-2 · Layout retention** — remember last layout + force toggle in localStorage.
 - **P3-3 · Groom TODO.md** — once this plan is adopted, TODO.md items can be pruned/marked to avoid two divergent lists (this file becomes the tracker).
 - **P3-4 · Human actions** *(compliance 10, 11)* — send the two outreach emails; log results in COMPLIANCE.md. Cannot be done by the agent.
@@ -267,3 +272,4 @@ this thing from what I have now?"** first; browsing second. Three deliverables:
 | 2026-09-24 | (this commit) | **Region pseudo-nodes (P4-1b)**: 6 green region hubs built from found-in data (Bleakfields Valley legitimately empty); Found-in rows jump to them, hub panels list their items; **Region links** legend row (persisted, default off); muted hubs until revealed; searchable; excluded from exports/plans/isolation; snapshot centroid fallback; probe `isolate` un-vacuumed (direct isolateTree call, asserts 1,408) |
 | 2026-09-24 | (this commit) | **P4-3 direction-dominant isolation prototype**: direction select beside Isolate tree (up+down / outputs only / inputs only, persisted `dw.isoDir`); both-walk measured at 1,408 nodes (72% of map) for every hub item vs surgical directional walks (Iron Bar 89/4); toast reports direction + count; default unchanged |
 | 2026-09-24 | (this commit) | **Region hubs in exports**: build-exports.mjs appends 6 `kind=region` nodes (+146 `interaction=region` edges, hub→item, foundHere column with per-item methods) to data.cyjs + data.graphml; vizmap style maps region→green hexagon + soft-green dash; hubs at member centroids; exporter caught + fixed a nid collision (hubs appended after the GraphML id map was built collapsed them into one `undefined` node); round-trip verified with networkx |
+| 2026-09-24 | (this commit) | **Drag-storm batching**: density slider debounce 260→450ms (16-event storm → 1 layout run, verified) + worker `cancel` protocol — superseded jobs get `layout.stop()` in the worker so the single thread never queues stale elk passes |

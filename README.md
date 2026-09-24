@@ -162,7 +162,9 @@ Everything below is also available **in the app** — press the **?** button in 
   each extension's own knob (`numIter` for bilkent/fcose, `maxSimulationTime` for
   cise/cola/euler) so the UI never locks for minutes.
 - **Density slider** (elk layered layouts): scales layer/in-layer spacing from 50% to 200%
-  and re-runs live (debounced, persisted). **💾 saves the current arrangement as a custom
+  and re-runs live — a continuous **drag storm is batched** into one debounced run (and a
+  superseded background job is cancelled outright, never queued behind your drag).
+  **💾 saves the current arrangement as a custom
   snapshot** for that layout + density — it boots instantly from then on, shown as **·
   custom** (a 💾 snapshot outranks the bundled one). **✕ clears it.** Snapshots that look
   degenerate (captured mid-flight or corrupted) are detected and dropped rather than

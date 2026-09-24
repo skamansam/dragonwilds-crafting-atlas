@@ -476,6 +476,9 @@ let layoutWorker = null;
 let workerJobId = 0;
 let workerRunSeq = 0;   // runLayout-generation token — stale worker results are dropped
 const workerJobs = new Map(); // jobId → resolve, for in-flight (supersede-safe) jobs
+// Drag-storm control (density slider): a superseded worker job is CANCELLED
+// (layout.stop() in the worker) instead of running to completion — the worker is
+// single-threaded, so stale jobs would otherwise queue ahead of the live one.
 const workerToggleEl = document.getElementById('workerToggle');
 // default ON since the P1-2 spike graduated (2026-09-24): the probe verified 18/18
 // capability + bit-for-bit fidelity, and jank measurements showed worst-frame 83→33ms.
@@ -511,6 +514,7 @@ function getLayoutWorker() {
   return layoutWorker;
 }
 let workerCaps = null;
+let workerActiveJobId = null; // most recent in-flight worker job (cancel target)
 function workerSupports(preset) {
   if (workerCaps === null) return true; // probe not back yet — attempt anyway
   return workerCaps.includes(LAYOUTS[preset] ? LAYOUTS[preset]().name : preset);
@@ -521,6 +525,7 @@ async function runWorkerLayout(preset, opts, timeoutMs = 120000) {
   const w = getLayoutWorker();
   if (!w) return { type: 'error', message: 'worker unavailable' };
   const jobId = ++workerJobId;
+  workerActiveJobId = jobId; // the job a future supersede should cancel
   const nodes = cy.nodes().map(n => ({ data: { id: n.id() }, position: { x: n.position().x, y: n.position().y } }));
   const edges = cy.edges().map(e => ({ data: { source: e.source().id(), target: e.target().id() } }));
   // functions (d3-force's linkId accessor) can't cross postMessage — strip them;
@@ -737,6 +742,11 @@ function runLayout(preset = currentLayout, { skipSaved = false, forceMain = fals
     setLayoutIndicator(true, `Arranging · ${opts.name} (worker)…`);
     startProgressBar(preset);
     const jobToken = ++workerRunSeq;
+    // cancel the job of any run this one supersedes — frees the single worker thread
+    if (workerActiveJobId !== null) {
+      try { getLayoutWorker().postMessage({ type: 'cancel', jobId: workerActiveJobId }); } catch {}
+      workerActiveJobId = null;
+    }
     runWorkerLayout(preset, wOpts).then(res => {
       if (jobToken !== workerRunSeq) return; // superseded — drop the stale result
       if (res && res.type === 'done' && isSaneSnapshot(res.positions)) {
@@ -1115,14 +1125,18 @@ const densSlider = document.getElementById('densSlider');
 if (densSlider) {
   densSlider.value = densPct;
   const densVal = document.getElementById('densVal');
-  if (densVal) densVal.textContent = densPct + '%';
-  let densTimer = null;
+  if (densVal) densVal.textContent = densPct + '%';    let densTimer = null;
   densSlider.oninput = () => {
     densPct = parseFloat(densSlider.value) || 100;
     localStorage.setItem('dw.dens', String(densPct));
     if (densVal) densVal.textContent = densPct + '%';
+    // drag-storm batching: the label updates live (cheap), but the layout only
+    // re-runs once the slider has been still for a beat. 260ms felt instant for
+    // discrete jumps but a continuous drag queued a re-layout per notch — each a
+    // full elk pass. The worker makes each pass cheap to SUPERSEDE (previous job
+    // is cancelled), and 450ms coalesces a storm into 1–2 runs.
     clearTimeout(densTimer);
-    densTimer = setTimeout(() => { if (isElkDenseable(currentLayout)) runLayout(currentLayout, { skipSaved: true }); }, 260);
+    densTimer = setTimeout(() => { if (isElkDenseable(currentLayout)) runLayout(currentLayout, { skipSaved: true }); }, 450);
   };
 }
 syncForceToggleUI();
