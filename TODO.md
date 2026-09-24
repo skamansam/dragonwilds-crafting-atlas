@@ -87,3 +87,21 @@ the user to search for a node to link to.[x] We have feedback now for layouts, b
     bundled-snapshot preset, where no layoutstop fires) stops the bar immediately.
 can you do some research to find out whether we can offload this to a service worker or some other 
 thread-like construct?
+
+[x] Where is each item found? Add region / gather-method / tool annotations to the info panel.
+    → DONE (2026-09-24): panels show a **Found in** section mined from the cached wiki
+    prose (scripts/build-found-in.mjs → site/found-in.js): region, gather method (mined /
+    chopped / picked / farmed / fished / chest / dungeon / drops) and the tool where the
+    wiki names one (e.g. Ash Tree → Bramblemead Valley, chopped with a logging axe).
+    575 items annotated (123 with regions, 452 method-only). Future: region pseudo-nodes
+    on the map + click-to-jump from the rows.
+
+[x] New graph question: "what does this item allow me to craft?" — the reverse of trace inputs.
+    → DONE (2026-09-24): panels already list **Used to make** (direct recipes); a new
+    **Trace makes ⤴** button highlights the full downstream subtree on the map (direct +
+    transitive) with a count toast, mirroring Trace inputs.
+
+[] Explore-tree isolation may be too greedy — the both-direction walk-to-leaves pulls in
+    nearly the whole graph for hub items (e.g. any bar/log). Consider a direction-dominant
+    walk or a default depth cap, or leave full-tree as an explicit choice. (Isolation is
+    intentionally left as-is for now — parked, not rejected.)

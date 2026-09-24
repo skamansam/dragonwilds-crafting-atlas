@@ -8,7 +8,7 @@ Single source of truth for the two backlogs:
 Status legend: ✅ done · 🟡 partial · ❌ todo · ⬜ needs a human (external action)
 Evidence = commit hash, test, or verified code path. Update this file whenever a ticket changes state.
 
-Current as of **2026-09-22**, after commit `543d983` (live at http://rudeboy.dev/dragonwilds-crafting-atlas/).
+Current as of **2026-09-24**, after the found-in annotations + trace-makes commit (live at http://rudeboy.dev/dragonwilds-crafting-atlas/).
 
 ---
 
@@ -139,6 +139,32 @@ this thing from what I have now?"** first; browsing second. Three deliverables:
 - **P3-3 · Groom TODO.md** — once this plan is adopted, TODO.md items can be pruned/marked to avoid two divergent lists (this file becomes the tracker).
 - **P3-4 · Human actions** *(compliance 10, 11)* — send the two outreach emails; log results in COMPLIANCE.md. Cannot be done by the agent.
 
+### P4 — where things come from & the reverse graph question (2026-09-24)
+
+- **P4-1 · Found-in annotations** — ✅ done: `scripts/build-found-in.mjs` mines the cached
+  wiki wikitext (`cache/raw/<pageid>.json`) for where each item is found and how it is
+  gathered, emitting `site/found-in.js` (`window.DW_FOUND_IN`, guarded load). Parser:
+  infobox `|location =` (authoritative) + `|tool =` fallback for mined/chopped, then a
+  clause-level prose scan — comma-clauses pair each region with its NEAREST method/tool
+  mention ("found in chests in Ghornfell" → chest, not farmed); "(except X)" clauses are
+  exclusions, never locations; region-less clauses borrow the nearest method sentence
+  ("…Bramblemead Valley… They can be felled with any logging axes" → chopped + axe);
+  method-only fallback when no region is named. 575 items annotated (123 with regions,
+  452 method-only; Fractured Plains 56, Ghornfell 28, Bramblemead 22…). Panels render a
+  **Found in** section (region → methods + tool); canonical regions: Temple Woods,
+  Bramblemead Valley, Fractured Plains, Bloodblight Swamp, Whispering Swamp, Ghornfell,
+  Bleakfields Valley (Ashenfall = the whole world, never a region).
+  **Follow-up (not started):** region pseudo-nodes on the map so the rows can jump.
+- **P4-2 · "What does this item allow me to craft?"** — ✅ done: the panel already lists
+  **Used to make** (direct recipes); the new **Trace makes ⤴** button runs the forward
+  trace (`traceOutputs`, mirror of `traceInputs`): highlights the whole downstream subtree
+  (direct + transitive) in the traced style, toast with direct/total counts. The graph
+  question now has both directions: Trace inputs ← item → Trace makes ⤴.
+- **P4-3 · Explore-tree isolation may be too greedy** — ⬜ parked (user decision: isolation
+  stays as-is for now). The both-direction walk-to-leaves pulls in nearly the whole graph
+  for hub items (bars/logs). Candidate approaches if revisited: direction-dominant walk,
+  default depth cap, or an explicit "full tree" choice. Recorded in TODO.md.
+
 ---
 
 ## 4. Research notes
@@ -189,3 +215,4 @@ this thing from what I have now?"** first; browsing second. Three deliverables:
 | 2026-09-24 | (this commit) | Time-calibrated **progress bar** in the Arranging pill (per-preset seed table + EMA of finished runs; decelerating tail; correct cleanup on supersede/saved paths). Partially addresses TODO "layout feedback" (P1-2 worker spike still open) |
 | 2026-09-24 | (this commit) | **Shared curated snapshots**: ⤓ export button (downloads the 💾 snapshot as `dw-snapshot` JSON), `scripts/merge-snapshots.mjs` (validates: bbox/coords/node-ids — then merges into `site/layouts/curated.js`, `--list`/`--drop`), app precedence own 💾 → curated → bundled, '· curated' badge |
 | 2026-09-24 | (this commit) | **Legend becomes the filter surface**: all 15 item kinds + both link kinds toggle from the legend (Recipe links cool-blue vs gold Skill gates; persisted `dw.showMatEdges`), new **Show everything** master row; header kind/link chips retired (hidden, mirrored); fixed `applyCategoryVisibility` clobbering edge-pref hiding (category toggles used to reveal the 1,539 hidden skill edges) |
+| 2026-09-24 | (this commit) | **Found-in annotations + Trace makes ⤴ (P4-1/P4-2)**: `build-found-in.mjs` mines wiki prose → `site/found-in.js` (575 items: region + gather method + tool; clause-proximity pairing, except-clause exclusions, infobox location/tool); **Found in** panel section; **Trace makes ⤴** forward-trace button (downstream subtree + counts). P4-3 recorded: explore-tree isolation may be too greedy — parked, unchanged |

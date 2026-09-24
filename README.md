@@ -106,6 +106,12 @@ Everything below is also available **in the app** — press the **?** button in 
 ### Focus tools
 
 - **Trace inputs** (panel button): highlights every transitive ingredient behind the selection.
+- **Trace makes ⤴** (panel button): the reverse — highlights everything the selection is used
+  to make, directly or downstream ("what does this item allow me to craft?").
+- **Found in** (panel section): where the item is found in the world — regions, gather method
+  (mined / chopped / picked / farmed / fished / chest / dungeon / drops) and the tool when the
+  wiki names one (e.g. Ash Tree → Bramblemead Valley, chopped with a logging axe). Mined from
+  the wiki's location prose; 575 items annotated. Raw gatherables show it alongside the recipes.
 - **Isolate tree** (panel button): shows only the subtree, auto-revealing every category.
   The **depth input** beside it limits how many recipe steps to walk (default 3; empty = the
   whole tree to the leaves).
