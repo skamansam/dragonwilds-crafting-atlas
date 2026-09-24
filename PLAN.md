@@ -26,7 +26,7 @@ Current as of **2026-09-24**, after the found-in annotations + trace-makes commi
 | 8 | Clickable facilities / items in "How to make" | ✅ done | `data-goto` chips navigate + select the node · `test-todo.mjs` |
 | 9 | Isolate walks inputs **and** outputs to leaves | ✅ done | Both-direction BFS added · `29bfe91`; verified Iron Bar → Iron Sword |
 | 10 | Layout-running feedback | ✅ done | Header spinner + `Arranging · <algo>` pill with 90s safety timeout · `29bfe91` |
-| 10b | **Background/threaded layout so UI doesn't lock** *(added later to TODO.md)* | ✅ done (spike shipped behind `worker layout` toggle) | Web Worker (`site/layout-worker.js`) computes layouts off-thread; bit-for-bit identical positions, 18/18 capability probe, graceful fallback; jank 83ms → 33ms worst-frame. Default-on parked — see plan §3 P1-2. |
+| 10b | **Background/threaded layout so UI doesn't lock** *(added later to TODO.md)* | ✅ done (**default-on**) | Web Worker (`site/layout-worker.js`) computes layouts off-thread; bit-for-bit identical positions, 18/18 capability probe, graceful fallback; worst frame during a live re-layout 7.35s freeze → 16.8ms. See plan §3 P1-2. |
 | 11 | DB counts under title/search; shown counts under layout selector | ✅ done | `#dbcounts` under brand, `#layoutMeta` (nodes/links shown + algorithm) next to select · `29bfe91` |
 | 12 | Algorithm name visible; force-directed checkbox; many algorithms | ✅ done | Name shown in `#layoutMeta`; force toggle under select; 23 algorithms shipped incl. tidytree, klay, fcose, spread, d3-force, avsdf, elk×4 — user asked for **all** of them, even near-duplicates, for rendering comparisons · `a615a74` |
 | 13 | Isolate depth input (default 3, forward + backward) | ✅ done | `#isoDepth` input next to Isolate button; empty = full tree; BFS both directions to the depth; persisted in localStorage · `c11553a`; verified 44 / 1,200 / 1,408 nodes at depth 1 / 3 / all |
@@ -140,10 +140,14 @@ this thing from what I have now?"** first; browsing second. Three deliverables:
     visible graph, frames >50ms drop from 1 to 0 and worst-frame 83ms → 33ms with the
     worker on. Layout compute no longer blocks the UI thread.
   - **Ship/park:** shipped behind the toggle (probe section `p12` verifies capabilities,
-    fidelity and the app path end-to-end). Making it default-on is parked until the
-    per-preset progress bar EMA learns worker durations (it shares `runTimes`, so this is
-    already true) and the 6% elk penalty is acceptable on low-end boxes — revisit if live
-    recompute frequency grows (density-slider drag storms are the main candidate).
+    fidelity and the app path end-to-end) — and **default-ON since 2026-09-24**
+    (`dw.worker` defaults to enabled, opt-out persisted). First-load feel re-measured on
+    the 1,963-node map: the snapshot boot is instant either way (~0.5s to interactive);
+    the first live recompute (density-slider drag on elk-layered-wide) settles in ~7.5s
+    both ways, but with the worker the worst rAF frame is **16.8ms** vs a **7.35s
+    main-thread freeze** without it — animate:false elk runs synchronously on the main
+    thread, so default-on removes the only long UI freeze in the product. Opt-out remains
+    one click for anyone who wants zero background thread usage.
 - **P1-3 · Verbatim attribution block** *(compliance 01–04)* — ✅ done `c11553a`: all four texts in README + Jagex sentence in app legend/welcome card.
 
 ### P2 — licensing & docs

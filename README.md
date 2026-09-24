@@ -161,13 +161,13 @@ Everything below is also available **in the app** — press the **?** button in 
   (`scripts/merge-snapshots.mjs` checks the bounding box, coordinates and node ids), it
   ships in `site/layouts/curated.js` — every visitor gets the arrangement instantly,
   marked **· curated**. Precedence: your own 💾 snapshot → curated → bundled manifest.
-- **Worker layout** (P1-2 spike, off by default): the **worker layout** checkbox runs heavy
-  layouts in a background Web Worker (`site/layout-worker.js` — headless cytoscape with every
-  vendor extension loaded) so the page keeps responding while physics computes. Positions
-  come back identical to the main thread (bit-for-bit on elk-layered-wide), the capability
-  probe covers all 18 layout families, and any worker failure/timout falls back to the main
-  thread automatically. Measured: worst-frame jank during a cose-bilkent re-layout drops
-  ~2.5× (83ms → 33ms).
+- **Worker layout** (P1-2, on by default): the **worker layout** checkbox runs heavy layouts
+  in a background Web Worker (`site/layout-worker.js` — headless cytoscape with every vendor
+  extension loaded) so the page keeps responding while physics computes. Positions come back
+  identical to the main thread (bit-for-bit on elk-layered-wide), the capability probe covers
+  all 18 layout families, and any worker failure/timeout falls back to the main thread
+  automatically. Measured on the full map: without the worker, a live density re-run freezes
+  the UI for ~7.4s; with it, the worst frame is 16.8ms. Uncheck the box to opt out.
 - **Arranging indicator**: the gold pill in the header shows which algorithm is running and
   spins — with a **live progress bar** — until it settles (up to 90s for the heavy ones).
   Deterministic layouts can't report their own progress, so the bar is time-calibrated: a
