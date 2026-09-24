@@ -110,10 +110,11 @@ Everything below is also available **in the app** — press the **?** button in 
   The **depth input** beside it limits how many recipe steps to walk (default 3; empty = the
   whole tree to the leaves).
 - **Search**: fuzzy matching across all 1,900+ nodes with icon suggestions; **/** focuses it.
-- **Filter chips**: show/hide categories; **Dead ends** reveals the items with no crafting
-  recipes (drops, quest items, resource nodes); **Links** / **Skill links** toggle the two edge
-  kinds (**skill links start hidden** on a fresh browser — the default map is calmer without
-  the 1,539 gold skill spokes; the choice persists); **↺ All** resets to that calm default.
+- **Legend = the filter surface**: every item kind *and* both link kinds toggle from the
+  top-left legend (**Recipe links** in cool blue vs gold **Skill gates** — skill links start
+  hidden on a fresh browser; the choices persist). **Show everything** turns all items, dead
+  ends and both link kinds back on in one click. **Dead ends** and **↺ All** stay in the
+  header; the old kind/link chips are retired (hidden, still scriptable).
 
 ### Layouts
 

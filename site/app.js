@@ -181,7 +181,9 @@ try {
 /* ── graph build ─────────────────────────────────────────────── */
 const eles = [];
 const SKILL_EDGE_COLOR = 'rgba(247,221,154,0.20)';
-const MAT_EDGE_COLOR = 'rgba(180,170,140,0.28)';
+const MAT_EDGE_COLOR = 'rgba(150,190,220,0.32)'; // cool blue-grey so recipe links read against the gold skill gates
+const SKILL_EDGE_SWATCH = '#f7dd9a'; // solid versions for the legend swatches
+const MAT_EDGE_SWATCH = '#96bedc';
 for (const n of D.nodes) {
   const deg = (outDegree.get(n.id) || 0) + (inDegree.get(n.id) || 0);
   eles.push({
@@ -665,6 +667,7 @@ function applyCategoryVisibility() {
       if (e.source().hasClass('hidden') || e.target().hasClass('hidden')) e.addClass('hidden');
     }
   });
+  applyEdgeVisibility(); // re-assert link prefs — the loop above strips .hidden from every edge
   updateReadout();
   if (!isolatedRoot) fitSoon();
 }
@@ -678,9 +681,9 @@ function fitSoon() {
 // Skill-gate edges start HIDDEN on a fresh browser (P3-1: the default view is
 // calmer without 1,539 gold spokes); the choice persists via dw.showSkillEdges.
 const edgePrefs = {
-  materials: true,
+  materials: localStorage.getItem('dw.showMatEdges') !== '0', // recipe links (default ON, persisted)
   skills: localStorage.getItem('dw.showSkillEdges') === '1', // default OFF first load
-}; // toggle via header chips
+}; // toggle via the legend's LINKS rows (retired header chips kept in sync)
 function applyEdgeVisibility() {
   cy.batch(() => {
     for (const e of cy.edges()) {
@@ -691,32 +694,107 @@ function applyEdgeVisibility() {
   });
 }
 
-/* ── legend ──────────────────────────────────────────────────── */
+/* ── legend: the single filter surface ───────────────────────── */
+// Every item kind and both link kinds toggle from here now — the header
+// kind/link chips are retired (kept hidden in the DOM for probe/script
+// compatibility and mirrored so legacy clicks stay correct).
 const legend = document.getElementById('legend');
-for (const k of Object.keys(kindColor)) {
+const lgRows = {}; // kind → legend row element
+function lgMakeRow({ cls = '', swatch, label, on = true, onclick }) {
   const row = document.createElement('div');
-  row.className = 'lg-row';
-  // kinds without a filter chip (drink, resource, implicit…) can't be toggled —
-  // still list them so the colour key is complete, just not clickable
-  const chip = document.querySelector(`.chip[data-cat="${k}"]`);
-  if (!chip) row.classList.add('lg-static');
-  row.innerHTML = `<span class="lg-swatch" style="background:${kindColor[k]}"></span>${kindLabel[k]}`;
-  row.onclick = () => { if (chip) chip.click(); };
+  row.className = 'lg-row' + (cls ? ' ' + cls : '') + (on ? '' : ' off');
+  row.innerHTML = `${swatch}<span>${label}</span>`;
+  row.onclick = onclick;
   legend.appendChild(row);
+  return row;
 }
+function lgSyncKind(k) {
+  if (lgRows[k]) lgRows[k].classList.toggle('off', !activeCats.has(k));
+  const chip = document.querySelector(`.chip[data-cat="${k}"]`); // hidden legacy chip mirrors
+  if (chip) chip.classList.toggle('on', activeCats.has(k));
+}
+for (const k of Object.keys(kindColor)) {
+  lgRows[k] = lgMakeRow({
+    swatch: `<span class="lg-swatch" style="background:${kindColor[k]}"></span>`,
+    label: kindLabel[k],
+    on: activeCats.has(k),
+    onclick: () => {
+      if (activeCats.has(k)) activeCats.delete(k); else activeCats.add(k);
+      lgSyncKind(k);
+      applyCategoryVisibility();
+    },
+  });
+}
+// links — colored differently so recipe vs skill-gate reads at a glance
+const lgSec = document.createElement('div');
+lgSec.className = 'lg-title lg-sec';
+lgSec.textContent = 'LINKS';
+legend.appendChild(lgSec);
+const lgMatRow = lgMakeRow({
+  cls: 'lg-line',
+  swatch: `<span class="lg-swatch line" style="background:${MAT_EDGE_SWATCH}"></span>`,
+  label: 'Recipe links',
+  on: edgePrefs.materials,
+  onclick: () => {
+    edgePrefs.materials = !edgePrefs.materials;
+    localStorage.setItem('dw.showMatEdges', edgePrefs.materials ? '1' : '0');
+    lgMatRow.classList.toggle('off', !edgePrefs.materials);
+    document.getElementById('edgeMatChip').classList.toggle('on', edgePrefs.materials);
+    applyEdgeVisibility();
+  },
+});
+const lgSkillRow = lgMakeRow({
+  cls: 'lg-line',
+  swatch: `<span class="lg-swatch line" style="background:${SKILL_EDGE_SWATCH}"></span>`,
+  label: 'Skill gates',
+  on: edgePrefs.skills,
+  onclick: () => {
+    edgePrefs.skills = !edgePrefs.skills;
+    localStorage.setItem('dw.showSkillEdges', edgePrefs.skills ? '1' : '0');
+    lgSkillRow.classList.toggle('off', !edgePrefs.skills);
+    document.getElementById('edgeSkillChip').classList.toggle('on', edgePrefs.skills);
+    applyEdgeVisibility();
+  },
+});
+// master switch — everything back on in one click (was impossible before:
+// with every item row off there was no way to recover short of a reload)
+lgMakeRow({
+  cls: 'lg-action',
+  swatch: '<span class="lg-swatch" style="background:var(--gold-bright)"></span>',
+  label: 'Show everything',
+  on: true,
+  onclick: () => {
+    for (const k of Object.keys(kindColor)) activeCats.add(k);
+    for (const k of Object.keys(lgRows)) lgSyncKind(k);
+    showOrphans = true;
+    document.getElementById('orphansChip').classList.add('on');
+    edgePrefs.materials = true;
+    localStorage.setItem('dw.showMatEdges', '1');
+    lgMatRow.classList.remove('off');
+    document.getElementById('edgeMatChip').classList.add('on');
+    edgePrefs.skills = true;
+    localStorage.setItem('dw.showSkillEdges', '1');
+    lgSkillRow.classList.remove('off');
+    document.getElementById('edgeSkillChip').classList.add('on');
+    applyCategoryVisibility();
+    applyEdgeVisibility();
+    toast('Everything is showing — items, dead ends and both link kinds');
+  },
+});
 // required Jagex Fan Content Policy attribution (must stay verbatim)
 const legal = document.createElement('div');
 legal.className = 'lg-legal';
 legal.innerHTML = `Created using intellectual property belonging to Jagex Limited under the terms of Jagex's <a href="https://www.jagex.com/en-GB/legal/fan-content" target="_blank" rel="noopener">Fan Content Policy</a>. This content is not endorsed by or affiliated with Jagex.`;
 legend.appendChild(legal);
 
-/* ── filter chips ────────────────────────────────────────────── */
+/* ── filter chips (retired — hidden in header, kept for probe/script compat) ── */
 document.querySelectorAll('.chip[data-cat]').forEach(chip => {
   chip.classList.add('on');
   chip.onclick = () => {
     const cat = chip.dataset.cat;
     if (activeCats.has(cat)) { activeCats.delete(cat); chip.classList.remove('on'); }
     else { activeCats.add(cat); chip.classList.add('on'); }
+    lgSyncKind(cat); // legend row mirrors the legacy chip
     applyCategoryVisibility();
   };
 });
@@ -727,6 +805,8 @@ document.getElementById('resetFilters').onclick = () => {
   edgePrefs.skills = false;
   localStorage.setItem('dw.showSkillEdges', '0');
   document.getElementById('edgeSkillChip').classList.remove('on');
+  for (const k of Object.keys(lgRows)) lgSyncKind(k); // legend rows stay in step
+  lgSkillRow.classList.add('off');
   applyCategoryVisibility();
   applyEdgeVisibility();
 };
@@ -740,12 +820,14 @@ document.getElementById('orphansChip').onclick = () => {
 document.getElementById('edgeMatChip').onclick = () => {
   edgePrefs.materials = !edgePrefs.materials;
   document.getElementById('edgeMatChip').classList.toggle('on', edgePrefs.materials);
+  lgMatRow.classList.toggle('off', !edgePrefs.materials); // legend mirrors
   applyEdgeVisibility();
 };
 document.getElementById('edgeSkillChip').onclick = () => {
   edgePrefs.skills = !edgePrefs.skills;
   localStorage.setItem('dw.showSkillEdges', edgePrefs.skills ? '1' : '0');
   document.getElementById('edgeSkillChip').classList.toggle('on', edgePrefs.skills);
+  lgSkillRow.classList.toggle('off', !edgePrefs.skills); // legend mirrors
   applyEdgeVisibility();
 };
 

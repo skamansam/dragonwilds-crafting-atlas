@@ -35,21 +35,21 @@
     </div>
 
     <div class="filters" id="filters">
-      <div class="chip" data-cat="weapon" title="Show weapons"><span class="dot"></span>Weapons</div>
-      <div class="chip" data-cat="armour" title="Show armour"><span class="dot"></span>Armour</div>
-      <div class="chip" data-cat="tool" title="Show tools"><span class="dot"></span>Tools</div>
-      <div class="chip" data-cat="station" title="Show stations &amp; buildings"><span class="dot"></span>Stations</div>
-      <div class="chip" data-cat="ammo" title="Show ammunition"><span class="dot"></span>Ammo</div>
-      <div class="chip" data-cat="trinket" title="Show trinkets, rings &amp; capes"><span class="dot"></span>Trinkets</div>
-      <div class="chip" data-cat="food" title="Show food"><span class="dot"></span>Food</div>
-      <div class="chip" data-cat="potion" title="Show potions"><span class="dot"></span>Potions</div>
-      <div class="chip" data-cat="material" title="Show materials"><span class="dot"></span>Materials</div>
-      <div class="chip" data-cat="spell" title="Show spells"><span class="dot"></span>Spells</div>
-      <div class="chip" data-cat="skill" title="Show skills"><span class="dot"></span>Skills</div>
-      <div class="chip" data-cat="other" title="Show everything else"><span class="dot"></span>Other</div>
+      <div class="chip retired" data-cat="weapon" title="Show weapons"><span class="dot"></span>Weapons</div>
+      <div class="chip retired" data-cat="armour" title="Show armour"><span class="dot"></span>Armour</div>
+      <div class="chip retired" data-cat="tool" title="Show tools"><span class="dot"></span>Tools</div>
+      <div class="chip retired" data-cat="station" title="Show stations &amp; buildings"><span class="dot"></span>Stations</div>
+      <div class="chip retired" data-cat="ammo" title="Show ammunition"><span class="dot"></span>Ammo</div>
+      <div class="chip retired" data-cat="trinket" title="Show trinkets, rings &amp; capes"><span class="dot"></span>Trinkets</div>
+      <div class="chip retired" data-cat="food" title="Show food"><span class="dot"></span>Food</div>
+      <div class="chip retired" data-cat="potion" title="Show potions"><span class="dot"></span>Potions</div>
+      <div class="chip retired" data-cat="material" title="Show materials"><span class="dot"></span>Materials</div>
+      <div class="chip retired" data-cat="spell" title="Show spells"><span class="dot"></span>Spells</div>
+      <div class="chip retired" data-cat="skill" title="Show skills"><span class="dot"></span>Skills</div>
+      <div class="chip retired" data-cat="other" title="Show everything else"><span class="dot"></span>Other</div>
       <div class="chip" id="orphansChip" title="Show items with no crafting recipes (drops, quest items, resource nodes)"><span class="dot"></span>Dead ends</div>
-      <div class="chip on" id="edgeMatChip" title="Show material (recipe) edges"><span class="dot"></span>Links</div>
-      <div class="chip" id="edgeSkillChip" title="Show skill-gate edges (gold) — hidden by default to keep the map readable; click to reveal"><span class="dot"></span>Skill links</div>
+      <div class="chip retired on" id="edgeMatChip" title="Show material (recipe) edges"><span class="dot"></span>Links</div>
+      <div class="chip retired" id="edgeSkillChip" title="Show skill-gate edges (gold) — hidden by default to keep the map readable; click to reveal"><span class="dot"></span>Skill links</div>
       <div class="chip" id="possessionsChip" title="Mark what you own and only show what you can reach"><span class="dot"></span>🎒 Possessions</div>
       <span id="ownedCount" title="Items marked as owned">0</span>
       <div class="chip" id="resetFilters" title="Show all categories">↺ All</div>
@@ -119,6 +119,7 @@
 
     <div class="legend" id="legend">
       <div class="lg-title">CRAFTS</div>
+      <div class="lg-hint">click to show / hide</div>
     </div>
 
     <div class="zoomctl">
@@ -193,8 +194,9 @@
             <h3>Focus</h3>
             <p><b>Shift+Click</b> isolates a full crafting tree (inputs <i>and</i> outputs to the
             leaves). <b>Trace inputs</b> highlights every ingredient behind an item. <b>Depth</b>
-            limits how far isolation walks (blank = all). Filter chips tame the map; <b>Dead ends</b>
-            shows items nothing crafts.</p>
+            limits how far isolation walks (blank = all). The <b>legend</b> (top left) tames the
+            map: every item kind <i>and</i> both link kinds toggle there — <b>Show everything</b>
+            restores it all at once. <b>Dead ends</b> shows items nothing crafts.</p>
           </div>
           <div class="h-col">
             <h3>Layouts</h3>

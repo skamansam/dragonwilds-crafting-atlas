@@ -374,6 +374,13 @@ header {
 }
 .legend .lg-row { display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 1px 2px; border-radius: 4px; }
 .legend .lg-row.lg-static { cursor: default; }
+.legend .lg-hint { font-size: 9px; color: var(--faint); margin-top: -3px; }
+.legend .lg-title.lg-sec { margin-top: 7px; }
+.legend .lg-swatch.line { border-radius: 2px; height: 4px; width: 14px; }
+.legend .lg-row.lg-line span:last-child { letter-spacing: 0.02em; }
+.legend .lg-row.lg-action { color: var(--gold-bright); font-weight: 700; }
+.legend .lg-row.lg-action .lg-swatch { border-radius: 50%; width: 8px; height: 8px; }
+.chip.retired { display: none; }
 .legend .lg-row:hover { color: var(--ink); }
 .legend .lg-row.off { opacity: 0.35; }
 .legend .lg-swatch { width: 10px; height: 10px; border-radius: 3px; flex: none; }
