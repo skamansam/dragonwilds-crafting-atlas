@@ -223,10 +223,33 @@ node scripts/fetch-wiki.mjs        # ~3,650 raw wiki pages → cache/raw/
 node scripts/parse-wiki.mjs        # infoboxes + Recipe templates → cache/parsed/dataset.json
 node scripts/fetch-icons.mjs       # resolve icon URLs → cache/icons/manifest.json
 node scripts/build-data.mjs        # nodes/edges/recipes/spells/skills → site/data.js
+node scripts/build-found-in.mjs    # location prose in cache/raw → site/found-in.js
 node scripts/build-exports.mjs     # site/data.js → data.cyjs + data.graphml + atlas-style.xml
 node scripts/fetch-icon-files.mjs  # download icons → site/icons/ (then shrink >60 KB files)
 node scripts/test-site.mjs         # Playwright smoke test (site must be served on :8477)
+node scripts/build-location-checklists.mjs  # missing find spots → docs/checklists/*.md
 ```
+
+### Location checklists — the hand-annotation loop
+
+The found-in parser is best-effort: many items end up with a gather method but no
+region, and some with no source info at all. `build-location-checklists.mjs` turns
+those gaps into `docs/checklists/*.md` — one checkbox list per gather method
+(mined, picked, chopped, farmed, caught, chest, dungeon, drops), a
+`partial-locations.md` cross-view of items missing a region, and `unknown-source.md`
+for items with nothing annotated.
+
+`unknown-source.md` is sorted by **likely in-game progression** (a heuristic — the
+dataset carries no level gates): metal-tier and zone-gated names, raw gatherables
+and materials first; monster-drop materials, usables, lore/relics, cosmetics and
+quest rewards last. A playing session can walk it front to back instead of
+drifting through an alphabetical sea of vestiges.
+
+Ticking a box and appending `— found in: <region>, <how>` on its line is how
+hand-verified find spots are recorded against the header's citable regions.
+Regenerating the checklists overwrites the files, so fold any filled-in answers
+back into `site/found-in.js` before re-running the generator (a merge-back script
+is planned for exactly that).
 
 ## Licensing
 

@@ -12,7 +12,8 @@
 // choose from are listed once per file header. Regenerate:
 //   node scripts/build-location-checklists.mjs
 //
-// Deterministic output (sorted by item id) so re-runs diff cleanly.
+// Deterministic output (method files sorted by item id, unknown-source sorted by
+// likely in-game progression) so re-runs diff cleanly.
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -61,6 +62,97 @@ const METHOD_LABEL = {
 };
 
 const wikiURL = n => n.wiki || (n.pageid ? `https://dragonwilds.runescape.wiki/w/Special:Redirect/page/${n.pageid}` : null);
+
+// ---------------------------------------------------------------------------
+// Progression order for unknown-source.md — "likely in-game progression".
+// The dataset has no numeric level gates (recipe `level` fields are absent and
+// skillLevelForItem only covers spells), so this is a hand-tuned heuristic:
+// early-game gatherables sort to the top, late-game materials next, then
+// quest/lore/cosmetic artefacts, with the skills of the recipes that consume
+// the item as a tiebreak. Items are grouped under their tier heading; scores
+// are unique per heading so every heading appears exactly once, contiguous.
+// ---------------------------------------------------------------------------
+const METAL_TIER = { copper: 0, bronze: 100, tin: 200, iron: 300, steel: 400, silver: 500, gold: 600, mithril: 700, runite: 800, dragon: 900 };
+const ZONE_TIER = [ // sub-regions as they gate in the main quest
+  ['temple', 0], ['bramble', 100], ['meadow', 100], ['plains', 200], ['fractured', 200],
+  ['bloodblight', 300], ['whispering', 300], ['swamp', 300], ['ghornfell', 400], ['bleakfields', 500],
+];
+// classic RS herb ladder — the very first things a new character picks
+const HERB_RE = /\b(guam|marrentill|tarromin|harralander|ranarr|irit|avantoe|kwuarm|snapdragon|cadantine|lantadyme|dwarf weed)\b/i;
+// lore / quest / cosmetic artefact patterns → their bucket score
+const ARTEFACT_PATTERNS = [
+  [/\bvestige\b/i, 'lore & relics', 4000],
+  [/\b(tome|engram|relic)\b/i, 'lore & relics', 4000],
+  [/\b(skillcape|skill cape|cape|banner|mount|wigs?|mask|head[1-3])\b/i, 'cosmetics', 4200],
+];
+const GROUP_HEADING = {
+  'metal tier': 'Metal-tier names', 'zone names': 'Zone-gated names', 'raw gatherables': 'Raw gatherables',
+  materials: 'Materials', 'monster drops': 'Monster-drop materials & packs', usables: 'Usables (potions, food, gear…)',
+  'lore & relics': 'Lore & relics', cosmetics: 'Cosmetics & capes', 'quest & rewards': 'Quest & reward items', unclassified: 'Unclassified',
+};
+
+// consumers: item -> products; and the recipes producing those products (for
+// the skill tiebreak). Craft edges out of the item, recipes carry the skill.
+const recByOut = new Map();
+for (const r of D.recipes || []) {
+  if (!recByOut.has(r.output)) recByOut.set(r.output, []);
+  recByOut.get(r.output).push(r);
+}
+const consumerSkills = id => {
+  const sk = new Set();
+  for (const e of D.edges) {
+    if (e.from !== id || SKILL_NAMES.has(e.from)) continue;
+    for (const r of recByOut.get(e.to) || []) if (r.skill) sk.add(r.skill);
+  }
+  return sk;
+};
+
+// ---- skill ladder: a rough in-game training order (alphabetical would put
+// Agility first and Woodcutting last, which is backwards for progression) ----
+const SKILL_ORDER = [
+  'Attack', 'Woodcutting', 'Mining', 'Cooking', 'Fishing', 'Farming',
+  'Magic', 'Ranged', 'Construction', 'Artisan', 'Runecrafting', 'Agility',
+];
+const skillRank = sk => { const i = SKILL_ORDER.indexOf(sk); return i < 0 ? SKILL_ORDER.length : i; };
+
+function progressionKey(n) {
+  const name = n.id || '';
+  const type = n.itemType || '';
+  const low = name.toLowerCase();
+
+  // quest/reward items first — they can carry metal words ("Reward Pack: … Bronze")
+  if (/\breward pack\b/i.test(name) || /\bquest\b/i.test(type)) return { score: 5000, group: 'quest & rewards' };
+  // Tier 0-900: named metals — the game's classic ore/bar ladder. Only when the
+  // metal leads the name ("Bronze Salvage Pile", "Dragon Blood") — mid-name
+  // metals are flavour ("A Cracked Bronze Vanity Mirror" → lore).
+  for (const [metal, t] of Object.entries(METAL_TIER)) {
+    if (new RegExp(`^${metal}\\b`, 'i').test(name) && (['material', 'resource'].includes(n.kind) || /\b(bar|ore|salvage|pile)\b/i.test(name))) return { score: t, group: 'metal tier' };
+  }
+  // 1000-1500: zone-gated flora/fauna/sub-regions
+  for (const [frag, t] of ZONE_TIER) if (low.includes(frag)) return { score: 1000 + t, group: 'zone names' };
+  // 1600: gatherable raws (the useful stuff to locate early)
+  if (HERB_RE.test(name) || /\b(plant|seed|berry|berries|root|herb|leaf|flower|mushroom|egg|feather|antler|steak|meat|wine|vial|cabbage|weed|lily|bark)\b/i.test(name)) return { score: 1600, group: 'raw gatherables' };
+  // 1700: general materials/resources
+  if (['material', 'resource'].includes(n.kind) || /material|resource|component|ingredient/i.test(type)) return { score: 1700, group: 'materials' };
+  // 2000: monster-drop materials (hides, bones, scales, salvage piles…)
+  if (/\b(hide|fang|bone|scale|ichor|ashes?|scrap|salvage|pile|essence|shard|crystal|visage|heart|cotton|chitin|carapace|appendage|sphere|fibre|fiber|pack)\b/i.test(name)) return { score: 2000, group: 'monster drops' };
+  // lore / quest / cosmetic artefacts
+  for (const [re, group, score] of ARTEFACT_PATTERNS) if (re.test(name) || re.test(type)) return { score, group };
+  // 2500: potions/food/trinkets/ammo/gear are usable mid-game
+  if (['potion', 'food', 'drink', 'trinket', 'ammo', 'weapon', 'armour'].includes(n.kind)) return { score: 2500, group: 'usables' };
+  return { score: 6000, group: 'unclassified' };
+}
+
+function progressionSort(unknownList) {
+  const scored = unknownList.map(n => {
+    const { score, group } = progressionKey(n);
+    const sk = consumerSkills(n.id);
+    const skRank = sk.size ? Math.min(...[...sk].map(skillRank)) : SKILL_ORDER.length + 1;
+    return { n, score, group, skRank };
+  });
+  scored.sort((a, b) => a.score - b.score || a.skRank - b.skRank || a.n.id.localeCompare(b.n.id));
+  return scored;
+}
 
 function entryLine(n, current) {
   const bits = [`- [ ] **${n.id}**`];
@@ -136,21 +228,22 @@ for (const [method, list] of [...byMethod.entries()].sort((a, b) => a[0].localeC
   files.push([file, uniq.length]);
 }
 
-// unknown-source catch-all
-const unkSorted = unknown.sort((a, b) => a.id.localeCompare(b.id));
+// unknown-source catch-all — sorted by likely in-game progression, then
+// grouped under progression-tier headings (metal tier → zone tier → raw
+// gatherables → materials → drop mats → usables → lore → quest → unknown)
 {
-  const intro = `Items with **no source annotation at all** — the wiki prose never said where they come from (or the parser couldn't tell). Note both the method and the region.`;
-  let md = header('Unknown source — needs method + region', intro, unkSorted);
-  // group by kind for quicker in-game lookup
-  const byKind = new Map();
-  for (const n of unkSorted) { if (!byKind.has(n.kind)) byKind.set(n.kind, []); byKind.get(n.kind).push(n); }
-  for (const [kind, list] of [...byKind.entries()].sort((a, b) => b[1].length - a[1].length)) {
-    md += `\n## ${kind} (${list.length})\n\n`;
-    md += list.map(n => entryLine(n, null)).join('\n') + '\n';
+  const scored = progressionSort(unknown);
+  const intro = `Items with **no source annotation at all** — the wiki prose never said where they come from (or the parser couldn't tell). Note both the method and the region.\n\nSorted by **likely in-game progression** (early-game gatherables first, lore/quest items last); a heuristic — name patterns, metal/zone tiers and what recipes consume the item, since the dataset carries no level gates.`;
+  let md = header('Unknown source — needs method + region', intro, scored);
+  // group under progression-tier headings for quicker in-game lookup
+  let cur = null;
+  for (const { n, group } of scored) {
+    if (group !== cur) { cur = group; md += `\n## ${GROUP_HEADING[group] || group}\n\n`; }
+    md += entryLine(n, null) + '\n';
   }
   const file = path.join(OUT_DIR, 'unknown-source.md');
   fs.writeFileSync(file, md);
-  files.push([file, unkSorted.length]);
+  files.push([file, scored.length]);
 }
 
 // partial-locations cross-view: annotated, but at least one entry lacks a region
