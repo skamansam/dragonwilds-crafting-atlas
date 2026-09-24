@@ -78,8 +78,12 @@ them instantly. Desktop-authored configs: export positions and add them to the m
 — DONE: a gold **Path-to bar** appears at the top of the map while a query is armed
 (pulsing, shows the source and instructions), then summarizes the result
 ("Path: Ash Logs → Iron Sword · 3 steps") until cleared; ✕ cancel + Esc both clear.
-the user to search for a node to link to.
-
-[] We have feedback now for layouts, but it is not showing up due to the blocking nature of the layout algorithms.
+the user to search for a node to link to.[x] We have feedback now for layouts, but it is not showing up due to the blocking nature of the layout algorithms.
+    → DONE (2026-09-24): the gold **Arranging pill now carries a live progress bar**. The
+    heavy algorithms are synchronous on the main thread, so ticks land between compute
+    chunks — the bar is time-calibrated (per-preset seed table + an EMA of your own
+    finished runs) and decelerates into the last 5% so it always completes at layoutstop.
+    It survives the supersede path too: switching presets mid-run (including into a
+    bundled-snapshot preset, where no layoutstop fires) stops the bar immediately.
 can you do some research to find out whether we can offload this to a service worker or some other 
 thread-like construct?

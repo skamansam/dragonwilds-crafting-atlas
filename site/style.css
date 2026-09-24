@@ -293,6 +293,20 @@ header {
   animation: spin 0.8s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
+#layoutIndBar {
+  display: none;
+  width: 90px; height: 5px;
+  border-radius: 3px;
+  background: rgba(226, 185, 92, 0.18);
+  overflow: hidden;
+}
+#layoutIndBar.on { display: block; }
+#layoutIndBarFill {
+  height: 100%; width: 0%;
+  border-radius: 3px;
+  background: var(--gold-bright);
+  transition: width 0.18s linear;
+}
 
 /* legacy readout (hidden) ─────────────────────────────────────
 .readout {

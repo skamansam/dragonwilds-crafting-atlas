@@ -106,7 +106,7 @@
     </div>
 
     <div class="layout-meta" id="layoutMeta"></div>
-    <div id="layoutInd"><span class="spin"></span><span id="layoutIndText">Arranging…</span></div>
+    <div id="layoutInd"><span class="spin"></span><span id="layoutIndText">Arranging…</span><div id="layoutIndBar"><div id="layoutIndBarFill"></div></div></div>
 
     <button id="helpBtn" title="Help — what everything does (?)." aria-label="Help">?</button>
 
@@ -204,7 +204,8 @@
             snapshot instantly (marked <b>· saved</b>). The <b>density</b> slider tunes elk layer
             spacing live (50–200%), and <b>💾</b> saves the current arrangement as a custom
             snapshot that boots instantly (marked <b>· custom</b>; <b>✕</b> clears it). The gold
-            <b>Arranging</b> pill spins until the layout settles; algorithms that can't run here
+            <b>Arranging</b> pill spins and shows a <b>live progress bar</b> until the layout
+            settles; algorithms that can't run here
             (rooted-tree ones on the full map) tell you so instead of failing silently.</p>
           </div>
           <div class="h-col">

@@ -355,6 +355,54 @@ function setLayoutIndicator(on, label) {
   if (on) layoutIndTimer = setTimeout(() => ind.classList.remove('on'), animateOn ? 90000 : 25000); // safety net (spread/avsdf take 40-70s)
 }
 
+/* ── layout progress bar ─────────────────────────────────────── */
+// Deterministic layouts (elk/dagre/…) can't report progress, so the bar is
+// time-calibrated: an exponential moving average of finished runs predicts the
+// duration, the bar fills at the predicted pace and decelerates into the last
+// 5% — a smooth lie that ends exactly when the layout does.
+const PROGRESS_MS = {
+  'elk-layered-wide': 11000, 'elk-layered': 10000, cise: 52000, spread: 32000,
+  'd3-force': 18000, avsdf: 14000, euler: 11000, cola: 10000,
+  'cose-bilkent': 4500, fcose: 4500, dagre: 6000, 'dagre-lr': 6000,
+  tidytree: 4000, 'tidytree-lr': 4000, klay: 15000,
+};
+const runTimes = {}; // preset -> EMA of observed durations (ms)
+let progressTimer = null;
+let progressT0 = 0;
+let progressPredictedMs = 0;
+function setProgress(pct) {
+  const fill = document.getElementById('layoutIndBarFill');
+  if (!fill) return;
+  fill.style.width = Math.min(100, Math.max(0, pct)).toFixed(1) + '%';
+}
+function startProgressBar(preset) {
+  const bar = document.getElementById('layoutIndBar');
+  if (!bar) return;
+  const observed = runTimes[preset];
+  progressPredictedMs = observed || PROGRESS_MS[preset] || 12000;
+  progressT0 = performance.now();
+  bar.classList.add('on');
+  setProgress(2);
+  clearInterval(progressTimer);
+  progressTimer = setInterval(() => {
+    const el = performance.now() - progressT0;
+    const lin = el / progressPredictedMs;                       // linear pace
+    const pct = lin < 0.95 ? 2 + lin * 93 : 95 + Math.min(4, (lin - 0.95) * 4); // decelerate into the last 5%
+    setProgress(pct);
+  }, 120);
+}
+function stopProgressBar(preset, finished) {
+  clearInterval(progressTimer);
+  progressTimer = null;
+  const bar = document.getElementById('layoutIndBar');
+  if (bar) bar.classList.remove('on');
+  setProgress(0);
+  if (preset && finished) { // first run seeds the table, later runs smooth via EMA
+    const ms = performance.now() - progressT0;
+    if (ms > 250 && ms < 120000) runTimes[preset] = runTimes[preset] ? runTimes[preset] * 0.6 + ms * 0.4 : ms;
+  }
+}
+
 let activeLayout = null;
 let savedLayouts = null;      // algo -> { x, y } map from site/layouts/manifest.js (P1.5-3)
 let usingSavedPositions = false;
@@ -413,8 +461,11 @@ function loadSavedLayouts() {
   return savedLayouts;
 }
 function runLayout(preset = currentLayout, { skipSaved = false } = {}) {
-  // stop any in-flight layout so a new selection always wins
+  // stop any in-flight layout so a new selection always wins — and kill its
+  // progress bar: a superseded layout's layoutstop early-returns, so the bar
+  // must not depend on that handler for cleanup
   if (activeLayout) { try { activeLayout.stop(); } catch {} activeLayout = null; }
+  stopProgressBar(null, false);
   layoutRunning = true;
   const make = LAYOUTS[preset] || LAYOUTS['elk-layered-wide'];
   const opts = make();
@@ -481,6 +532,7 @@ function runLayout(preset = currentLayout, { skipSaved = false } = {}) {
       }
     });
     layoutRunning = false;
+    stopProgressBar(null, false); // saved path never fires layoutstop — stop the bar here
     setLayoutIndicator(false, `${usingCustomPositions ? 'custom' : 'saved'} · ${preset}`); // brief flash
     setTimeout(() => { if (!layoutRunning) setLayoutIndicator(false); }, 1200);
     hideVeil();
@@ -489,6 +541,7 @@ function runLayout(preset = currentLayout, { skipSaved = false } = {}) {
     return;
   }
   setLayoutIndicator(true, `Arranging · ${opts.name}${FORCE_LAYOUTS.has(preset) ? (forceDir ? ' · force' : ' · spread') : ''}…`);
+  startProgressBar(preset); // live progress in the Arranging pill (time-calibrated)
   // snapshot positions so we can detect algorithms that silently no-op
   // (e.g. elk-radial needs a rooted/tree graph — degenerate on the full DAG)
   const before = new Map(cy.nodes().map(n => [n.id(), n.position()]));
@@ -500,6 +553,7 @@ function runLayout(preset = currentLayout, { skipSaved = false } = {}) {
     layoutRunning = false;
     usingSavedPositions = false;
     setLayoutIndicator(false);
+    stopProgressBar(preset, true); // record duration → EMA refines the bar each run
     hideVeil();
     if (!isolatedRoot) cy.fit(undefined, 60);
     updateReadout();

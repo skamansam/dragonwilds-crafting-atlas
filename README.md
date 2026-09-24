@@ -146,7 +146,10 @@ Everything below is also available **in the app** — press the **?** button in 
   degenerate (captured mid-flight or corrupted) are detected and dropped rather than
   collapsing the map.
 - **Arranging indicator**: the gold pill in the header shows which algorithm is running and
-  spins until it settles (up to 90s for the heavy ones).
+  spins — with a **live progress bar** — until it settles (up to 90s for the heavy ones).
+  Deterministic layouts can't report their own progress, so the bar is time-calibrated: a
+  per-preset seed table (measured on the full map) refined by an exponential moving average
+  of *your* finished runs, decelerating into the last 5% so it always lands at layoutstop.
 - **No-op detection**: algorithms that need a rooted/tree subgraph (e.g. elk radial) tell you
   so instead of silently doing nothing — isolate a subtree first, or pick another layout.
 

@@ -184,4 +184,6 @@ this thing from what I have now?"** first; browsing second. Three deliverables:
 | 2026-09-23 | `01faff1` | P1.5 batch: animate toggle, per-preset simulation caps (CAPS table), precomputed layout snapshots (gen-layouts.mjs + saved-positions toggle + '· saved' badge) |
 | 2026-09-23 | `db538e0` | P3-1 density pass (skill edges hidden by default, calmer cose-bilkent + fresh snapshot) + Path-to bar (TODO #18) |
 | 2026-09-23 | (this commit) | `elk-layered-wide` calm-boot preset + snapshot (gen-layouts.mjs); layout choice persisted (`dw.layout`); probe `p18` section (first-load density + pathbar flow) |
-| 2026-09-23 | (this commit) | OOTB default → elk-layered-wide; density slider (50–200%, live, persisted) + 💾 custom snapshots per layout@density (flat manifest-shape, layoutstop capture, sanity guard, '· custom' badge, ✕ clear) |
+| 2026-09-23 | `835e647` | OOTB default → elk-layered-wide; density slider (50–200%, live, persisted) + 💾 custom snapshots per layout@density (flat manifest-shape, layoutstop capture, sanity guard, '· custom' badge, ✕ clear) |
+| 2026-09-24 | `65ddc30` | Legend fix: repaired corrupted `.lg-title` CSS block; legend now lists all 15 node kinds (Ammo/Drinks/Resources/Uncatalogued added; chip-less kinds non-clickable) |
+| 2026-09-24 | (this commit) | Time-calibrated **progress bar** in the Arranging pill (per-preset seed table + EMA of finished runs; decelerating tail; correct cleanup on supersede/saved paths). Partially addresses TODO "layout feedback" (P1-2 worker spike still open) |
