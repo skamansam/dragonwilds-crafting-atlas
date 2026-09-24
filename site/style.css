@@ -354,9 +354,12 @@ header {
   margin-top: 14px; font-size: 10.5px; color: var(--faint);
   max-width: 420px; line-height: 1.5;
 }
+.legend .lg-title {
+  font-size: 10px;
   letter-spacing: 0.18em; color: var(--faint); margin-bottom: 2px;
 }
 .legend .lg-row { display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 1px 2px; border-radius: 4px; }
+.legend .lg-row.lg-static { cursor: default; }
 .legend .lg-row:hover { color: var(--ink); }
 .legend .lg-row.off { opacity: 0.35; }
 .legend .lg-swatch { width: 10px; height: 10px; border-radius: 3px; flex: none; }

@@ -592,14 +592,15 @@ function applyEdgeVisibility() {
 
 /* ── legend ──────────────────────────────────────────────────── */
 const legend = document.getElementById('legend');
-for (const k of ['weapon', 'armour', 'tool', 'station', 'trinket', 'food', 'potion', 'material', 'spell', 'skill', 'other']) {
+for (const k of Object.keys(kindColor)) {
   const row = document.createElement('div');
   row.className = 'lg-row';
+  // kinds without a filter chip (drink, resource, implicit…) can't be toggled —
+  // still list them so the colour key is complete, just not clickable
+  const chip = document.querySelector(`.chip[data-cat="${k}"]`);
+  if (!chip) row.classList.add('lg-static');
   row.innerHTML = `<span class="lg-swatch" style="background:${kindColor[k]}"></span>${kindLabel[k]}`;
-  row.onclick = () => {
-    const chip = document.querySelector(`.chip[data-cat="${k}"]`);
-    if (chip) chip.click();
-  };
+  row.onclick = () => { if (chip) chip.click(); };
   legend.appendChild(row);
 }
 // required Jagex Fan Content Policy attribution (must stay verbatim)
