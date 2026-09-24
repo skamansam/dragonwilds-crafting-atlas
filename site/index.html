@@ -101,6 +101,7 @@
       <label id="densWrap" title="Spread for the elk layered layouts — 100% is the tuned default. Drag to re-run live; 💾 saves the current arrangement as your instant-boot snapshot, ✕ clears it.">
         <input type="range" id="densSlider" min="50" max="200" step="10" value="100" aria-label="Elk layout density"> density <span id="densVal">100%</span>
         <button id="densSave" title="Save the current arrangement as a custom snapshot for this layout + density — it will boot instantly">💾</button>
+        <button id="densShare" title="Download the saved snapshot for this layout as a JSON file to share (merged into the atlas with scripts/merge-snapshots.mjs)">⤓</button>
         <button id="densClear" title="Clear the saved custom snapshot for this layout">✕</button>
       </label>
     </div>
@@ -203,7 +204,9 @@
             off = jump straight to the result; <b>saved positions</b> applies the bundled
             snapshot instantly (marked <b>· saved</b>). The <b>density</b> slider tunes elk layer
             spacing live (50–200%), and <b>💾</b> saves the current arrangement as a custom
-            snapshot that boots instantly (marked <b>· custom</b>; <b>✕</b> clears it). The gold
+            snapshot that boots instantly (marked <b>· custom</b>; <b>✕</b> clears it). <b>⤓</b>
+            downloads that snapshot as a JSON file to share — merged ones ship with the atlas
+            for every visitor (marked <b>· curated</b>). The gold
             <b>Arranging</b> pill spins and shows a <b>live progress bar</b> until the layout
             settles; algorithms that can't run here
             (rooted-tree ones on the full map) tell you so instead of failing silently.</p>
@@ -257,6 +260,7 @@
 <script src="vendor/cytoscape-dagre.js"></script>
 <script src="data.js"></script>
 <script src="layouts/manifest.js"></script>
+<script src="layouts/curated.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

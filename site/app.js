@@ -407,6 +407,7 @@ let activeLayout = null;
 let savedLayouts = null;      // algo -> { x, y } map from site/layouts/manifest.js (P1.5-3)
 let usingSavedPositions = false;
 let usingCustomPositions = false; // density-slider 💾 snapshot (P3-1b)
+let usingCuratedPositions = false; // shared curated snapshot (site/layouts/curated.js)
 const savedToggleOn = () => { const t = document.getElementById('savedToggle'); return !t || t.checked; };
 
 // P3-1b: density slider — scales elk layered spacing 50–200%, live re-runs; 💾 saves
@@ -428,7 +429,7 @@ function loadCustomLayouts() {
 // a degenerate snapshot (captured mid-layout, or corrupted) must never boot —
 // it would collapse the map to a tiny blob or scatter NaNs
 function isSaneSnapshot(map) {
-  const ids = Object.keys(map);
+  const ids = Object.keys(map).filter(k => k !== '~meta'); // ~meta is a metadata sibling, not a position
   if (ids.length < 2) return false;
   let x1 = Infinity, x2 = -Infinity, y1 = Infinity, y2 = -Infinity;
   for (const id of ids) {
@@ -459,6 +460,40 @@ function loadSavedLayouts() {
   if (savedLayouts || window.DW_LAYOUTS === undefined) return savedLayouts || null;
   savedLayouts = window.DW_LAYOUTS || {};
   return savedLayouts;
+}
+// curated snapshots shipped with the site (site/layouts/curated.js, merged by
+// scripts/merge-snapshots.mjs) — the layer between a visitor's own 💾
+// snapshots and the bundled manifest
+let curatedLayouts = null;
+function loadCuratedLayouts() {
+  if (curatedLayouts) return curatedLayouts;
+  curatedLayouts = window.DW_CURATED || {};
+  return curatedLayouts;
+}
+// ⤓ downloads the current 💾 snapshot as a shareable JSON file
+function shareSnapshot(preset, dens) {
+  const cl = loadCustomLayouts();
+  const map = cl[`${preset}@${dens}`] || cl[preset];
+  if (!map) { toast('Nothing to share yet — save an arrangement with 💾 first'); return; }
+  const meta = cl[`${preset}@${dens}~meta`] || cl[`${preset}~meta`] || null;
+  const doc = {
+    type: 'dw-snapshot',
+    version: 1,
+    preset,
+    dens: cl[`${preset}@${dens}`] ? dens : null,
+    exportedAt: new Date().toISOString(),
+    meta: meta ? { spacing: meta.spacing || null } : null,
+    positions: map,
+  };
+  const blob = new Blob([JSON.stringify(doc)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `dw-snapshot-${preset}${cl[`${preset}@${dens}`] ? '-' + dens : ''}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  toast('Snapshot downloaded — send it in and it can ship with the atlas for everyone');
 }
 function runLayout(preset = currentLayout, { skipSaved = false } = {}) {
   // stop any in-flight layout so a new selection always wins — and kill its
@@ -504,10 +539,19 @@ function runLayout(preset = currentLayout, { skipSaved = false } = {}) {
     toast(`Custom snapshot cleared for ${preset} @ ${densPct}%`);
     runLayout(preset);
   };
+  // ⤓ share: export the current 💾 snapshot so it can be merged into the
+  // site's curated set (scripts/merge-snapshots.mjs)
+  const shareBtn = document.getElementById('densShare');
+  if (shareBtn) {
+    shareBtn.style.display = hasCustom ? '' : 'none';
+    shareBtn.onclick = () => shareSnapshot(preset, densPct);
+  }
   // P1.5-3: precomputed positions — instant, deterministic, no physics
-  // a 💾 custom snapshot (this layout + this density) wins over the bundled one
+  // precedence: own 💾 snapshot → curated snapshot → bundled manifest
   const customMap = skipSaved ? null : (cl[densKey(preset)] || cl[preset] || null);
-  let savedMap = (savedToggleOn() && !skipSaved && (customMap || (loadSavedLayouts() && loadSavedLayouts()[preset]))) || null;
+  const cu = loadCuratedLayouts();
+  const curatedMap = (cu[densKey(preset)] || cu[preset] || null);
+  let savedMap = (savedToggleOn() && !skipSaved && (customMap || curatedMap || (loadSavedLayouts() && loadSavedLayouts()[preset]))) || null;
   if (savedMap && !isSaneSnapshot(savedMap)) {
     if (customMap) {
       const all = loadCustomLayouts();
@@ -518,13 +562,16 @@ function runLayout(preset = currentLayout, { skipSaved = false } = {}) {
       try { localStorage.setItem('dw.customLayouts', JSON.stringify(all)); } catch {}
       toast('Custom snapshot looked degenerate — cleared; recomputing live');
     }
+    else if (savedMap === curatedMap) toast('Curated snapshot looked degenerate — skipping it');
     savedMap = null;
   }
   usingSavedPositions = false;
   usingCustomPositions = false;
+  usingCuratedPositions = false;
   if (savedMap) {
     usingSavedPositions = true;
     usingCustomPositions = !!customMap && savedMap === customMap;
+    usingCuratedPositions = !!curatedMap && savedMap === curatedMap;
     cy.batch(() => {
       for (const n of cy.nodes()) {
         const p = savedMap[n.id()];
@@ -533,7 +580,7 @@ function runLayout(preset = currentLayout, { skipSaved = false } = {}) {
     });
     layoutRunning = false;
     stopProgressBar(null, false); // saved path never fires layoutstop — stop the bar here
-    setLayoutIndicator(false, `${usingCustomPositions ? 'custom' : 'saved'} · ${preset}`); // brief flash
+    setLayoutIndicator(false, `${usingCustomPositions ? 'custom' : usingCuratedPositions ? 'curated' : 'saved'} · ${preset}`); // brief flash
     setTimeout(() => { if (!layoutRunning) setLayoutIndicator(false); }, 1200);
     hideVeil();
     if (!isolatedRoot) cy.fit(undefined, 60);
@@ -724,7 +771,7 @@ function updateReadout() {
     const algo = (LAYOUTS[currentLayout] || LAYOUTS['elk-layered-wide'])().name;
     meta.innerHTML =
       `<span><b>${visible.toLocaleString()}</b> nodes shown · <b>${shownLinks.toLocaleString()}</b> links shown</span>` +
-      `<span>algorithm: <span class="algo">${esc(algo)}</span>${FORCE_LAYOUTS.has(currentLayout) ? (forceDir ? ' · force' : ' · spread') : ''}${usingCustomPositions ? ' · custom' : usingSavedPositions ? ' · saved' : ''}</span>`;
+      `<span>algorithm: <span class="algo">${esc(algo)}</span>${FORCE_LAYOUTS.has(currentLayout) ? (forceDir ? ' · force' : ' · spread') : ''}${usingCustomPositions ? ' · custom' : usingCuratedPositions ? ' · curated' : usingSavedPositions ? ' · saved' : ''}</span>`;
   }
 }
 

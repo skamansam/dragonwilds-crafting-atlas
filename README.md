@@ -145,6 +145,11 @@ Everything below is also available **in the app** — press the **?** button in 
   custom** (a 💾 snapshot outranks the bundled one). **✕ clears it.** Snapshots that look
   degenerate (captured mid-flight or corrupted) are detected and dropped rather than
   collapsing the map.
+- **Share & curate snapshots**: **⤓** downloads the saved 💾 snapshot as a self-describing
+  JSON file (`type: "dw-snapshot"`). Send it in and, after validation
+  (`scripts/merge-snapshots.mjs` checks the bounding box, coordinates and node ids), it
+  ships in `site/layouts/curated.js` — every visitor gets the arrangement instantly,
+  marked **· curated**. Precedence: your own 💾 snapshot → curated → bundled manifest.
 - **Arranging indicator**: the gold pill in the header shows which algorithm is running and
   spins — with a **live progress bar** — until it settles (up to 90s for the heavy ones).
   Deterministic layouts can't report their own progress, so the bar is time-calibrated: a
