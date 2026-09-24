@@ -25,6 +25,7 @@
                     <discreteMappingEntry attributeValue="skill" value="#f7dd9a"/>
                     <discreteMappingEntry attributeValue="implicit" value="#6d6a5e"/>
                     <discreteMappingEntry attributeValue="other" value="#a49d8c"/>
+                    <discreteMappingEntry attributeValue="region" value="#7fc9a6"/>
                 </discreteMapping>
             </visualProperty>
                             <visualProperty default="ELLIPSE" name="NODE_SHAPE">
@@ -44,6 +45,7 @@
                     <discreteMappingEntry attributeValue="skill" value="OCTAGON"/>
                     <discreteMappingEntry attributeValue="implicit" value="ELLIPSE"/>
                     <discreteMappingEntry attributeValue="other" value="ELLIPSE"/>
+                    <discreteMappingEntry attributeValue="region" value="HEXAGON"/>
                 </discreteMapping>
             </visualProperty>
                             <visualProperty default="#0a0c11" name="NODE_BORDER_PAINT">
@@ -63,6 +65,7 @@
                     <discreteMappingEntry attributeValue="skill" value="#0f1219"/>
                     <discreteMappingEntry attributeValue="implicit" value="#0f1219"/>
                     <discreteMappingEntry attributeValue="other" value="#0f1219"/>
+                    <discreteMappingEntry attributeValue="region" value="#0f1219"/>
                 </discreteMapping>
             </visualProperty>
                             <visualProperty default="2.0" name="NODE_BORDER_WIDTH"></visualProperty>
@@ -83,6 +86,7 @@
                     <discreteMappingEntry attributeValue="craft" value="#c9a24a"/>
                     <discreteMappingEntry attributeValue="spell" value="#8f9fd9"/>
                     <discreteMappingEntry attributeValue="skill-gate" value="#6d6a5e"/>
+                    <discreteMappingEntry attributeValue="region" value="#8cc8aa"/>
                 </discreteMapping>
             </visualProperty>
                             <visualProperty default="#c9a24a" name="EDGE_TARGET_ARROW_UNSELECTED_PAINT">
@@ -90,6 +94,7 @@
                     <discreteMappingEntry attributeValue="craft" value="#c9a24a"/>
                     <discreteMappingEntry attributeValue="spell" value="#8f9fd9"/>
                     <discreteMappingEntry attributeValue="skill-gate" value="#6d6a5e"/>
+                    <discreteMappingEntry attributeValue="region" value="#8cc8aa"/>
                 </discreteMapping>
             </visualProperty>
                             <visualProperty default="ARROW" name="EDGE_TARGET_ARROW_SHAPE">
@@ -104,6 +109,7 @@
                     <discreteMappingEntry attributeValue="craft" value="SOLID"/>
                     <discreteMappingEntry attributeValue="spell" value="LONG_DASH"/>
                     <discreteMappingEntry attributeValue="skill-gate" value="DASH"/>
+                    <discreteMappingEntry attributeValue="region" value="DASH"/>
                 </discreteMapping>
             </visualProperty>
                             <visualProperty default="2.0" name="EDGE_WIDTH">
@@ -111,6 +117,7 @@
                     <discreteMappingEntry attributeValue="craft" value="2"/>
                     <discreteMappingEntry attributeValue="spell" value="1.6"/>
                     <discreteMappingEntry attributeValue="skill-gate" value="1.2"/>
+                    <discreteMappingEntry attributeValue="region" value="1"/>
                 </discreteMapping>
             </visualProperty>
                             <visualProperty default="170" name="EDGE_TRANSPARENCY"></visualProperty>

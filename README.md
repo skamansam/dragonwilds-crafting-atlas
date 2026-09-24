@@ -46,13 +46,20 @@ The exports bundle turns the atlas into a [Cytoscape Desktop](https://cytoscape.
   (kind, item type, wiki URL, stats, weight…) becomes a node **table column**, so you can
   style/filter by it. GraphML ids are NMTOKEN-safe hashes; `name` holds the game name.
 - Edges carry an **interaction** column — `craft` (recipe input, with qty/facility/skill/xp
-  columns), `spell` (cast cost), `skill-gate` (unlock ladder) — so the three edge kinds can
-  be styled or filtered independently.
+  columns), `spell` (cast cost), `skill-gate` (unlock ladder), `region` (found-here spoke) —
+  so the edge kinds can be styled or filtered independently.
+- **Region hubs** ship as their own node class: six `kind=region` nodes (one per Ashenfall
+  region with annotated finds) joined to member items by green-dashed `region` edges. Each
+  hub carries a **foundHere** column listing everything the wiki places there with the
+  gather method ("Ash Tree (chopped); …"). They are map aids, not crafting steps — filter
+  them out with `kind ≠ region` for pure recipe analysis.
 - A deterministic **layered seed layout** is baked in (raw materials at the bottom,
-  end-game items on top); re-layout any time from Desktop's Layout menu.
+  end-game items on top; region hubs at the centroid of their members); re-layout any time
+  from Desktop's Layout menu.
 - The style mirrors the web atlas: **nodes colored and shaped by `kind`** (materials gold,
-  stations blue rectangles, weapons red, skills bright octagons…), **edges by `interaction`**
-  (craft solid gold, spell long-dash blue, skill-gate thin dashed grey), dark background.
+  stations blue rectangles, weapons red, skills bright octagons, regions green hexagons…),
+  **edges by `interaction`** (craft solid gold, spell long-dash blue, skill-gate thin
+  dashed grey, region soft-green dash), dark background.
 
 Regenerate after a data refresh with `node scripts/build-exports.mjs`.
 

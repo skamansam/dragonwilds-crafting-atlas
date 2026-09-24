@@ -16,6 +16,12 @@
 //   skill-gate  — skill unlock edge (source is a skill node)
 // A deterministic layered seed layout (primary-recipe depth, raw materials at
 // the bottom) is baked into node positions; re-layout any time.
+//
+// Region pseudo-nodes (P4-1b) are exported as a separate node class so Desktop
+// users can style/filter them: kind=region hubs with `foundHere` method lists,
+// joined to member items by interaction=region edges (source = region hub).
+// They mirror the web app's build-from-DW_FOUND_IN hubs (app.js) and are NOT
+// part of DW_DATA — plans, paths and recipe counts stay recipe-only.
 import fs from 'node:fs';
 import vm from 'node:vm';
 import path from 'node:path';
@@ -24,10 +30,19 @@ import { fileURLToPath } from 'node:url';
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 // site/data.js is a plain `window.DW_DATA = {...}` object literal — eval it.
+// site/found-in.js (window.DW_FOUND_IN) is optional: region hubs only export
+// when it exists.
 const ctx = { window: {} };
 vm.createContext(ctx);
 vm.runInContext(fs.readFileSync(path.join(ROOT, 'site/data.js'), 'utf8'), ctx);
 const D = ctx.window.DW_DATA;
+let FI = null;
+try {
+  const fctx = { window: {} };
+  vm.createContext(fctx);
+  vm.runInContext(fs.readFileSync(path.join(ROOT, 'site/found-in.js'), 'utf8'), fctx);
+  FI = fctx.window.DW_FOUND_IN || null;
+} catch { /* found-in.js absent — skip region hubs */ }
 
 const idSet = new Set(D.nodes.map(n => n.id));
 const skillNames = new Set((D.skills || []).map(s => s.name));
@@ -127,6 +142,80 @@ for (const n of nodes) {
   n.position = { x: Math.round((i - span) * COL_W), y: Math.round(-l * LAYER_H) };
 }
 
+// ---------- region pseudo-nodes (P4-1b) ----------
+// Canonical Ashenfall regions become kind=region hubs with interaction=region
+// spokes to member items. Deterministic order: canonical region list, then
+// member items sorted. Hubs sit at the centroid of their laid-out members.
+const CANON_REGIONS = ['Temple Woods', 'Bramblemead Valley', 'Fractured Plains', 'Bloodblight Swamp', 'Whispering Swamp', 'Ghornfell', 'Bleakfields Valley'];
+const METHOD_LABEL = {
+  mined: 'mined', chopped: 'chopped', picked: 'picked', farmed: 'farmed',
+  caught: 'fished', drops: 'drops', chest: 'in chests', dungeon: 'in dungeons', other: 'found',
+};
+const posById = new Map(nodes.map(n => [n.data.id, n.position]));
+if (FI) {
+  const regionMembers = new Map(); // region -> Map(item -> Set(method))
+  for (const [item, list] of Object.entries(FI)) {
+    for (const f of list) {
+      if (!f.region || !CANON_REGIONS.includes(f.region)) continue;
+      if (!regionMembers.has(f.region)) regionMembers.set(f.region, new Map());
+      const m = regionMembers.get(f.region);
+      if (!m.has(item)) m.set(item, new Set());
+      m.get(item).add(METHOD_LABEL[f.method] || f.method || 'found');
+    }
+  }
+  for (const region of CANON_REGIONS) {
+    const members = regionMembers.get(region);
+    if (!members || !members.size) continue; // empty region → no hub (matches the app)
+    const items = [...members.keys()].sort();
+    let sx = 0, sy = 0;
+    for (const it of items) { const p = posById.get(it); sx += p.x; sy += p.y; }
+    nodes.push({
+      selected: false,
+      data: {
+        id: region,
+        name: region,
+        shared_name: region,
+        kind: 'region',
+        itemType: null,
+        category: 'region',
+        wiki: null,
+        pageid: null,
+        weight: null,
+        stacklimit: null,
+        repaircost: null,
+        catalogue: null,
+        description: `Region of Ashenfall — ${items.length} annotated finds (from the wiki's location prose; a map aid, not a crafting step)`.replace(/—/g, '-'),
+        stats: null,
+        icon: null,
+        foundHere: items.map(it => `${it} (${[...members.get(it)].sort().join(', ')})`).join('; '),
+      },
+      position: { x: Math.round(sx / items.length), y: Math.round(sy / items.length) },
+    });
+    for (const it of items) {
+      edges.push({
+        selected: false,
+        data: {
+          id: `r${edges.length}`,
+          source: region,
+          target: it,
+          interaction: 'region',
+          shared_interaction: 'region',
+          name: `${region} (found here) ${it}`,
+          shared_name: `${region} (found here) ${it}`,
+          qty: null,
+          facility: null,
+          skill: null,
+          xp: null,
+          blueprint: null,
+          variant: null,
+          deprecated: false,
+          sourceRecipe: null,
+        },
+      });
+    }
+  }
+}
+
 // ============================================================
 // 1) data.cyjs — Cytoscape.js JSON (array style)
 // ============================================================
@@ -136,7 +225,7 @@ const cyjs = {
     name: 'Dragonwilds Crafting Atlas',
     source: D.source,
     generatedAt: D.generatedAt,
-    description: 'All items, stations, skills and spells of RuneScape: Dragonwilds as one dependency graph. interaction: craft | spell | skill-gate.',
+    description: `All items, stations, skills and spells of RuneScape: Dragonwilds as one dependency graph. interaction: craft | spell | skill-gate${FI ? ' | region' : ''}. Nodes with kind=region are map-aid hubs (found-here groupings from the wiki's location prose), not crafting steps.`,
   },
   elements: { nodes, edges },
 };
@@ -151,8 +240,10 @@ const xmlEsc = s => String(s).replace(/[&<>"']/g, c =>
 
 // GraphML ids must be XML NMTOKENs: no spaces or most punctuation. Node ids
 // are in-game names, so hash them (FNV-1a) and keep a name column.
+// Built from the final `nodes` list — AFTER region hubs are appended — so hubs
+// get their own ids (a nid lookup miss would collide every hub into `undefined`).
 const nid = new Map(); // atlas id -> graphml node id
-D.nodes.forEach((n, i) => nid.set(n.id, `n${i}`)); // simplest deterministic scheme
+nodes.forEach((n, i) => nid.set(n.data.id, `n${i}`));
 
 const nodeKeys = [
   ['kind', 'string'],
@@ -181,12 +272,17 @@ const edgeKeys = [
   ['deprecated', 'boolean'],
   ['sourceRecipe', 'string'],
 ];
+const regionNodeKeys = [
+  // region-hub-only column: everything found in the region, "item (methods)" entries
+  ['foundHere', 'string'],
+];
 const asNum = v => (v === null || v === undefined || v === '' || isNaN(Number(v)) ? null : Number(v));
 const asText = v => (v === null || v === undefined ? null : String(v));
 
 const keyLines = [
   '    <key id="d0" for="node" attr.name="name" attr.type="string"/>',
   ...nodeKeys.map(([n, t], i) => `    <key id="k${i}" for="node" attr.name="${n}" attr.type="${t}"/>`),
+  ...regionNodeKeys.map(([n, t], i) => `    <key id="rk${i}" for="node" attr.name="${n}" attr.type="${t}"/>`),
   '    <key id="e0" for="edge" attr.name="name" attr.type="string"/>',
   ...edgeKeys.map(([n, t], i) => `    <key id="ek${i}" for="edge" attr.name="${n}" attr.type="${t}"/>`),
   '    <key id="g0" for="graph" attr.name="name" attr.type="string"/>',
@@ -206,6 +302,11 @@ const nodeLines = nodes.map(n => {
     else v = asText(v);
     if (v === null) return;
     data.push(`        <data key="k${i}">${typeof v === 'number' ? v : xmlEsc(v)}</data>`);
+  });
+  regionNodeKeys.forEach(([name], i) => {
+    const v = asText(vals[name]);
+    if (v === null) return;
+    data.push(`        <data key="rk${i}">${xmlEsc(v)}</data>`);
   });
   return `      <node id="${nid.get(d.id)}">\n${data.join('\n')}\n      </node>`;
 });
@@ -233,7 +334,7 @@ ${keyLines.join('\n')}
     <graph id="Dragonwilds Crafting Atlas" edgedefault="directed">
       <data key="g0">Dragonwilds Crafting Atlas</data>
       <data key="g1">${xmlEsc(D.generatedAt)}</data>
-      <data key="g2">All items, stations, skills and spells of RuneScape: Dragonwilds as one dependency graph. interaction: craft | spell | skill-gate.</data>
+      <data key="g2">All items, stations, skills and spells of RuneScape: Dragonwilds as one dependency graph. interaction: craft | spell | skill-gate${FI ? ' | region' : ''}. Nodes with kind=region are map-aid hubs (found-here groupings from the wiki's location prose), not crafting steps.</data>
 ${nodeLines.join('\n')}
 ${edgeLines.join('\n')}
     </graph>
@@ -263,12 +364,14 @@ const KIND_STYLE = [
   ['skill', '#f7dd9a', 'OCTAGON'],
   ['implicit', '#6d6a5e', 'ELLIPSE'],
   ['other', '#a49d8c', 'ELLIPSE'],
+  ['region', '#7fc9a6', 'HEXAGON'], // P4-1b region hubs — green hexagon
 ];
 const INT_STYLE = [
   // [interaction, stroke, line type, width]
   ['craft', '#c9a24a', 'SOLID', 2.0],
   ['spell', '#8f9fd9', 'LONG_DASH', 1.6],
   ['skill-gate', '#6d6a5e', 'DASH', 1.2],
+  ['region', '#8cc8aa', 'DASH', 1.0], // found-here spokes — soft green dash
 ];
 
 const vp = (name, def, inner = '') => `                <visualProperty default="${def}" name="${name}">${inner}</visualProperty>`;

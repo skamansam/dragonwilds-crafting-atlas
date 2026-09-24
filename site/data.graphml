@@ -17,6 +17,7 @@
     <key id="k11" for="node" attr.name="icon" attr.type="string"/>
     <key id="k12" for="node" attr.name="x" attr.type="double"/>
     <key id="k13" for="node" attr.name="y" attr.type="double"/>
+    <key id="rk0" for="node" attr.name="foundHere" attr.type="string"/>
     <key id="e0" for="edge" attr.name="name" attr.type="string"/>
     <key id="ek0" for="edge" attr.name="interaction" attr.type="string"/>
     <key id="ek1" for="edge" attr.name="qty" attr.type="double"/>
@@ -33,7 +34,7 @@
     <graph id="Dragonwilds Crafting Atlas" edgedefault="directed">
       <data key="g0">Dragonwilds Crafting Atlas</data>
       <data key="g1">2026-09-22T03:41:38.089Z</data>
-      <data key="g2">All items, stations, skills and spells of RuneScape: Dragonwilds as one dependency graph. interaction: craft | spell | skill-gate.</data>
+      <data key="g2">All items, stations, skills and spells of RuneScape: Dragonwilds as one dependency graph. interaction: craft | spell | skill-gate | region. Nodes with kind=region are map-aid hubs (found-here groupings from the wiki's location prose), not crafting steps.</data>
       <node id="n0">
         <data key="d0">Ash Tree</data>
         <data key="k0">resource</data>
@@ -25874,6 +25875,60 @@
         <data key="k2">Reference</data>
         <data key="k12">31902</data>
         <data key="k13">0</data>
+      </node>
+      <node id="n1963">
+        <data key="d0">Temple Woods</data>
+        <data key="k0">region</data>
+        <data key="k2">region</data>
+        <data key="k9">Region of Ashenfall - 12 annotated finds (from the wiki&apos;s location prose; a map aid, not a crafting step)</data>
+        <data key="k12">-7849</data>
+        <data key="k13">-80</data>
+        <data key="rk0">Leggings Of Lightness (in chests); Lodestone (found); Pristine Sardine (picked); Pristine Trout (picked); Raw Farm Meat (drops); Raw Game Meat (drops); Raw Rat Meat (drops); Raw Sardine (picked); Raw Shrimp (picked); Raw Trout (picked); Redberries (picked); Wooden Training Sword (in chests)</data>
+      </node>
+      <node id="n1964">
+        <data key="d0">Bramblemead Valley</data>
+        <data key="k0">region</data>
+        <data key="k2">region</data>
+        <data key="k9">Region of Ashenfall - 22 annotated finds (from the wiki&apos;s location prose; a map aid, not a crafting step)</data>
+        <data key="k12">-17580</data>
+        <data key="k13">-15</data>
+        <data key="rk0">A Cruel Goblin Blade (found); Ash Tree (chopped); Bag of Noggin&apos; (in chests); Bandosian Amulet (found); Cabbage (picked); Egg (drops); Flax (found); Flax (plant) (found); Ghostspeak Amulet (found); Potato (picked); Potato (plant) (found); Pristine Sardine (picked); Pristine Trout (picked); Raw Bird Meat (drops); Raw Farm Meat (drops); Raw Game Meat (drops); Raw Rat Meat (drops); Raw Sardine (picked); Raw Shrimp (picked); Raw Trout (picked); Redberries (picked); Redberry Bush (found)</data>
+      </node>
+      <node id="n1965">
+        <data key="d0">Fractured Plains</data>
+        <data key="k0">region</data>
+        <data key="k2">region</data>
+        <data key="k9">Region of Ashenfall - 53 annotated finds (from the wiki&apos;s location prose; a map aid, not a crafting step)</data>
+        <data key="k12">-8244</data>
+        <data key="k13">-248</data>
+        <data key="rk0">Anima-Infused Bark (found); Azure Metal Contraption (in chests); Blurite Crossbow (in chests); Copper Ore (mined); Copper Ore Node (found, mined); Dragonkin Gargoyle 01 (in chests); Dragonkin Gargoyle 02 (in chests); Dragonkin Gargoyle 03 (in chests); Dragonkin Obelisk 01 (in chests); Dragonkin Obelisk 03 (in chests); Dragonkin Statue 01 (in chests); Dragonkin Statue 02 (in chests); Dwellberries (picked); Dwellberry Bush (found); Egg (drops); Flax (found); Flax (plant) (found); Fractured Cape (in chests); Garou Hanging Ornament 01 (in chests); Garou Hanging Ornament 02 (in chests); Garou Hanging Ornament 03 (in chests); Garou Hanging Ornament 04 (in chests); Garou Trophy 01 (in chests); Garou Trophy 03 (in chests); Garou Trophy 04 (in chests); Garou Tusks 01 (in chests); Garou Tusks 02 (in chests); Garou Tusks 03 (in chests); Granite Deposit (in dungeons); Jade Emblem (found); Onion (picked); Onion (plant) (found); PATTERN: Fractured Cape (in chests); Potted Dwellberry Bush (in chests); Potted Onion (in chests); Potted Redberry Bush (in chests); Pristine Herring (picked); Pristine Salmon (picked); Raw Anchovies (picked); Raw Bestial Meat (drops); Raw Bird Meat (drops); Raw Farm Meat (drops); Raw Game Meat (found); Raw Herring (picked); Raw Rat Meat (drops); Raw Salmon (picked); Sandstone (mined); Sandstone Rock (found, mined); Shrapnel (found); Stack of Bowls (in chests); Tin Ore (mined); Tin Ore Node (found, mined); Wild Scout&apos;s Shortbow (in dungeons)</data>
+      </node>
+      <node id="n1966">
+        <data key="d0">Bloodblight Swamp</data>
+        <data key="k0">region</data>
+        <data key="k2">region</data>
+        <data key="k9">Region of Ashenfall - 18 annotated finds (from the wiki&apos;s location prose; a map aid, not a crafting step)</data>
+        <data key="k12">-22702</data>
+        <data key="k13">0</data>
+        <data key="rk0">Abyssal Spine (in dungeons); Blightwood (chopped); Blightwood Root (chopped, found); Bloodwood Sap (chopped); Bundle of Undead Twigs (found); Dwellberry Bush (found); Gold Ore (mined); Gold Ore Node (found, mined); Onion (plant) (found); Raw Rat Meat (drops); Silver Ore (mined); Silver Ore Node (found, mined); Snapdragon (found); Snapdragon (plant) (found); Swamp Weed (in dungeons); Swamp Weed (plant) (found, in dungeons); Toadflax (found); Toadflax (plant) (found)</data>
+      </node>
+      <node id="n1967">
+        <data key="d0">Whispering Swamp</data>
+        <data key="k0">region</data>
+        <data key="k2">region</data>
+        <data key="k9">Region of Ashenfall - 14 annotated finds (from the wiki&apos;s location prose; a map aid, not a crafting step)</data>
+        <data key="k12">-20695</data>
+        <data key="k13">-69</data>
+        <data key="rk0">Anti-Dragon Shield (in dungeons); Bandosian Amulet (found); Bittercap Mushroom (picked); Bittercap Mushroom (plant) (found); Clay Node (found, mined); Harralander (found); Harralander (plant) (found); Marrentil (found); Marrentil (plant) (found); Opal Emblem (found); PATTERN: Whispering Cape (in chests); Raw Rat Meat (drops); Swamp Tar (found); Whispering Cape (in chests)</data>
+      </node>
+      <node id="n1968">
+        <data key="d0">Ghornfell</data>
+        <data key="k0">region</data>
+        <data key="k2">region</data>
+        <data key="k9">Region of Ashenfall - 27 annotated finds (from the wiki&apos;s location prose; a map aid, not a crafting step)</data>
+        <data key="k12">845</data>
+        <data key="k13">-166</data>
+        <data key="rk0">Dragon Tooth (found); Dwellberries (in chests); Dwellberry Seeds (farmed); Extinguished Blue Remnants (in chests); Extinguished Green Remnants (in chests); Extinguished Purple Remnants (in chests); Extinguished Red Remnants (in chests); Extinguished Yellow Remnants (in chests); Garou Trophy 02 (in chests); Kwuarm Seeds (farmed); Lightning Rod (found); Oak Farming Plot (found); Oak Tree (chopped, found); Onion Seeds (farmed); Pristine Herring Trophy (fished); Pristine Salmon Trophy (fished); Redberries (in chests); Reward Pack: Ghornfell Bronze (found); Reward Pack: Ghornfell Gold (found); Reward Pack: Ghornfell Silver (found); Scarecrow&apos;s Key (found); Snapdragon Seeds (farmed); Swamp Weed Seeds (farmed); Toadflax Seeds (farmed); Toktz-Mej-Tal (found); Tomato Seeds (farmed); Wool Net (fished)</data>
       </node>
       <edge id="e0" source="n101" target="n1850">
         <data key="e0">Air Rune (spell) Windstep</data>
@@ -74748,6 +74803,736 @@
         <data key="ek5">PLAN: Moon Garou Chair 01</data>
         <data key="ek7">false</data>
         <data key="ek8">Moon Garou Chair 01</data>
+      </edge>
+      <edge id="e4912" source="n1963" target="n46">
+        <data key="e0">Temple Woods (found here) Leggings Of Lightness</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4913" source="n1963" target="n1413">
+        <data key="e0">Temple Woods (found here) Lodestone</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4914" source="n1963" target="n1010">
+        <data key="e0">Temple Woods (found here) Pristine Sardine</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4915" source="n1963" target="n1011">
+        <data key="e0">Temple Woods (found here) Pristine Trout</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4916" source="n1963" target="n204">
+        <data key="e0">Temple Woods (found here) Raw Farm Meat</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4917" source="n1963" target="n237">
+        <data key="e0">Temple Woods (found here) Raw Game Meat</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4918" source="n1963" target="n34">
+        <data key="e0">Temple Woods (found here) Raw Rat Meat</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4919" source="n1963" target="n944">
+        <data key="e0">Temple Woods (found here) Raw Sardine</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4920" source="n1963" target="n945">
+        <data key="e0">Temple Woods (found here) Raw Shrimp</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4921" source="n1963" target="n946">
+        <data key="e0">Temple Woods (found here) Raw Trout</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4922" source="n1963" target="n3">
+        <data key="e0">Temple Woods (found here) Redberries</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4923" source="n1963" target="n208">
+        <data key="e0">Temple Woods (found here) Wooden Training Sword</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4924" source="n1964" target="n337">
+        <data key="e0">Bramblemead Valley (found here) A Cruel Goblin Blade</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4925" source="n1964" target="n0">
+        <data key="e0">Bramblemead Valley (found here) Ash Tree</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4926" source="n1964" target="n157">
+        <data key="e0">Bramblemead Valley (found here) Bag of Noggin&apos;</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4927" source="n1964" target="n270">
+        <data key="e0">Bramblemead Valley (found here) Bandosian Amulet</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4928" source="n1964" target="n11">
+        <data key="e0">Bramblemead Valley (found here) Cabbage</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4929" source="n1964" target="n429">
+        <data key="e0">Bramblemead Valley (found here) Egg</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4930" source="n1964" target="n13">
+        <data key="e0">Bramblemead Valley (found here) Flax</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4931" source="n1964" target="n364">
+        <data key="e0">Bramblemead Valley (found here) Flax (plant)</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4932" source="n1964" target="n70">
+        <data key="e0">Bramblemead Valley (found here) Ghostspeak Amulet</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4933" source="n1964" target="n58">
+        <data key="e0">Bramblemead Valley (found here) Potato</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4934" source="n1964" target="n288">
+        <data key="e0">Bramblemead Valley (found here) Potato (plant)</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4935" source="n1964" target="n1010">
+        <data key="e0">Bramblemead Valley (found here) Pristine Sardine</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4936" source="n1964" target="n1011">
+        <data key="e0">Bramblemead Valley (found here) Pristine Trout</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4937" source="n1964" target="n233">
+        <data key="e0">Bramblemead Valley (found here) Raw Bird Meat</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4938" source="n1964" target="n204">
+        <data key="e0">Bramblemead Valley (found here) Raw Farm Meat</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4939" source="n1964" target="n237">
+        <data key="e0">Bramblemead Valley (found here) Raw Game Meat</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4940" source="n1964" target="n34">
+        <data key="e0">Bramblemead Valley (found here) Raw Rat Meat</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4941" source="n1964" target="n944">
+        <data key="e0">Bramblemead Valley (found here) Raw Sardine</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4942" source="n1964" target="n945">
+        <data key="e0">Bramblemead Valley (found here) Raw Shrimp</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4943" source="n1964" target="n946">
+        <data key="e0">Bramblemead Valley (found here) Raw Trout</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4944" source="n1964" target="n3">
+        <data key="e0">Bramblemead Valley (found here) Redberries</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4945" source="n1964" target="n62">
+        <data key="e0">Bramblemead Valley (found here) Redberry Bush</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4946" source="n1965" target="n131">
+        <data key="e0">Fractured Plains (found here) Anima-Infused Bark</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4947" source="n1965" target="n410">
+        <data key="e0">Fractured Plains (found here) Azure Metal Contraption</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4948" source="n1965" target="n398">
+        <data key="e0">Fractured Plains (found here) Blurite Crossbow</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4949" source="n1965" target="n121">
+        <data key="e0">Fractured Plains (found here) Copper Ore</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4950" source="n1965" target="n111">
+        <data key="e0">Fractured Plains (found here) Copper Ore Node</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4951" source="n1965" target="n1590">
+        <data key="e0">Fractured Plains (found here) Dragonkin Gargoyle 01</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4952" source="n1965" target="n1596">
+        <data key="e0">Fractured Plains (found here) Dragonkin Gargoyle 02</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4953" source="n1965" target="n1597">
+        <data key="e0">Fractured Plains (found here) Dragonkin Gargoyle 03</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4954" source="n1965" target="n1592">
+        <data key="e0">Fractured Plains (found here) Dragonkin Obelisk 01</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4955" source="n1965" target="n1594">
+        <data key="e0">Fractured Plains (found here) Dragonkin Obelisk 03</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4956" source="n1965" target="n1591">
+        <data key="e0">Fractured Plains (found here) Dragonkin Statue 01</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4957" source="n1965" target="n1595">
+        <data key="e0">Fractured Plains (found here) Dragonkin Statue 02</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4958" source="n1965" target="n33">
+        <data key="e0">Fractured Plains (found here) Dwellberries</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4959" source="n1965" target="n362">
+        <data key="e0">Fractured Plains (found here) Dwellberry Bush</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4960" source="n1965" target="n429">
+        <data key="e0">Fractured Plains (found here) Egg</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4961" source="n1965" target="n13">
+        <data key="e0">Fractured Plains (found here) Flax</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4962" source="n1965" target="n364">
+        <data key="e0">Fractured Plains (found here) Flax (plant)</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4963" source="n1965" target="n146">
+        <data key="e0">Fractured Plains (found here) Fractured Cape</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4964" source="n1965" target="n1510">
+        <data key="e0">Fractured Plains (found here) Garou Hanging Ornament 01</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4965" source="n1965" target="n1517">
+        <data key="e0">Fractured Plains (found here) Garou Hanging Ornament 02</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4966" source="n1965" target="n1519">
+        <data key="e0">Fractured Plains (found here) Garou Hanging Ornament 03</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4967" source="n1965" target="n1515">
+        <data key="e0">Fractured Plains (found here) Garou Hanging Ornament 04</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4968" source="n1965" target="n1518">
+        <data key="e0">Fractured Plains (found here) Garou Trophy 01</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4969" source="n1965" target="n1506">
+        <data key="e0">Fractured Plains (found here) Garou Trophy 03</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4970" source="n1965" target="n1514">
+        <data key="e0">Fractured Plains (found here) Garou Trophy 04</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4971" source="n1965" target="n1516">
+        <data key="e0">Fractured Plains (found here) Garou Tusks 01</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4972" source="n1965" target="n1509">
+        <data key="e0">Fractured Plains (found here) Garou Tusks 02</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4973" source="n1965" target="n1507">
+        <data key="e0">Fractured Plains (found here) Garou Tusks 03</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4974" source="n1965" target="n277">
+        <data key="e0">Fractured Plains (found here) Granite Deposit</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4975" source="n1965" target="n1037">
+        <data key="e0">Fractured Plains (found here) Jade Emblem</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4976" source="n1965" target="n205">
+        <data key="e0">Fractured Plains (found here) Onion</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4977" source="n1965" target="n363">
+        <data key="e0">Fractured Plains (found here) Onion (plant)</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4978" source="n1965" target="n343">
+        <data key="e0">Fractured Plains (found here) PATTERN: Fractured Cape</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4979" source="n1965" target="n1531">
+        <data key="e0">Fractured Plains (found here) Potted Dwellberry Bush</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4980" source="n1965" target="n1530">
+        <data key="e0">Fractured Plains (found here) Potted Onion</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4981" source="n1965" target="n1532">
+        <data key="e0">Fractured Plains (found here) Potted Redberry Bush</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4982" source="n1965" target="n1015">
+        <data key="e0">Fractured Plains (found here) Pristine Herring</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4983" source="n1965" target="n1014">
+        <data key="e0">Fractured Plains (found here) Pristine Salmon</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4984" source="n1965" target="n947">
+        <data key="e0">Fractured Plains (found here) Raw Anchovies</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4985" source="n1965" target="n232">
+        <data key="e0">Fractured Plains (found here) Raw Bestial Meat</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4986" source="n1965" target="n233">
+        <data key="e0">Fractured Plains (found here) Raw Bird Meat</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4987" source="n1965" target="n204">
+        <data key="e0">Fractured Plains (found here) Raw Farm Meat</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4988" source="n1965" target="n237">
+        <data key="e0">Fractured Plains (found here) Raw Game Meat</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4989" source="n1965" target="n948">
+        <data key="e0">Fractured Plains (found here) Raw Herring</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4990" source="n1965" target="n34">
+        <data key="e0">Fractured Plains (found here) Raw Rat Meat</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4991" source="n1965" target="n949">
+        <data key="e0">Fractured Plains (found here) Raw Salmon</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4992" source="n1965" target="n211">
+        <data key="e0">Fractured Plains (found here) Sandstone</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4993" source="n1965" target="n276">
+        <data key="e0">Fractured Plains (found here) Sandstone Rock</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4994" source="n1965" target="n399">
+        <data key="e0">Fractured Plains (found here) Shrapnel</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4995" source="n1965" target="n1502">
+        <data key="e0">Fractured Plains (found here) Stack of Bowls</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4996" source="n1965" target="n106">
+        <data key="e0">Fractured Plains (found here) Tin Ore</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4997" source="n1965" target="n120">
+        <data key="e0">Fractured Plains (found here) Tin Ore Node</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4998" source="n1965" target="n67">
+        <data key="e0">Fractured Plains (found here) Wild Scout&apos;s Shortbow</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e4999" source="n1966" target="n201">
+        <data key="e0">Bloodblight Swamp (found here) Abyssal Spine</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e5000" source="n1966" target="n113">
+        <data key="e0">Bloodblight Swamp (found here) Blightwood</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e5001" source="n1966" target="n284">
+        <data key="e0">Bloodblight Swamp (found here) Blightwood Root</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e5002" source="n1966" target="n246">
+        <data key="e0">Bloodblight Swamp (found here) Bloodwood Sap</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e5003" source="n1966" target="n963">
+        <data key="e0">Bloodblight Swamp (found here) Bundle of Undead Twigs</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e5004" source="n1966" target="n362">
+        <data key="e0">Bloodblight Swamp (found here) Dwellberry Bush</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e5005" source="n1966" target="n108">
+        <data key="e0">Bloodblight Swamp (found here) Gold Ore</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e5006" source="n1966" target="n109">
+        <data key="e0">Bloodblight Swamp (found here) Gold Ore Node</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e5007" source="n1966" target="n363">
+        <data key="e0">Bloodblight Swamp (found here) Onion (plant)</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e5008" source="n1966" target="n34">
+        <data key="e0">Bloodblight Swamp (found here) Raw Rat Meat</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e5009" source="n1966" target="n174">
+        <data key="e0">Bloodblight Swamp (found here) Silver Ore</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e5010" source="n1966" target="n123">
+        <data key="e0">Bloodblight Swamp (found here) Silver Ore Node</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e5011" source="n1966" target="n103">
+        <data key="e0">Bloodblight Swamp (found here) Snapdragon</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e5012" source="n1966" target="n368">
+        <data key="e0">Bloodblight Swamp (found here) Snapdragon (plant)</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e5013" source="n1966" target="n165">
+        <data key="e0">Bloodblight Swamp (found here) Swamp Weed</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e5014" source="n1966" target="n365">
+        <data key="e0">Bloodblight Swamp (found here) Swamp Weed (plant)</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e5015" source="n1966" target="n112">
+        <data key="e0">Bloodblight Swamp (found here) Toadflax</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e5016" source="n1966" target="n369">
+        <data key="e0">Bloodblight Swamp (found here) Toadflax (plant)</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e5017" source="n1967" target="n127">
+        <data key="e0">Whispering Swamp (found here) Anti-Dragon Shield</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e5018" source="n1967" target="n270">
+        <data key="e0">Whispering Swamp (found here) Bandosian Amulet</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e5019" source="n1967" target="n22">
+        <data key="e0">Whispering Swamp (found here) Bittercap Mushroom</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e5020" source="n1967" target="n370">
+        <data key="e0">Whispering Swamp (found here) Bittercap Mushroom (plant)</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e5021" source="n1967" target="n278">
+        <data key="e0">Whispering Swamp (found here) Clay Node</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e5022" source="n1967" target="n20">
+        <data key="e0">Whispering Swamp (found here) Harralander</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e5023" source="n1967" target="n367">
+        <data key="e0">Whispering Swamp (found here) Harralander (plant)</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e5024" source="n1967" target="n19">
+        <data key="e0">Whispering Swamp (found here) Marrentil</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e5025" source="n1967" target="n366">
+        <data key="e0">Whispering Swamp (found here) Marrentil (plant)</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e5026" source="n1967" target="n1038">
+        <data key="e0">Whispering Swamp (found here) Opal Emblem</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e5027" source="n1967" target="n345">
+        <data key="e0">Whispering Swamp (found here) PATTERN: Whispering Cape</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e5028" source="n1967" target="n34">
+        <data key="e0">Whispering Swamp (found here) Raw Rat Meat</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e5029" source="n1967" target="n184">
+        <data key="e0">Whispering Swamp (found here) Swamp Tar</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e5030" source="n1967" target="n187">
+        <data key="e0">Whispering Swamp (found here) Whispering Cape</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e5031" source="n1968" target="n239">
+        <data key="e0">Ghornfell (found here) Dragon Tooth</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e5032" source="n1968" target="n33">
+        <data key="e0">Ghornfell (found here) Dwellberries</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e5033" source="n1968" target="n488">
+        <data key="e0">Ghornfell (found here) Dwellberry Seeds</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e5034" source="n1968" target="n1267">
+        <data key="e0">Ghornfell (found here) Extinguished Blue Remnants</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e5035" source="n1968" target="n1273">
+        <data key="e0">Ghornfell (found here) Extinguished Green Remnants</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e5036" source="n1968" target="n1274">
+        <data key="e0">Ghornfell (found here) Extinguished Purple Remnants</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e5037" source="n1968" target="n1275">
+        <data key="e0">Ghornfell (found here) Extinguished Red Remnants</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e5038" source="n1968" target="n1272">
+        <data key="e0">Ghornfell (found here) Extinguished Yellow Remnants</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e5039" source="n1968" target="n1511">
+        <data key="e0">Ghornfell (found here) Garou Trophy 02</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e5040" source="n1968" target="n490">
+        <data key="e0">Ghornfell (found here) Kwuarm Seeds</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e5041" source="n1968" target="n1834">
+        <data key="e0">Ghornfell (found here) Lightning Rod</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e5042" source="n1968" target="n1684">
+        <data key="e0">Ghornfell (found here) Oak Farming Plot</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e5043" source="n1968" target="n238">
+        <data key="e0">Ghornfell (found here) Oak Tree</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e5044" source="n1968" target="n503">
+        <data key="e0">Ghornfell (found here) Onion Seeds</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e5045" source="n1968" target="n1757">
+        <data key="e0">Ghornfell (found here) Pristine Herring Trophy</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e5046" source="n1968" target="n1759">
+        <data key="e0">Ghornfell (found here) Pristine Salmon Trophy</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e5047" source="n1968" target="n3">
+        <data key="e0">Ghornfell (found here) Redberries</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e5048" source="n1968" target="n1310">
+        <data key="e0">Ghornfell (found here) Reward Pack: Ghornfell Bronze</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e5049" source="n1968" target="n1300">
+        <data key="e0">Ghornfell (found here) Reward Pack: Ghornfell Gold</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e5050" source="n1968" target="n1311">
+        <data key="e0">Ghornfell (found here) Reward Pack: Ghornfell Silver</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e5051" source="n1968" target="n1044">
+        <data key="e0">Ghornfell (found here) Scarecrow&apos;s Key</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e5052" source="n1968" target="n502">
+        <data key="e0">Ghornfell (found here) Snapdragon Seeds</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e5053" source="n1968" target="n521">
+        <data key="e0">Ghornfell (found here) Swamp Weed Seeds</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e5054" source="n1968" target="n595">
+        <data key="e0">Ghornfell (found here) Toadflax Seeds</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e5055" source="n1968" target="n1137">
+        <data key="e0">Ghornfell (found here) Toktz-Mej-Tal</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e5056" source="n1968" target="n489">
+        <data key="e0">Ghornfell (found here) Tomato Seeds</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
+      </edge>
+      <edge id="e5057" source="n1968" target="n961">
+        <data key="e0">Ghornfell (found here) Wool Net</data>
+        <data key="ek0">region</data>
+        <data key="ek7">false</data>
       </edge>
     </graph>
 </graphml>
