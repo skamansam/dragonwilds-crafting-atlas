@@ -506,20 +506,24 @@ if (!only || only === 'p12') {
   console.log(`fidelity worker vs main: maxΔ=${fid.maxD} (${fid.n} nodes)`);
   if (fid.maxD > 0.5) throw new Error('FAIL: worker positions diverge from main thread');
 
-  // app path: flip the toggle, run a live layout, expect worker marker + settled map
+  // app path: flip the toggle, run a live layout, expect worker marker + settled map.
+  // savedToggle is flipped WITHOUT dispatching change — its handler re-runs the
+  // current layout, which would queue a second (wasted) job in the single-threaded
+  // worker ahead of the one we're waiting on.
   await page.evaluate(() => {
     localStorage.setItem('dw.animate', '0');
     document.getElementById('workerToggle').checked = true;
     document.getElementById('workerToggle').onchange({ target: { checked: true } });
     document.getElementById('savedToggle').checked = false;
-    document.getElementById('savedToggle').dispatchEvent(new Event('change'));
   });
   await page.evaluate(() => {
     const sel = document.getElementById('layoutSelect');
     sel.value = 'dagre';
     sel.onchange({ target: { value: 'dagre' } });
   });
-  await page.waitForFunction(() => !document.getElementById('layoutInd').classList.contains('on'), null, { timeout: 60000, polling: 300 });
+  // slow boxes (prod) can take 90s+: the worker is single-threaded and any job
+  // queued before ours still runs to completion before ours starts
+  await page.waitForFunction(() => !document.getElementById('layoutInd').classList.contains('on'), null, { timeout: 180000, polling: 300 });
   const appPath = await page.evaluate(() => {
     const c = window.__cy;
     const bb = c.nodes(':visible').boundingBox({});
@@ -540,7 +544,7 @@ if (!only || only === 'p12') {
     sel.value = 'elk-layered-wide';
     sel.onchange({ target: { value: 'elk-layered-wide' } });
   });
-  await page.waitForFunction(() => !document.getElementById('layoutInd').classList.contains('on'), null, { timeout: 60000, polling: 300 });
+  await page.waitForFunction(() => !document.getElementById('layoutInd').classList.contains('on'), null, { timeout: 180000, polling: 300 });
   console.log('p12 worker spike: OK');
   await page.screenshot({ path: 'cache/shots2/p12-worker.png' });
 }
