@@ -73,7 +73,7 @@ Everything below is also available **in the app** — press the **?** button in 
 | Action | Result |
 |---|---|
 | **Click a node** | Opens its codex panel (top-right): description, stats, all recipes & facilities, skill gates, everything it is used to make |
-| **Shift+Click a node** | Isolates the crafting *tree* of that item — inputs **and** outputs to the leaves |
+| **Shift+Click a node** | Isolates the crafting *tree* of that item — by default **outputs only** (what it enables); the panel's direction select adds inputs or restores the full both-way walk |
 | **Hover a node** | Direct neighbours highlight |
 | **Breadcrumb** (top right) | Crafting lineage of the current selection; click any step to walk the chain |
 | **Minimap** (bottom right) | Tracks the explored region; click it to jump |
@@ -116,9 +116,9 @@ Everything below is also available **in the app** — press the **?** button in 
 - **Trace makes ⤴** (panel button): the reverse — highlights everything the selection is used
   to make, directly or downstream ("what does this item allow me to craft?").
 - **Isolate direction**: the select beside **Isolate tree** picks the walk direction —
-  **up + down** (default, the full crafting context), **outputs only** ("what does this
-  enable?" — 89 nodes for Iron Bar instead of the whole-map knot) or **inputs only**
-  ("what does this need?"). Persists; combines with the depth input.
+  **outputs only** (default: "what does this enable?" — 89 nodes for Iron Bar instead of
+  the whole-map knot), **inputs only** ("what does this need?") or **up + down** (the full
+  both-way context, the old default). Persists; combines with the depth input.
 - **Found in** (panel section): where the item is found in the world — regions, gather method
   (mined / chopped / picked / farmed / fished / chest / dungeon / drops) and the tool when the
   wiki names one (e.g. Ash Tree → Bramblemead Valley, chopped with a logging axe). Mined from

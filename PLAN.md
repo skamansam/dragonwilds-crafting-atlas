@@ -206,16 +206,19 @@ this thing from what I have now?"** first; browsing second. Three deliverables:
   (direct + transitive) in the traced style, toast with direct/total counts. The graph
   question now has both directions: Trace inputs ← item → Trace makes ⤴.
 - **P4-3 · Explore-tree isolation may be too greedy** — ✅ prototype shipped 2026-09-24:
-  **direction-dominant isolation**. A direction select (`up + down` | `outputs only` |
-  `inputs only`) sits beside Isolate tree (persisted `dw.isoDir`, default `up + down` =
-  unchanged behaviour); the walk honours it and the toast reports direction + kept-item
-  count. Measured on the full graph (unlimited depth) — the greediness hypothesis held:
-  every hub item's both-walk is the same 1,408-node knot (72% of the map), while
-  direction-dominant walks are surgical (Iron Bar: outputs 89 / inputs 4; Ash Logs:
-  outputs 297 / inputs 1; Coarse Thread: 148 / 4; Redberries: 35 / 1; Baked Potato:
-  15 / 3). Outputs-only answers "what does this enable", inputs-only "what does this
-  need"; depth caps compose with the direction. Default stays both-direction per the
-  earlier user decision — the option is additive, nothing changes unless chosen.
+  **direction-dominant isolation**. A direction select (`outputs only` | `inputs only` |
+  `up + down`) sits beside Isolate tree (persisted `dw.isoDir`); the walk honours it and
+  the toast reports direction + kept-item count. Measured on the full graph (unlimited
+  depth) — the greediness hypothesis held: every hub item's both-walk is the same
+  1,408-node knot (72% of the map), while direction-dominant walks are surgical (Iron
+  Bar: outputs 89 / inputs 4; Ash Logs: outputs 297 / inputs 1; Coarse Thread: 148 / 4;
+  Redberries: 35 / 1; Baked Potato: 15 / 3). Outputs-only answers "what does this enable",
+  inputs-only "what does this need"; depth caps compose with the direction.
+  **Default promoted to `outputs only`** the same day (user request): a stored `dw.isoDir`
+  (any value incl. `both`) always wins, fresh browsers get the surgical walk.
+  Implementation note: the panel's DOM persists after close (only hidden), so the
+  select is the effective source of truth while it exists — isolateTree seeds it from
+  storage at render time, and the no-panel fallback path reads storage directly.
 
 ---
 
@@ -273,3 +276,4 @@ this thing from what I have now?"** first; browsing second. Three deliverables:
 | 2026-09-24 | (this commit) | **P4-3 direction-dominant isolation prototype**: direction select beside Isolate tree (up+down / outputs only / inputs only, persisted `dw.isoDir`); both-walk measured at 1,408 nodes (72% of map) for every hub item vs surgical directional walks (Iron Bar 89/4); toast reports direction + count; default unchanged |
 | 2026-09-24 | (this commit) | **Region hubs in exports**: build-exports.mjs appends 6 `kind=region` nodes (+146 `interaction=region` edges, hub→item, foundHere column with per-item methods) to data.cyjs + data.graphml; vizmap style maps region→green hexagon + soft-green dash; hubs at member centroids; exporter caught + fixed a nid collision (hubs appended after the GraphML id map was built collapsed them into one `undefined` node); round-trip verified with networkx |
 | 2026-09-24 | (this commit) | **Drag-storm batching**: density slider debounce 260→450ms (16-event storm → 1 layout run, verified) + worker `cancel` protocol — superseded jobs get `layout.stop()` in the worker so the single thread never queues stale elk passes |
+| 2026-09-24 | (this commit) | **Isolation default → outputs only** (user request): fresh browsers get the surgical walk (Iron Bar 89 vs the 1,408 both-knot), stored `dw.isoDir` incl. `both` always wins; select order reordered (outputs / inputs / up+down) with updated help text |

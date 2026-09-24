@@ -1257,11 +1257,17 @@ function isolateTree(id, depthOverride = null) {
   const raw = depthOverride !== null ? depthOverride
     : (dEl && dEl.value !== '' ? Math.max(1, parseInt(dEl.value, 10) || 3) : Infinity);
   if (dEl) localStorage.setItem('dw.isoDepth', dEl.value);
-  // P4-3 prototype: direction-dominant walk. The both-direction walk-to-leaves
-  // pulls in nearly the whole graph for hub items (bars/logs) — 'outputs only'
-  // answers "what does this enable", 'inputs only' answers "what does this need".
+  // P4-3 direction-dominant walk, promoted to DEFAULT 'down' (outputs only) on
+  // 2026-09-24: the both-direction walk-to-leaves is a 1,408-node knot (72% of
+  // the map) for every hub item, while outputs-only is surgical (Iron Bar 89,
+  // Ash Logs 297) and matches the atlas' core question — "what do I need to
+  // craft this" / "what does this enable". A persisted dw.isoDir (any value,
+  // including 'both') always wins over the default.
+  // precedence: a select present in the open panel wins (it mirrors the stored
+  // choice); otherwise the persisted pref; otherwise the promoted default.
   const dirEl = document.getElementById('isoDir');
-  const dir = dirEl ? dirEl.value : 'both'; // both | down | up
+  const dir = dirEl ? dirEl.value
+    : (localStorage.getItem('dw.isoDir') || 'down'); // both | down | up
   if (dirEl) localStorage.setItem('dw.isoDir', dir);
   isolatedRoot = id;
   // breadth-first over recipe edges, up to `raw` steps (or until leaves),
@@ -1932,11 +1938,11 @@ function renderPanelBody(n) {
     <button class="btn primary" id="btnIsolate">Isolate tree</button>
     <input id="isoDepth" type="number" min="1" step="1" placeholder="all" title="How many recipe steps up & down to include. Empty = the whole tree."
            style="width:74px;flex:0 0 auto" />
-    <select id="isoDir" title="Direction-dominant isolation (P4-3): the full up+down walk can swallow nearly the whole map for hub items — outputs only answers 'what does this enable', inputs only answers 'what does this need'."
+    <select id="isoDir" title="Direction-dominant isolation: the full up+down walk can swallow nearly the whole map for hub items — outputs only (default) answers 'what does this enable', inputs only answers 'what does this need', up + down shows the full both-way context."
             style="width:104px;flex:0 0 auto">
-      <option value="both">up + down</option>
       <option value="down">outputs only</option>
       <option value="up">inputs only</option>
+      <option value="both">up + down</option>
     </select>
   </div>
   <div class="p-section p-actions">
@@ -1999,7 +2005,7 @@ function renderPanelBody(n) {
     const dirEl = document.getElementById('isoDir');
     if (dirEl) {
       const saved = localStorage.getItem('dw.isoDir');
-      if (saved === 'down' || saved === 'up' || saved === 'both') dirEl.value = saved;
+      dirEl.value = saved === 'down' || saved === 'up' || saved === 'both' ? saved : 'down'; // default: outputs only
       dirEl.onchange = () => localStorage.setItem('dw.isoDir', dirEl.value);
     }
   }

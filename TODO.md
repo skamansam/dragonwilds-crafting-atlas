@@ -106,7 +106,7 @@ thread-like construct?
     walk or a default depth cap, or leave full-tree as an explicit choice. (Isolation is
     intentionally left as-is for now — parked, not rejected.)
     → PROTOTYPE SHIPPED (2026-09-24): a direction select now sits beside Isolate tree —
-    up + down (default, unchanged) / outputs only / inputs only. Measured: the both-walk
-    is a 1,408-node knot (72% of the map) for every hub item, while outputs-only is 89
-    nodes for Iron Bar, 297 for Ash Logs. Toast reports direction + item count.
-    Depth caps compose with the direction.
+    outputs only (promoted to DEFAULT the same day) / inputs only / up + down. Measured:
+    the both-walk is a 1,408-node knot (72% of the map) for every hub item, while
+    outputs-only is 89 nodes for Iron Bar, 297 for Ash Logs. Toast reports direction +
+    item count. Depth caps compose with the direction. A stored choice (incl. both) wins.
