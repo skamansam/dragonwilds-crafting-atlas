@@ -240,10 +240,10 @@ those gaps into `docs/checklists/*.md` — one checkbox list per gather method
 for items with nothing annotated.
 
 `unknown-source.md` is sorted by **likely in-game progression** (a heuristic — the
-dataset carries no level gates): metal-tier and zone-gated names, raw gatherables
-and materials first; monster-drop materials, usables, lore/relics, cosmetics and
-quest rewards last. A playing session can walk it front to back instead of
-drifting through an alphabetical sea of vestiges.
+dataset carries no level gates): metal-tier names, raw gatherables and materials
+first; monster-drop materials and usables next; lore/relics, cosmetics, furniture
+plans and quest rewards last, each under its own heading. A playing session can
+walk it front to back instead of drifting through an alphabetical sea of vestiges.
 
 Ticking a box and appending `— found in: <region>, <how>` on its line is how
 hand-verified find spots are recorded against the header's citable regions.

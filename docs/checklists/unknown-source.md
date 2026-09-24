@@ -19,12 +19,6 @@ Sorted by **likely in-game progression** (early-game gatherables first, lore/que
 - [ ] **Mithril Salvage Pile** · *Basic Material* · [wiki](https://dragonwilds.runescape.wiki/w/Mithril_Salvage_Pile) · — currently: **no source info**
 - [ ] **Dragon Blood** · *Basic Material* · [wiki](https://dragonwilds.runescape.wiki/w/Dragon_Blood) · — currently: **no source info**
 
-## Zone-gated names
-
-- [ ] **PATTERN: Bramblemead Cape** · *Pattern* · [wiki](https://dragonwilds.runescape.wiki/w/PATTERN%3A_Bramblemead_Cape) · — currently: **no source info**
-- [ ] **PATTERN: Bloodblight Cape** · *Pattern* · [wiki](https://dragonwilds.runescape.wiki/w/PATTERN%3A_Bloodblight_Cape) · — currently: **no source info**
-- [ ] **Whispering Elbow Pad** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Whispering_Elbow_Pad) · — currently: **no source info**
-
 ## Raw gatherables
 
 - [ ] **Antler** · *Basic Material* · [wiki](https://dragonwilds.runescape.wiki/w/Antler) · — currently: **no source info**
@@ -33,14 +27,13 @@ Sorted by **likely in-game progression** (early-game gatherables first, lore/que
 - [ ] **Hollow Bark** · *Resource* · [wiki](https://dragonwilds.runescape.wiki/w/Hollow_Bark) · — currently: **no source info**
 - [ ] **Marrentill** · *Material* · — currently: **no source info**
 - [ ] **Berry Compote** · *Food* · [wiki](https://dragonwilds.runescape.wiki/w/Berry_Compote) · — currently: **no source info**
+- [ ] **Bird Nest** · *Container* · [wiki](https://dragonwilds.runescape.wiki/w/Bird_Nest) · — currently: **no source info**
 - [ ] **Desert Weed (plant)** · *Resource Node* · [wiki](https://dragonwilds.runescape.wiki/w/Desert_Weed_(plant)) · — currently: **no source info**
 - [ ] **Divine Cabbage** · *Resource* · [wiki](https://dragonwilds.runescape.wiki/w/Divine_Cabbage) · — currently: **no source info**
 - [ ] **Dwellberry Glazed Roast Meat** · *Food* · [wiki](https://dragonwilds.runescape.wiki/w/Dwellberry_Glazed_Roast_Meat) · — currently: **no source info**
 - [ ] **Empty Vial** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Empty_Vial) · — currently: **no source info**
 - [ ] **Kalphite Egg** · *Resource Node* · [wiki](https://dragonwilds.runescape.wiki/w/Kalphite_Egg) · — currently: **no source info**
-- [ ] **PLAN: Vial Shelf** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Vial_Shelf) · — currently: **no source info**
 - [ ] **Pumpkin (plant)** · *Resource Node* · [wiki](https://dragonwilds.runescape.wiki/w/Pumpkin_(plant)) · — currently: **no source info**
-- [ ] **Simply Splendid Feather** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Simply_Splendid_Feather) · — currently: **no source info**
 - [ ] **Twilight Lily** · *Resource* · [wiki](https://dragonwilds.runescape.wiki/w/Twilight_Lily) · — currently: **no source info**
 - [ ] **Vial** · *Resource* · [wiki](https://dragonwilds.runescape.wiki/w/Vial) · — currently: **no source info**
 - [ ] **Vine Root** · *Resource* · [wiki](https://dragonwilds.runescape.wiki/w/Vine_Root) · — currently: **no source info**
@@ -74,42 +67,33 @@ Sorted by **likely in-game progression** (early-game gatherables first, lore/que
 - [ ] **Abyssal Ashes** · *Basic Material* · [wiki](https://dragonwilds.runescape.wiki/w/Abyssal_Ashes) · — currently: **no source info**
 - [ ] **Anima Vent** · *Resource Node* · [wiki](https://dragonwilds.runescape.wiki/w/Anima_Vent) · — currently: **no source info**
 - [ ] **Ascension Shard** · *Basic Material* · [wiki](https://dragonwilds.runescape.wiki/w/Ascension_Shard) · — currently: **no source info**
-- [ ] **Crucible Engram of Betrayal** · *Basic Material* · [wiki](https://dragonwilds.runescape.wiki/w/Crucible_Engram_of_Betrayal) · — currently: **no source info**
-- [ ] **Crucible Engram of Helplessness** · *Basic Material* · [wiki](https://dragonwilds.runescape.wiki/w/Crucible_Engram_of_Helplessness) · — currently: **no source info**
-- [ ] **Crucible Engram of Humiliation** · *Basic Material* · [wiki](https://dragonwilds.runescape.wiki/w/Crucible_Engram_of_Humiliation) · — currently: **no source info**
-- [ ] **Crucible Engram of the Hounded** · *Basic Material* · [wiki](https://dragonwilds.runescape.wiki/w/Crucible_Engram_of_the_Hounded) · — currently: **no source info**
 - [ ] **Doric's Smithing Supplies** · *Resource* · [wiki](https://dragonwilds.runescape.wiki/w/Doric's_Smithing_Supplies) · — currently: **no source info**
 - [ ] **Doric's Superior Smithing Supplies** · *Resource* · [wiki](https://dragonwilds.runescape.wiki/w/Doric's_Superior_Smithing_Supplies) · — currently: **no source info**
+- [ ] **Emerald** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Emerald) · — currently: **no source info**
 - [ ] **Fuel Briquette** · *Resource* · [wiki](https://dragonwilds.runescape.wiki/w/Fuel_Briquette) · — currently: **no source info**
 - [ ] **Garou Chit** · *Basic Material* · [wiki](https://dragonwilds.runescape.wiki/w/Garou_Chit) · — currently: **no source info**
 - [ ] **Monstrous Fang** · *Basic Material* · [wiki](https://dragonwilds.runescape.wiki/w/Monstrous_Fang) · — currently: **no source info**
 - [ ] **Rune Essence Geyser** · *Resource Node* · [wiki](https://dragonwilds.runescape.wiki/w/Rune_Essence_Geyser) · — currently: **no source info**
+- [ ] **Sapphire Emblem** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Sapphire_Emblem) · — currently: **no source info**
 - [ ] **Soda Ash** · *Resource* · [wiki](https://dragonwilds.runescape.wiki/w/Soda_Ash) · — currently: **no source info**
-- [ ] **Tome of Agility - Vol 1** · *Resource* · [wiki](https://dragonwilds.runescape.wiki/w/Tome_of_Agility_-_Vol_1) · — currently: **no source info**
-- [ ] **Tome of Agility - Vol 2** · *Resource* · [wiki](https://dragonwilds.runescape.wiki/w/Tome_of_Agility_-_Vol_2) · — currently: **no source info**
-- [ ] **Tome of the Dragon Slayer** · *Resource* · [wiki](https://dragonwilds.runescape.wiki/w/Tome_of_the_Dragon_Slayer) · — currently: **no source info**
-- [ ] **Tome of the Undying** · *Resource* · [wiki](https://dragonwilds.runescape.wiki/w/Tome_of_the_Undying) · — currently: **no source info**
 - [ ] **Unholy Water** · *Resource* · [wiki](https://dragonwilds.runescape.wiki/w/Unholy_Water) · — currently: **no source info**
 
 ## Monster-drop materials & packs
 
 - [ ] **Goblin Pack** · *Container* · [wiki](https://dragonwilds.runescape.wiki/w/Goblin_Pack) · — currently: **no source info**
 - [ ] **Kalphite Ichor** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Kalphite_Ichor) · — currently: **no source info**
+- [ ] **Kalphite Shell Fragments** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Kalphite_Shell_Fragments) · — currently: **no source info**
 - [ ] **Poison Ichor** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Poison_Ichor) · — currently: **no source info**
 - [ ] **Zombie Pack** · *Container* · [wiki](https://dragonwilds.runescape.wiki/w/Zombie_Pack) · — currently: **no source info**
 - [ ] **Ash Pile** · *Container* · [wiki](https://dragonwilds.runescape.wiki/w/Ash_Pile) · — currently: **no source info**
-- [ ] **Barbed Appendage** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Barbed_Appendage) · — currently: **no source info**
-- [ ] **Carved Bone Animal Lure** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Carved_Bone_Animal_Lure) · — currently: **no source info**
+- [ ] **Curse Fragment (Despair)** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Curse_Fragment_(Despair)) · — currently: **no source info**
+- [ ] **Curse Fragment (Grief)** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Curse_Fragment_(Grief)) · — currently: **no source info**
 - [ ] **Fang Barbed Arrow** · *Arrow* · [wiki](https://dragonwilds.runescape.wiki/w/Fang_Barbed_Arrow) · — currently: **no source info**
 - [ ] **Fang Fire Arrow** · *Arrow* · [wiki](https://dragonwilds.runescape.wiki/w/Fang_Fire_Arrow) · — currently: **no source info**
 - [ ] **Food & Drink Salvage** · *Container* · [wiki](https://dragonwilds.runescape.wiki/w/Food_%26_Drink_Salvage) · — currently: **no source info**
 - [ ] **Garou Pack** · *Container* · [wiki](https://dragonwilds.runescape.wiki/w/Garou_Pack) · — currently: **no source info**
 - [ ] **Kot Pack** · *Container* · [wiki](https://dragonwilds.runescape.wiki/w/Kot_Pack) · — currently: **no source info**
 - [ ] **Moon Garou Pack** · *Container* · [wiki](https://dragonwilds.runescape.wiki/w/Moon_Garou_Pack) · — currently: **no source info**
-- [ ] **PLAN: Barrel Pile** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Barrel_Pile) · — currently: **no source info**
-- [ ] **PLAN: Wooden Bin Pile** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Wooden_Bin_Pile) · — currently: **no source info**
-- [ ] **Shard of Black Pauldron** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Shard_of_Black_Pauldron) · — currently: **no source info**
-- [ ] **Shard of Smoky Glass** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Shard_of_Smoky_Glass) · — currently: **no source info**
 - [ ] **Skeleton Pack** · *Container* · [wiki](https://dragonwilds.runescape.wiki/w/Skeleton_Pack) · — currently: **no source info**
 - [ ] **Small Ash Pile** · *Container* · [wiki](https://dragonwilds.runescape.wiki/w/Small_Ash_Pile) · — currently: **no source info**
 - [ ] **Zamorakian Mage Pack** · *Container* · [wiki](https://dragonwilds.runescape.wiki/w/Zamorakian_Mage_Pack) · — currently: **no source info**
@@ -121,8 +105,10 @@ Sorted by **likely in-game progression** (early-game gatherables first, lore/que
 - [ ] **Cactus Water** · *Drink* · [wiki](https://dragonwilds.runescape.wiki/w/Cactus_Water) · — currently: **no source info**
 - [ ] **Peach** · *Food* · [wiki](https://dragonwilds.runescape.wiki/w/Peach) · — currently: **no source info**
 - [ ] **Ancestral Robe Legs** · *Mage Armour* · [wiki](https://dragonwilds.runescape.wiki/w/Ancestral_Robe_Legs) · — currently: **no source info**
+- [ ] **Corroded Jewellery** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/Corroded_Jewellery) · — currently: **no source info**
 - [ ] **Dragon Crossbow** · *Ranged Weapon* · [wiki](https://dragonwilds.runescape.wiki/w/Dragon_Crossbow) · — currently: **no source info**
 - [ ] **Dragon Full Helm** · *Melee Armour* · [wiki](https://dragonwilds.runescape.wiki/w/Dragon_Full_Helm) · — currently: **no source info**
+- [ ] **Dragon Kiteshield** · *Shield* · [wiki](https://dragonwilds.runescape.wiki/w/Dragon_Kiteshield) · — currently: **no source info**
 - [ ] **Dragon Med Helm** · *Melee Armour* · [wiki](https://dragonwilds.runescape.wiki/w/Dragon_Med_Helm) · — currently: **no source info**
 - [ ] **Dragon Platelegs** · *Melee Armour* · [wiki](https://dragonwilds.runescape.wiki/w/Dragon_Platelegs) · — currently: **no source info**
 - [ ] **Dragon Scimitar** · *Melee Weapon* · [wiki](https://dragonwilds.runescape.wiki/w/Dragon_Scimitar) · — currently: **no source info**
@@ -145,6 +131,7 @@ Sorted by **likely in-game progression** (early-game gatherables first, lore/que
 - [ ] **Weak Healing Potion** · *Potion* · [wiki](https://dragonwilds.runescape.wiki/w/Weak_Healing_Potion) · — currently: **no source info**
 - [ ] **Wooden Arrow** · *Arrow* · [wiki](https://dragonwilds.runescape.wiki/w/Wooden_Arrow) · — currently: **no source info**
 - [ ] **Wooden Club** · *Melee Weapon* · [wiki](https://dragonwilds.runescape.wiki/w/Wooden_Club) · — currently: **no source info**
+- [ ] **Woodsman Ring** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Woodsman_Ring) · — currently: **no source info**
 
 ## Lore & relics
 
@@ -156,11 +143,13 @@ Sorted by **likely in-game progression** (early-game gatherables first, lore/que
 - [ ] **An Educational Blade** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/An_Educational_Blade) · — currently: **no source info**
 - [ ] **An Ember Edged Remnant of Cloth** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/An_Ember_Edged_Remnant_of_Cloth) · — currently: **no source info**
 - [ ] **Arrowhead of Ancient Origin** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Arrowhead_of_Ancient_Origin) · — currently: **no source info**
+- [ ] **Barbed Appendage** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Barbed_Appendage) · — currently: **no source info**
 - [ ] **Battle-Scarred Black Metal** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Battle-Scarred_Black_Metal) · — currently: **no source info**
 - [ ] **Bloodstained Black Visor** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Bloodstained_Black_Visor) · — currently: **no source info**
 - [ ] **Bloodstained Hilt** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Bloodstained_Hilt) · — currently: **no source info**
 - [ ] **Bludgeoning Obsidian Construct** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Bludgeoning_Obsidian_Construct) · — currently: **no source info**
 - [ ] **Burnished Belt Buckle** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Burnished_Belt_Buckle) · — currently: **no source info**
+- [ ] **Carved Bone Animal Lure** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Carved_Bone_Animal_Lure) · — currently: **no source info**
 - [ ] **Chewed Blue Cloth** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Chewed_Blue_Cloth) · — currently: **no source info**
 - [ ] **Chewed Green Cloth** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Chewed_Green_Cloth) · — currently: **no source info**
 - [ ] **Chewed Pink Cloth** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Chewed_Pink_Cloth) · — currently: **no source info**
@@ -170,6 +159,10 @@ Sorted by **likely in-game progression** (early-game gatherables first, lore/que
 - [ ] **Cloying Damp Cowl** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Cloying_Damp_Cowl) · — currently: **no source info**
 - [ ] **Commemorative Coin** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Commemorative_Coin) · — currently: **no source info**
 - [ ] **Corroded White Visor** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Corroded_White_Visor) · — currently: **no source info**
+- [ ] **Crucible Engram of Betrayal** · *Basic Material* · [wiki](https://dragonwilds.runescape.wiki/w/Crucible_Engram_of_Betrayal) · — currently: **no source info**
+- [ ] **Crucible Engram of Helplessness** · *Basic Material* · [wiki](https://dragonwilds.runescape.wiki/w/Crucible_Engram_of_Helplessness) · — currently: **no source info**
+- [ ] **Crucible Engram of Humiliation** · *Basic Material* · [wiki](https://dragonwilds.runescape.wiki/w/Crucible_Engram_of_Humiliation) · — currently: **no source info**
+- [ ] **Crucible Engram of the Hounded** · *Basic Material* · [wiki](https://dragonwilds.runescape.wiki/w/Crucible_Engram_of_the_Hounded) · — currently: **no source info**
 - [ ] **Crushed Obsidian Construct** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Crushed_Obsidian_Construct) · — currently: **no source info**
 - [ ] **Crushed White Cuisse** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Crushed_White_Cuisse) · — currently: **no source info**
 - [ ] **Curse Carrying Crown** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Curse_Carrying_Crown) · — currently: **no source info**
@@ -198,9 +191,12 @@ Sorted by **likely in-game progression** (early-game gatherables first, lore/que
 - [ ] **Remnants of a Shattered Skull** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Remnants_of_a_Shattered_Skull) · — currently: **no source info**
 - [ ] **Selenic Veil** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Selenic_Veil) · — currently: **no source info**
 - [ ] **Serrated Claw** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Serrated_Claw) · — currently: **no source info**
+- [ ] **Shard of Black Pauldron** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Shard_of_Black_Pauldron) · — currently: **no source info**
+- [ ] **Shard of Smoky Glass** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Shard_of_Smoky_Glass) · — currently: **no source info**
 - [ ] **Shattered Black Blade (Umbral Sands)** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Shattered_Black_Blade_(Umbral_Sands)) · — currently: **no source info**
 - [ ] **Shred of Sunbleached Weave** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Shred_of_Sunbleached_Weave) · — currently: **no source info**
 - [ ] **Sigil of a Phoenix** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Sigil_of_a_Phoenix) · — currently: **no source info**
+- [ ] **Simply Splendid Feather** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Simply_Splendid_Feather) · — currently: **no source info**
 - [ ] **Slightly Chaffing Chestguard** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Slightly_Chaffing_Chestguard) · — currently: **no source info**
 - [ ] **Sodden Black Leather** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Sodden_Black_Leather) · — currently: **no source info**
 - [ ] **Softly Vibrating Orb** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Softly_Vibrating_Orb) · — currently: **no source info**
@@ -214,16 +210,21 @@ Sorted by **likely in-game progression** (early-game gatherables first, lore/que
 - [ ] **Sun-Bleached Vest** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Sun-Bleached_Vest) · — currently: **no source info**
 - [ ] **Suspiciously Light Tattered Boots** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Suspiciously_Light_Tattered_Boots) · — currently: **no source info**
 - [ ] **Tastefully Torn Tights** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Tastefully_Torn_Tights) · — currently: **no source info**
+- [ ] **Tome of Agility - Vol 1** · *Resource* · [wiki](https://dragonwilds.runescape.wiki/w/Tome_of_Agility_-_Vol_1) · — currently: **no source info**
+- [ ] **Tome of Agility - Vol 2** · *Resource* · [wiki](https://dragonwilds.runescape.wiki/w/Tome_of_Agility_-_Vol_2) · — currently: **no source info**
+- [ ] **Tome of the Dragon Slayer** · *Resource* · [wiki](https://dragonwilds.runescape.wiki/w/Tome_of_the_Dragon_Slayer) · — currently: **no source info**
 - [ ] **Tome of the Titan** · *Consumable Tome* · [wiki](https://dragonwilds.runescape.wiki/w/Tome_of_the_Titan) · — currently: **no source info**
+- [ ] **Tome of the Undying** · *Resource* · [wiki](https://dragonwilds.runescape.wiki/w/Tome_of_the_Undying) · — currently: **no source info**
 - [ ] **Tome of Volcano** · *Tome* · [wiki](https://dragonwilds.runescape.wiki/w/Tome_of_Volcano) · — currently: **no source info**
 - [ ] **Twtiching Antenna** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Twtiching_Antenna) · — currently: **no source info**
 - [ ] **VESTIGE: A Brutal Bladehead** · *Reference* · — currently: **no source info**
 - [ ] **VESTIGE: A Corroded Serrated Blade** · *Reference* · — currently: **no source info**
 - [ ] **VESTIGE: A Simple Broken Bow** · *Reference* · — currently: **no source info**
 - [ ] **Weighted Training Band** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Weighted_Training_Band) · — currently: **no source info**
+- [ ] **Whispering Elbow Pad** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Whispering_Elbow_Pad) · — currently: **no source info**
 - [ ] **Wizard's Kneecap** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Wizard's_Kneecap) · — currently: **no source info**
 
-## Cosmetics & capes
+## Cosmetics, capes & mounts
 
 - [ ] **Agility Cape** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Agility_Cape) · — currently: **no source info**
 - [ ] **Agility Cape (Trimmed)** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Agility_Cape_(Trimmed)) · — currently: **no source info**
@@ -242,6 +243,7 @@ Sorted by **likely in-game progression** (early-game gatherables first, lore/que
 - [ ] **Cooking Cape (Trimmed)** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Cooking_Cape_(Trimmed)) · — currently: **no source info**
 - [ ] **Dragonbane Cape** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Dragonbane_Cape) · — currently: **no source info**
 - [ ] **Dragonslayer's Cape** · *Cape* · [wiki](https://dragonwilds.runescape.wiki/w/Dragonslayer's_Cape) · — currently: **no source info**
+- [ ] **Garou Highborn's Cloak** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Garou_Highborn's_Cloak) · — currently: **no source info**
 - [ ] **Gilded Paladin Cape** · *Cape* · [wiki](https://dragonwilds.runescape.wiki/w/Gilded_Paladin_Cape) · — currently: **no source info**
 - [ ] **Goblin War Banner** · *other* · [wiki](https://dragonwilds.runescape.wiki/w/Goblin_War_Banner) · — currently: **no source info**
 - [ ] **Goblin War Banner Cape** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Goblin_War_Banner_Cape) · — currently: **no source info**
@@ -262,27 +264,11 @@ Sorted by **likely in-game progression** (early-game gatherables first, lore/que
 - [ ] **MOUNT: Zamorakian Pledgesaddle** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/MOUNT%3A_Zamorakian_Pledgesaddle) · — currently: **no source info**
 - [ ] **Obsidian Cape** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Obsidian_Cape) · — currently: **no source info**
 - [ ] **Orange Adventurer's Cape** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Orange_Adventurer's_Cape) · — currently: **no source info**
-- [ ] **PATTERN: Stormtouched Cape** · *Pattern* · [wiki](https://dragonwilds.runescape.wiki/w/PATTERN%3A_Stormtouched_Cape) · — currently: **no source info**
 - [ ] **Pink Adventurer's Cape** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Pink_Adventurer's_Cape) · — currently: **no source info**
 - [ ] **Pink Dyad Cape** · *Armour* · [wiki](https://dragonwilds.runescape.wiki/w/Pink_Dyad_Cape) · — currently: **no source info**
 - [ ] **Pink Hex Cape** · *Armour* · [wiki](https://dragonwilds.runescape.wiki/w/Pink_Hex_Cape) · — currently: **no source info**
 - [ ] **Pioneer's Cape** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Pioneer's_Cape) · — currently: **no source info**
-- [ ] **PLAN: Armadyl Banner 01** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Armadyl_Banner_01) · — currently: **no source info**
-- [ ] **PLAN: Armadyl Banner 02** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Armadyl_Banner_02) · — currently: **no source info**
-- [ ] **PLAN: Armadyl Banner 03** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Armadyl_Banner_03) · — currently: **no source info**
-- [ ] **PLAN: Bandos Banner 01** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Bandos_Banner_01) · — currently: **no source info**
-- [ ] **PLAN: Bandos Banner 02** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Bandos_Banner_02) · — currently: **no source info**
-- [ ] **PLAN: Bandos Banner 03** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Bandos_Banner_03) · — currently: **no source info**
-- [ ] **PLAN: Garou Wall Banner** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Garou_Wall_Banner) · — currently: **no source info**
-- [ ] **PLAN: Guthix Banner 01** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Guthix_Banner_01) · — currently: **no source info**
-- [ ] **PLAN: Guthix Banner 02** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Guthix_Banner_02) · — currently: **no source info**
-- [ ] **PLAN: Guthix Banner 03** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Guthix_Banner_03) · — currently: **no source info**
-- [ ] **PLAN: Saradomin Banner 01** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Saradomin_Banner_01) · — currently: **no source info**
-- [ ] **PLAN: Saradomin Banner 02** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Saradomin_Banner_02) · — currently: **no source info**
-- [ ] **PLAN: Saradomin Banner 03** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Saradomin_Banner_03) · — currently: **no source info**
-- [ ] **PLAN: Zamorak Banner 01** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Zamorak_Banner_01) · — currently: **no source info**
-- [ ] **PLAN: Zamorak Banner 02** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Zamorak_Banner_02) · — currently: **no source info**
-- [ ] **PLAN: Zamorak Banner 03** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Zamorak_Banner_03) · — currently: **no source info**
+- [ ] **Pioneer's Scarf** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Pioneer's_Scarf) · — currently: **no source info**
 - [ ] **Prayer Cape** · *other* · [wiki](https://dragonwilds.runescape.wiki/w/Prayer_Cape) · — currently: **no source info**
 - [ ] **Purple Adventurer's Cape** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Purple_Adventurer's_Cape) · — currently: **no source info**
 - [ ] **Ranged Cape** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Ranged_Cape) · — currently: **no source info**
@@ -293,6 +279,7 @@ Sorted by **likely in-game progression** (early-game gatherables first, lore/que
 - [ ] **Red Hex Cape** · *Armour* · [wiki](https://dragonwilds.runescape.wiki/w/Red_Hex_Cape) · — currently: **no source info**
 - [ ] **Runecrafting Cape** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Runecrafting_Cape) · — currently: **no source info**
 - [ ] **Runecrafting Cape (Trimmed)** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Runecrafting_Cape_(Trimmed)) · — currently: **no source info**
+- [ ] **Saradominist Cloak** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Saradominist_Cloak) · — currently: **no source info**
 - [ ] **Shadowscale Cape** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Shadowscale_Cape) · — currently: **no source info**
 - [ ] **Spectral Chinchompa Cape** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Spectral_Chinchompa_Cape) · — currently: **no source info**
 - [ ] **Stormtouched Cape** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Stormtouched_Cape) · — currently: **no source info**
@@ -305,6 +292,117 @@ Sorted by **likely in-game progression** (early-game gatherables first, lore/que
 - [ ] **Yellow Dyad Cape** · *Armour* · [wiki](https://dragonwilds.runescape.wiki/w/Yellow_Dyad_Cape) · — currently: **no source info**
 - [ ] **Yellow Hex Cape** · *Armour* · [wiki](https://dragonwilds.runescape.wiki/w/Yellow_Hex_Cape) · — currently: **no source info**
 - [ ] **Zamorak Cape** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Zamorak_Cape) · — currently: **no source info**
+
+## Plans & blueprints
+
+- [ ] **PATTERN: Bloodblight Cape** · *Pattern* · [wiki](https://dragonwilds.runescape.wiki/w/PATTERN%3A_Bloodblight_Cape) · — currently: **no source info**
+- [ ] **PATTERN: Bramblemead Cape** · *Pattern* · [wiki](https://dragonwilds.runescape.wiki/w/PATTERN%3A_Bramblemead_Cape) · — currently: **no source info**
+- [ ] **PATTERN: Stormtouched Cape** · *Pattern* · [wiki](https://dragonwilds.runescape.wiki/w/PATTERN%3A_Stormtouched_Cape) · — currently: **no source info**
+- [ ] **Plan Bundle: Armadyl Flags** · *Container* · [wiki](https://dragonwilds.runescape.wiki/w/Plan_Bundle%3A_Armadyl_Flags) · — currently: **no source info**
+- [ ] **Plan Bundle: Bandos Flags** · *Container* · [wiki](https://dragonwilds.runescape.wiki/w/Plan_Bundle%3A_Bandos_Flags) · — currently: **no source info**
+- [ ] **Plan Bundle: Guthix Flags** · *Container* · [wiki](https://dragonwilds.runescape.wiki/w/Plan_Bundle%3A_Guthix_Flags) · — currently: **no source info**
+- [ ] **Plan Bundle: Saradomin Flags** · *Container* · [wiki](https://dragonwilds.runescape.wiki/w/Plan_Bundle%3A_Saradomin_Flags) · — currently: **no source info**
+- [ ] **Plan Bundle: Zamorak Flags** · *Container* · [wiki](https://dragonwilds.runescape.wiki/w/Plan_Bundle%3A_Zamorak_Flags) · — currently: **no source info**
+- [ ] **PLAN: Armadyl Banner 01** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Armadyl_Banner_01) · — currently: **no source info**
+- [ ] **PLAN: Armadyl Banner 02** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Armadyl_Banner_02) · — currently: **no source info**
+- [ ] **PLAN: Armadyl Banner 03** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Armadyl_Banner_03) · — currently: **no source info**
+- [ ] **PLAN: Armadyl Flag 01** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Armadyl_Flag_01) · — currently: **no source info**
+- [ ] **PLAN: Armadyl Flag 02** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Armadyl_Flag_02) · — currently: **no source info**
+- [ ] **PLAN: Armadyl Flag 03** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Armadyl_Flag_03) · — currently: **no source info**
+- [ ] **PLAN: Armadyl Flag 04** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Armadyl_Flag_04) · — currently: **no source info**
+- [ ] **PLAN: Armadyl Flag 05** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Armadyl_Flag_05) · — currently: **no source info**
+- [ ] **PLAN: Armadyl Flag 06** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Armadyl_Flag_06) · — currently: **no source info**
+- [ ] **PLAN: Bandos Banner 01** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Bandos_Banner_01) · — currently: **no source info**
+- [ ] **PLAN: Bandos Banner 02** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Bandos_Banner_02) · — currently: **no source info**
+- [ ] **PLAN: Bandos Banner 03** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Bandos_Banner_03) · — currently: **no source info**
+- [ ] **PLAN: Bandos Flag 01** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Bandos_Flag_01) · — currently: **no source info**
+- [ ] **PLAN: Bandos Flag 02** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Bandos_Flag_02) · — currently: **no source info**
+- [ ] **PLAN: Bandos Flag 03** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Bandos_Flag_03) · — currently: **no source info**
+- [ ] **PLAN: Bandos Flag 04** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Bandos_Flag_04) · — currently: **no source info**
+- [ ] **PLAN: Bandos Flag 05** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Bandos_Flag_05) · — currently: **no source info**
+- [ ] **PLAN: Bandos Flag 06** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Bandos_Flag_06) · — currently: **no source info**
+- [ ] **PLAN: Barrel Pile** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Barrel_Pile) · — currently: **no source info**
+- [ ] **PLAN: Blue Wall-Mounted Torch** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Blue_Wall-Mounted_Torch) · — currently: **no source info**
+- [ ] **PLAN: Bowl of Onions** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Bowl_of_Onions) · — currently: **no source info**
+- [ ] **PLAN: Bowl of Peaches** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Bowl_of_Peaches) · — currently: **no source info**
+- [ ] **PLAN: Broken Wooden Crate** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Broken_Wooden_Crate) · — currently: **no source info**
+- [ ] **PLAN: Dragonkin Gargoyle 01** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Dragonkin_Gargoyle_01) · — currently: **no source info**
+- [ ] **PLAN: Dragonkin Gargoyle 02** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Dragonkin_Gargoyle_02) · — currently: **no source info**
+- [ ] **PLAN: Dragonkin Gargoyle 03** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Dragonkin_Gargoyle_03) · — currently: **no source info**
+- [ ] **PLAN: Dragonkin Obelisk 01** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Dragonkin_Obelisk_01) · — currently: **no source info**
+- [ ] **PLAN: Dragonkin Obelisk 02** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Dragonkin_Obelisk_02) · — currently: **no source info**
+- [ ] **PLAN: Dragonkin Obelisk 03** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Dragonkin_Obelisk_03) · — currently: **no source info**
+- [ ] **PLAN: Dragonkin Statue 01** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Dragonkin_Statue_01) · — currently: **no source info**
+- [ ] **PLAN: Dragonkin Statue 02** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Dragonkin_Statue_02) · — currently: **no source info**
+- [ ] **PLAN: Garou Drum** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Garou_Drum) · — currently: **no source info**
+- [ ] **PLAN: Garou Hanging Ornament 01** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Garou_Hanging_Ornament_01) · — currently: **no source info**
+- [ ] **PLAN: Garou Hanging Ornament 02** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Garou_Hanging_Ornament_02) · — currently: **no source info**
+- [ ] **PLAN: Garou Hanging Ornament 03** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Garou_Hanging_Ornament_03) · — currently: **no source info**
+- [ ] **PLAN: Garou Hanging Ornament 04** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Garou_Hanging_Ornament_04) · — currently: **no source info**
+- [ ] **PLAN: Garou Hanging Pelt** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Garou_Hanging_Pelt) · — currently: **no source info**
+- [ ] **PLAN: Garou Stool** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Garou_Stool) · — currently: **no source info**
+- [ ] **PLAN: Garou Trophy 01** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Garou_Trophy_01) · — currently: **no source info**
+- [ ] **PLAN: Garou Trophy 02** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Garou_Trophy_02) · — currently: **no source info**
+- [ ] **PLAN: Garou Trophy 03** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Garou_Trophy_03) · — currently: **no source info**
+- [ ] **PLAN: Garou Trophy 04** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Garou_Trophy_04) · — currently: **no source info**
+- [ ] **PLAN: Garou Tusks 01** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Garou_Tusks_01) · — currently: **no source info**
+- [ ] **PLAN: Garou Tusks 02** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Garou_Tusks_02) · — currently: **no source info**
+- [ ] **PLAN: Garou Tusks 03** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Garou_Tusks_03) · — currently: **no source info**
+- [ ] **PLAN: Garou Wall Banner** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Garou_Wall_Banner) · — currently: **no source info**
+- [ ] **PLAN: Grave 1** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Grave_1) · — currently: **no source info**
+- [ ] **PLAN: Grave 2** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Grave_2) · — currently: **no source info**
+- [ ] **PLAN: Grave 3** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Grave_3) · — currently: **no source info**
+- [ ] **PLAN: Grave 4** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Grave_4) · — currently: **no source info**
+- [ ] **PLAN: Green Standing Torch** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Green_Standing_Torch) · — currently: **no source info**
+- [ ] **PLAN: Green Wall-Mounted Torch** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Green_Wall-Mounted_Torch) · — currently: **no source info**
+- [ ] **PLAN: Guthix Banner 01** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Guthix_Banner_01) · — currently: **no source info**
+- [ ] **PLAN: Guthix Banner 02** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Guthix_Banner_02) · — currently: **no source info**
+- [ ] **PLAN: Guthix Banner 03** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Guthix_Banner_03) · — currently: **no source info**
+- [ ] **PLAN: Guthix Flag 01** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Guthix_Flag_01) · — currently: **no source info**
+- [ ] **PLAN: Guthix Flag 02** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Guthix_Flag_02) · — currently: **no source info**
+- [ ] **PLAN: Guthix Flag 03** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Guthix_Flag_03) · — currently: **no source info**
+- [ ] **PLAN: Guthix Flag 04** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Guthix_Flag_04) · — currently: **no source info**
+- [ ] **PLAN: Guthix Flag 05** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Guthix_Flag_05) · — currently: **no source info**
+- [ ] **PLAN: Guthix Flag 06** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Guthix_Flag_06) · — currently: **no source info**
+- [ ] **PLAN: Keg Barrel** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Keg_Barrel) · — currently: **no source info**
+- [ ] **PLAN: Moon Garou Bed** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Moon_Garou_Bed) · — currently: **no source info**
+- [ ] **PLAN: Moon Garou Chair 01** · *Reference* · — currently: **no source info**
+- [ ] **PLAN: Moon Garou Chair 02** · *Reference* · — currently: **no source info**
+- [ ] **PLAN: Open Wooden Barrel** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Open_Wooden_Barrel) · — currently: **no source info**
+- [ ] **PLAN: Potted Dwellberry Bush** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Potted_Dwellberry_Bush) · — currently: **no source info**
+- [ ] **PLAN: Potted Onion** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Potted_Onion) · — currently: **no source info**
+- [ ] **PLAN: Potted Redberry Bush** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Potted_Redberry_Bush) · — currently: **no source info**
+- [ ] **PLAN: Purple Standing Torch** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Purple_Standing_Torch) · — currently: **no source info**
+- [ ] **PLAN: Purple Wall-Mounted Torch** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Purple_Wall-Mounted_Torch) · — currently: **no source info**
+- [ ] **PLAN: Red Standing Torch** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Red_Standing_Torch) · — currently: **no source info**
+- [ ] **PLAN: Red Wall-Mounted Torch** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Red_Wall-Mounted_Torch) · — currently: **no source info**
+- [ ] **PLAN: Saradomin Banner 01** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Saradomin_Banner_01) · — currently: **no source info**
+- [ ] **PLAN: Saradomin Banner 02** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Saradomin_Banner_02) · — currently: **no source info**
+- [ ] **PLAN: Saradomin Banner 03** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Saradomin_Banner_03) · — currently: **no source info**
+- [ ] **PLAN: Saradomin Flag 01** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Saradomin_Flag_01) · — currently: **no source info**
+- [ ] **PLAN: Saradomin Flag 02** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Saradomin_Flag_02) · — currently: **no source info**
+- [ ] **PLAN: Saradomin Flag 03** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Saradomin_Flag_03) · — currently: **no source info**
+- [ ] **PLAN: Saradomin Flag 04** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Saradomin_Flag_04) · — currently: **no source info**
+- [ ] **PLAN: Saradomin Flag 05** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Saradomin_Flag_05) · — currently: **no source info**
+- [ ] **PLAN: Saradomin Flag 06** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Saradomin_Flag_06) · — currently: **no source info**
+- [ ] **PLAN: Sealed Wooden Crate** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Sealed_Wooden_Crate) · — currently: **no source info**
+- [ ] **PLAN: Spectral Book** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Spectral_Book) · — currently: **no source info**
+- [ ] **PLAN: Stack of Bowls** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Stack_of_Bowls) · — currently: **no source info**
+- [ ] **PLAN: Stacked Wooden Crates** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Stacked_Wooden_Crates) · — currently: **no source info**
+- [ ] **PLAN: Textile Kit** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Textile_Kit) · — currently: **no source info**
+- [ ] **PLAN: Vial Shelf** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Vial_Shelf) · — currently: **no source info**
+- [ ] **PLAN: Wooden Barrel** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Wooden_Barrel) · — currently: **no source info**
+- [ ] **PLAN: Wooden Bin** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Wooden_Bin) · — currently: **no source info**
+- [ ] **PLAN: Wooden Bin Pile** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Wooden_Bin_Pile) · — currently: **no source info**
+- [ ] **PLAN: Zamorak Banner 01** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Zamorak_Banner_01) · — currently: **no source info**
+- [ ] **PLAN: Zamorak Banner 02** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Zamorak_Banner_02) · — currently: **no source info**
+- [ ] **PLAN: Zamorak Banner 03** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Zamorak_Banner_03) · — currently: **no source info**
+- [ ] **PLAN: Zamorak Flag 01** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Zamorak_Flag_01) · — currently: **no source info**
+- [ ] **PLAN: Zamorak Flag 02** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Zamorak_Flag_02) · — currently: **no source info**
+- [ ] **PLAN: Zamorak Flag 03** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Zamorak_Flag_03) · — currently: **no source info**
+- [ ] **PLAN: Zamorak Flag 04** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Zamorak_Flag_04) · — currently: **no source info**
+- [ ] **PLAN: Zamorak Flag 05** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Zamorak_Flag_05) · — currently: **no source info**
+- [ ] **PLAN: Zamorak Flag 06** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Zamorak_Flag_06) · — currently: **no source info**
 
 ## Quest & reward items
 
@@ -358,118 +456,20 @@ Sorted by **likely in-game progression** (early-game gatherables first, lore/que
 ## Unclassified
 
 - [ ] **Dihydrogen Monoxide** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Dihydrogen_Monoxide) · — currently: **no source info**
-- [ ] **Kalphite Shell Fragments** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Kalphite_Shell_Fragments) · — currently: **no source info**
 - [ ] **Air** · *Reference* · — currently: **no source info**
 - [ ] **Astral** · *Reference* · — currently: **no source info**
-- [ ] **Bird Nest** · *Container* · [wiki](https://dragonwilds.runescape.wiki/w/Bird_Nest) · — currently: **no source info**
 - [ ] **Blacksmith Bench** · *Reference* · — currently: **no source info**
 - [ ] **Clay Slab** · *other* · [wiki](https://dragonwilds.runescape.wiki/w/Clay_Slab) · — currently: **no source info**
 - [ ] **Clay Slab (Unfired)** · *Unknown* · [wiki](https://dragonwilds.runescape.wiki/w/Clay_Slab_(Unfired)) · — currently: **no source info**
-- [ ] **Corroded Jewellery** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/Corroded_Jewellery) · — currently: **no source info**
-- [ ] **Curse Fragment (Despair)** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Curse_Fragment_(Despair)) · — currently: **no source info**
-- [ ] **Curse Fragment (Grief)** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Curse_Fragment_(Grief)) · — currently: **no source info**
-- [ ] **Dragon Kiteshield** · *Shield* · [wiki](https://dragonwilds.runescape.wiki/w/Dragon_Kiteshield) · — currently: **no source info**
 - [ ] **Earth** · *Reference* · — currently: **no source info**
 - [ ] **Edna** · *Reference* · — currently: **no source info**
-- [ ] **Emerald** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Emerald) · — currently: **no source info**
 - [ ] **Fire** · *Reference* · — currently: **no source info**
 - [ ] **Fletching Table** · *Reference* · — currently: **no source info**
-- [ ] **Garou Highborn's Cloak** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Garou_Highborn's_Cloak) · — currently: **no source info**
 - [ ] **Large Wardstone** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Large_Wardstone) · — currently: **no source info**
 - [ ] **Law** · *Reference* · — currently: **no source info**
 - [ ] **Lightning-in-a-bottle** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Lightning-in-a-bottle) · — currently: **no source info**
 - [ ] **Lougrim's Shrine** · *Reference* · — currently: **no source info**
 - [ ] **Medium Wardstone** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Medium_Wardstone) · — currently: **no source info**
 - [ ] **Nature** · *Reference* · — currently: **no source info**
-- [ ] **Pioneer's Scarf** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Pioneer's_Scarf) · — currently: **no source info**
-- [ ] **Plan Bundle: Armadyl Flags** · *Container* · [wiki](https://dragonwilds.runescape.wiki/w/Plan_Bundle%3A_Armadyl_Flags) · — currently: **no source info**
-- [ ] **Plan Bundle: Bandos Flags** · *Container* · [wiki](https://dragonwilds.runescape.wiki/w/Plan_Bundle%3A_Bandos_Flags) · — currently: **no source info**
-- [ ] **Plan Bundle: Guthix Flags** · *Container* · [wiki](https://dragonwilds.runescape.wiki/w/Plan_Bundle%3A_Guthix_Flags) · — currently: **no source info**
-- [ ] **Plan Bundle: Saradomin Flags** · *Container* · [wiki](https://dragonwilds.runescape.wiki/w/Plan_Bundle%3A_Saradomin_Flags) · — currently: **no source info**
-- [ ] **Plan Bundle: Zamorak Flags** · *Container* · [wiki](https://dragonwilds.runescape.wiki/w/Plan_Bundle%3A_Zamorak_Flags) · — currently: **no source info**
-- [ ] **PLAN: Armadyl Flag 01** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Armadyl_Flag_01) · — currently: **no source info**
-- [ ] **PLAN: Armadyl Flag 02** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Armadyl_Flag_02) · — currently: **no source info**
-- [ ] **PLAN: Armadyl Flag 03** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Armadyl_Flag_03) · — currently: **no source info**
-- [ ] **PLAN: Armadyl Flag 04** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Armadyl_Flag_04) · — currently: **no source info**
-- [ ] **PLAN: Armadyl Flag 05** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Armadyl_Flag_05) · — currently: **no source info**
-- [ ] **PLAN: Armadyl Flag 06** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Armadyl_Flag_06) · — currently: **no source info**
-- [ ] **PLAN: Bandos Flag 01** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Bandos_Flag_01) · — currently: **no source info**
-- [ ] **PLAN: Bandos Flag 02** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Bandos_Flag_02) · — currently: **no source info**
-- [ ] **PLAN: Bandos Flag 03** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Bandos_Flag_03) · — currently: **no source info**
-- [ ] **PLAN: Bandos Flag 04** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Bandos_Flag_04) · — currently: **no source info**
-- [ ] **PLAN: Bandos Flag 05** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Bandos_Flag_05) · — currently: **no source info**
-- [ ] **PLAN: Bandos Flag 06** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Bandos_Flag_06) · — currently: **no source info**
-- [ ] **PLAN: Blue Wall-Mounted Torch** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Blue_Wall-Mounted_Torch) · — currently: **no source info**
-- [ ] **PLAN: Bowl of Onions** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Bowl_of_Onions) · — currently: **no source info**
-- [ ] **PLAN: Bowl of Peaches** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Bowl_of_Peaches) · — currently: **no source info**
-- [ ] **PLAN: Broken Wooden Crate** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Broken_Wooden_Crate) · — currently: **no source info**
-- [ ] **PLAN: Dragonkin Gargoyle 01** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Dragonkin_Gargoyle_01) · — currently: **no source info**
-- [ ] **PLAN: Dragonkin Gargoyle 02** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Dragonkin_Gargoyle_02) · — currently: **no source info**
-- [ ] **PLAN: Dragonkin Gargoyle 03** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Dragonkin_Gargoyle_03) · — currently: **no source info**
-- [ ] **PLAN: Dragonkin Obelisk 01** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Dragonkin_Obelisk_01) · — currently: **no source info**
-- [ ] **PLAN: Dragonkin Obelisk 02** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Dragonkin_Obelisk_02) · — currently: **no source info**
-- [ ] **PLAN: Dragonkin Obelisk 03** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Dragonkin_Obelisk_03) · — currently: **no source info**
-- [ ] **PLAN: Dragonkin Statue 01** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Dragonkin_Statue_01) · — currently: **no source info**
-- [ ] **PLAN: Dragonkin Statue 02** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Dragonkin_Statue_02) · — currently: **no source info**
-- [ ] **PLAN: Garou Drum** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Garou_Drum) · — currently: **no source info**
-- [ ] **PLAN: Garou Hanging Ornament 01** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Garou_Hanging_Ornament_01) · — currently: **no source info**
-- [ ] **PLAN: Garou Hanging Ornament 02** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Garou_Hanging_Ornament_02) · — currently: **no source info**
-- [ ] **PLAN: Garou Hanging Ornament 03** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Garou_Hanging_Ornament_03) · — currently: **no source info**
-- [ ] **PLAN: Garou Hanging Ornament 04** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Garou_Hanging_Ornament_04) · — currently: **no source info**
-- [ ] **PLAN: Garou Hanging Pelt** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Garou_Hanging_Pelt) · — currently: **no source info**
-- [ ] **PLAN: Garou Stool** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Garou_Stool) · — currently: **no source info**
-- [ ] **PLAN: Garou Trophy 01** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Garou_Trophy_01) · — currently: **no source info**
-- [ ] **PLAN: Garou Trophy 02** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Garou_Trophy_02) · — currently: **no source info**
-- [ ] **PLAN: Garou Trophy 03** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Garou_Trophy_03) · — currently: **no source info**
-- [ ] **PLAN: Garou Trophy 04** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Garou_Trophy_04) · — currently: **no source info**
-- [ ] **PLAN: Garou Tusks 01** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Garou_Tusks_01) · — currently: **no source info**
-- [ ] **PLAN: Garou Tusks 02** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Garou_Tusks_02) · — currently: **no source info**
-- [ ] **PLAN: Garou Tusks 03** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Garou_Tusks_03) · — currently: **no source info**
-- [ ] **PLAN: Grave 1** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Grave_1) · — currently: **no source info**
-- [ ] **PLAN: Grave 2** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Grave_2) · — currently: **no source info**
-- [ ] **PLAN: Grave 3** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Grave_3) · — currently: **no source info**
-- [ ] **PLAN: Grave 4** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Grave_4) · — currently: **no source info**
-- [ ] **PLAN: Green Standing Torch** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Green_Standing_Torch) · — currently: **no source info**
-- [ ] **PLAN: Green Wall-Mounted Torch** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Green_Wall-Mounted_Torch) · — currently: **no source info**
-- [ ] **PLAN: Guthix Flag 01** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Guthix_Flag_01) · — currently: **no source info**
-- [ ] **PLAN: Guthix Flag 02** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Guthix_Flag_02) · — currently: **no source info**
-- [ ] **PLAN: Guthix Flag 03** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Guthix_Flag_03) · — currently: **no source info**
-- [ ] **PLAN: Guthix Flag 04** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Guthix_Flag_04) · — currently: **no source info**
-- [ ] **PLAN: Guthix Flag 05** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Guthix_Flag_05) · — currently: **no source info**
-- [ ] **PLAN: Guthix Flag 06** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Guthix_Flag_06) · — currently: **no source info**
-- [ ] **PLAN: Keg Barrel** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Keg_Barrel) · — currently: **no source info**
-- [ ] **PLAN: Moon Garou Bed** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Moon_Garou_Bed) · — currently: **no source info**
-- [ ] **PLAN: Moon Garou Chair 01** · *Reference* · — currently: **no source info**
-- [ ] **PLAN: Moon Garou Chair 02** · *Reference* · — currently: **no source info**
-- [ ] **PLAN: Open Wooden Barrel** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Open_Wooden_Barrel) · — currently: **no source info**
-- [ ] **PLAN: Potted Dwellberry Bush** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Potted_Dwellberry_Bush) · — currently: **no source info**
-- [ ] **PLAN: Potted Onion** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Potted_Onion) · — currently: **no source info**
-- [ ] **PLAN: Potted Redberry Bush** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Potted_Redberry_Bush) · — currently: **no source info**
-- [ ] **PLAN: Purple Standing Torch** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Purple_Standing_Torch) · — currently: **no source info**
-- [ ] **PLAN: Purple Wall-Mounted Torch** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Purple_Wall-Mounted_Torch) · — currently: **no source info**
-- [ ] **PLAN: Red Standing Torch** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Red_Standing_Torch) · — currently: **no source info**
-- [ ] **PLAN: Red Wall-Mounted Torch** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Red_Wall-Mounted_Torch) · — currently: **no source info**
-- [ ] **PLAN: Saradomin Flag 01** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Saradomin_Flag_01) · — currently: **no source info**
-- [ ] **PLAN: Saradomin Flag 02** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Saradomin_Flag_02) · — currently: **no source info**
-- [ ] **PLAN: Saradomin Flag 03** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Saradomin_Flag_03) · — currently: **no source info**
-- [ ] **PLAN: Saradomin Flag 04** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Saradomin_Flag_04) · — currently: **no source info**
-- [ ] **PLAN: Saradomin Flag 05** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Saradomin_Flag_05) · — currently: **no source info**
-- [ ] **PLAN: Saradomin Flag 06** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Saradomin_Flag_06) · — currently: **no source info**
-- [ ] **PLAN: Sealed Wooden Crate** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Sealed_Wooden_Crate) · — currently: **no source info**
-- [ ] **PLAN: Spectral Book** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Spectral_Book) · — currently: **no source info**
-- [ ] **PLAN: Stack of Bowls** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Stack_of_Bowls) · — currently: **no source info**
-- [ ] **PLAN: Stacked Wooden Crates** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Stacked_Wooden_Crates) · — currently: **no source info**
-- [ ] **PLAN: Textile Kit** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Textile_Kit) · — currently: **no source info**
-- [ ] **PLAN: Wooden Barrel** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Wooden_Barrel) · — currently: **no source info**
-- [ ] **PLAN: Wooden Bin** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Wooden_Bin) · — currently: **no source info**
-- [ ] **PLAN: Zamorak Flag 01** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Zamorak_Flag_01) · — currently: **no source info**
-- [ ] **PLAN: Zamorak Flag 02** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Zamorak_Flag_02) · — currently: **no source info**
-- [ ] **PLAN: Zamorak Flag 03** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Zamorak_Flag_03) · — currently: **no source info**
-- [ ] **PLAN: Zamorak Flag 04** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Zamorak_Flag_04) · — currently: **no source info**
-- [ ] **PLAN: Zamorak Flag 05** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Zamorak_Flag_05) · — currently: **no source info**
-- [ ] **PLAN: Zamorak Flag 06** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Zamorak_Flag_06) · — currently: **no source info**
-- [ ] **Sapphire Emblem** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Sapphire_Emblem) · — currently: **no source info**
 - [ ] **Saradomin Symbol** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Saradomin_Symbol) · — currently: **no source info**
-- [ ] **Saradominist Cloak** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Saradominist_Cloak) · — currently: **no source info**
 - [ ] **Water** · *Reference* · — currently: **no source info**
-- [ ] **Woodsman Ring** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Woodsman_Ring) · — currently: **no source info**

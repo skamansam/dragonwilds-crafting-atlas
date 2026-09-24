@@ -80,15 +80,20 @@ const ZONE_TIER = [ // sub-regions as they gate in the main quest
 // classic RS herb ladder — the very first things a new character picks
 const HERB_RE = /\b(guam|marrentill|tarromin|harralander|ranarr|irit|avantoe|kwuarm|snapdragon|cadantine|lantadyme|dwarf weed)\b/i;
 // lore / quest / cosmetic artefact patterns → their bucket score
+// lore / plans / cosmetic artefact patterns → their bucket score. Checked
+// BEFORE zone/keyword matches so "Whispering Elbow Pad" (vestige) or
+// "PLAN: Barrel Pile" don't ride zone-name or drop-word matches.
 const ARTEFACT_PATTERNS = [
   [/\bvestige\b/i, 'lore & relics', 4000],
   [/\b(tome|engram|relic)\b/i, 'lore & relics', 4000],
-  [/\b(skillcape|skill cape|cape|banner|mount|wigs?|mask|head[1-3])\b/i, 'cosmetics', 4200],
+  [/^PLAN: |^PATTERN: |^Plan Bundle: /i, 'plans & blueprints', 4600],
+  [/\b(skillcape|skill cape|cape|cloak|shawl|scarf|wraps?|cowl|banner|mount|wigs?|mask|head[1-3])\b/i, 'cosmetics', 4200],
 ];
 const GROUP_HEADING = {
   'metal tier': 'Metal-tier names', 'zone names': 'Zone-gated names', 'raw gatherables': 'Raw gatherables',
   materials: 'Materials', 'monster drops': 'Monster-drop materials & packs', usables: 'Usables (potions, food, gear…)',
-  'lore & relics': 'Lore & relics', cosmetics: 'Cosmetics & capes', 'quest & rewards': 'Quest & reward items', unclassified: 'Unclassified',
+  'lore & relics': 'Lore & relics', cosmetics: 'Cosmetics, capes & mounts', 'plans & blueprints': 'Plans & blueprints',
+  'quest & rewards': 'Quest & reward items', unclassified: 'Unclassified',
 };
 
 // consumers: item -> products; and the recipes producing those products (for
@@ -128,18 +133,20 @@ function progressionKey(n) {
   for (const [metal, t] of Object.entries(METAL_TIER)) {
     if (new RegExp(`^${metal}\\b`, 'i').test(name) && (['material', 'resource'].includes(n.kind) || /\b(bar|ore|salvage|pile)\b/i.test(name))) return { score: t, group: 'metal tier' };
   }
-  // 1000-1500: zone-gated flora/fauna/sub-regions
+  // lore / plans / cosmetic artefacts — before zone & keyword matches so
+  // "Whispering Elbow Pad" (vestige) or "PLAN: Barrel Pile" ("pile") stay here
+  for (const [re, group, score] of ARTEFACT_PATTERNS) if (re.test(name) || re.test(type)) return { score, group };
+  // 1000-1500: zone-gated flora/fauna/sub-regions (after artefacts, so
+  // "PATTERN: Bramblemead Cape" stays a cosmetic rather than zone-gated)
   for (const [frag, t] of ZONE_TIER) if (low.includes(frag)) return { score: 1000 + t, group: 'zone names' };
   // 1600: gatherable raws (the useful stuff to locate early)
-  if (HERB_RE.test(name) || /\b(plant|seed|berry|berries|root|herb|leaf|flower|mushroom|egg|feather|antler|steak|meat|wine|vial|cabbage|weed|lily|bark)\b/i.test(name)) return { score: 1600, group: 'raw gatherables' };
-  // 1700: general materials/resources
-  if (['material', 'resource'].includes(n.kind) || /material|resource|component|ingredient/i.test(type)) return { score: 1700, group: 'materials' };
-  // 2000: monster-drop materials (hides, bones, scales, salvage piles…)
-  if (/\b(hide|fang|bone|scale|ichor|ashes?|scrap|salvage|pile|essence|shard|crystal|visage|heart|cotton|chitin|carapace|appendage|sphere|fibre|fiber|pack)\b/i.test(name)) return { score: 2000, group: 'monster drops' };
-  // lore / quest / cosmetic artefacts
-  for (const [re, group, score] of ARTEFACT_PATTERNS) if (re.test(name) || re.test(type)) return { score, group };
+  if (HERB_RE.test(name) || /\b(plant|seed|berry|berries|root|herb|leaf|flower|mushroom|egg|feather|antler|steak|meat|wine|vial|cabbage|weed|lily|bark|nest)\b/i.test(name)) return { score: 1600, group: 'raw gatherables' };
+  // 1700: general materials/resources + gems
+  if (['material', 'resource'].includes(n.kind) || /material|resource|component|ingredient/i.test(type) || /\b(emerald|sapphire|ruby|onyx|opal|topaz|jade)\b/i.test(name)) return { score: 1700, group: 'materials' };
+  // 2000: monster-drop materials (hides, bones, scales, salvage piles, fragments…)
+  if (/\b(hide|fang|bone|scale|ichor|ashes?|scrap|salvage|pile|essence|shard|crystal|visage|heart|cotton|chitin|carapace|appendage|sphere|fibre|fiber|pack|fragments?)\b/i.test(name)) return { score: 2000, group: 'monster drops' };
   // 2500: potions/food/trinkets/ammo/gear are usable mid-game
-  if (['potion', 'food', 'drink', 'trinket', 'ammo', 'weapon', 'armour'].includes(n.kind)) return { score: 2500, group: 'usables' };
+  if (['potion', 'food', 'drink', 'trinket', 'ammo', 'weapon', 'armour'].includes(n.kind) || /\b(armour|weapon|shield|ammo|arrow|potion|food|drink|jewellery|ring|emblem)\b/i.test(`${name} ${type}`)) return { score: 2500, group: 'usables' };
   return { score: 6000, group: 'unclassified' };
 }
 
