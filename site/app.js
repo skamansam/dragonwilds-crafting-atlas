@@ -477,7 +477,10 @@ let workerJobId = 0;
 let workerRunSeq = 0;   // runLayout-generation token — stale worker results are dropped
 const workerJobs = new Map(); // jobId → resolve, for in-flight (supersede-safe) jobs
 const workerToggleEl = document.getElementById('workerToggle');
-if (workerToggleEl) workerToggleEl.checked = localStorage.getItem('dw.worker') === '1';
+// default ON since the P1-2 spike graduated (2026-09-24): the probe verified 18/18
+// capability + bit-for-bit fidelity, and jank measurements showed worst-frame 83→33ms.
+// Workers that can't spin up (file://, ancient browsers) fall back transparently.
+if (workerToggleEl) workerToggleEl.checked = localStorage.getItem('dw.worker') !== '0';
 if (workerToggleEl) workerToggleEl.onchange = () => {
   localStorage.setItem('dw.worker', workerToggleEl.checked ? '1' : '0');
   toast(workerToggleEl.checked
