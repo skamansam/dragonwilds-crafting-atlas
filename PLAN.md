@@ -200,10 +200,17 @@ this thing from what I have now?"** first; browsing second. Three deliverables:
   trace (`traceOutputs`, mirror of `traceInputs`): highlights the whole downstream subtree
   (direct + transitive) in the traced style, toast with direct/total counts. The graph
   question now has both directions: Trace inputs ← item → Trace makes ⤴.
-- **P4-3 · Explore-tree isolation may be too greedy** — ⬜ parked (user decision: isolation
-  stays as-is for now). The both-direction walk-to-leaves pulls in nearly the whole graph
-  for hub items (bars/logs). Candidate approaches if revisited: direction-dominant walk,
-  default depth cap, or an explicit "full tree" choice. Recorded in TODO.md.
+- **P4-3 · Explore-tree isolation may be too greedy** — ✅ prototype shipped 2026-09-24:
+  **direction-dominant isolation**. A direction select (`up + down` | `outputs only` |
+  `inputs only`) sits beside Isolate tree (persisted `dw.isoDir`, default `up + down` =
+  unchanged behaviour); the walk honours it and the toast reports direction + kept-item
+  count. Measured on the full graph (unlimited depth) — the greediness hypothesis held:
+  every hub item's both-walk is the same 1,408-node knot (72% of the map), while
+  direction-dominant walks are surgical (Iron Bar: outputs 89 / inputs 4; Ash Logs:
+  outputs 297 / inputs 1; Coarse Thread: 148 / 4; Redberries: 35 / 1; Baked Potato:
+  15 / 3). Outputs-only answers "what does this enable", inputs-only "what does this
+  need"; depth caps compose with the direction. Default stays both-direction per the
+  earlier user decision — the option is additive, nothing changes unless chosen.
 
 ---
 
@@ -258,3 +265,4 @@ this thing from what I have now?"** first; browsing second. Three deliverables:
 | 2026-09-24 | `ac5c295` | **Found-in annotations + Trace makes ⤴ (P4-1/P4-2)**: `build-found-in.mjs` mines wiki prose → `site/found-in.js` (575 items: region + gather method + tool; clause-proximity pairing, except-clause exclusions, infobox location/tool); **Found in** panel section; **Trace makes ⤴** forward-trace button (downstream subtree + counts). P4-3 recorded: explore-tree isolation may be too greedy — parked, unchanged |
 | 2026-09-24 | (this commit) | **P1-2 Web Worker layout spike shipped** behind the `worker layout` toggle (`site/layout-worker.js`: headless cytoscape + all extensions in a Worker, DOM shims, empirical capability probe 18/18, deferred destroy for d3-force's second end()). app.js: persisted toggle, supersede-safe job map, function-stripping + linkId re-injection, degenerate guard, main-thread fallback. Verified bit-for-bit fidelity + jank 83→33ms worst-frame; default-on parked — full verdict in plan §3 P1-2 |
 | 2026-09-24 | (this commit) | **Region pseudo-nodes (P4-1b)**: 6 green region hubs built from found-in data (Bleakfields Valley legitimately empty); Found-in rows jump to them, hub panels list their items; **Region links** legend row (persisted, default off); muted hubs until revealed; searchable; excluded from exports/plans/isolation; snapshot centroid fallback; probe `isolate` un-vacuumed (direct isolateTree call, asserts 1,408) |
+| 2026-09-24 | (this commit) | **P4-3 direction-dominant isolation prototype**: direction select beside Isolate tree (up+down / outputs only / inputs only, persisted `dw.isoDir`); both-walk measured at 1,408 nodes (72% of map) for every hub item vs surgical directional walks (Iron Bar 89/4); toast reports direction + count; default unchanged |

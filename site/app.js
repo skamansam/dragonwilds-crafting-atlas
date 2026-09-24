@@ -1243,8 +1243,15 @@ function isolateTree(id, depthOverride = null) {
   const raw = depthOverride !== null ? depthOverride
     : (dEl && dEl.value !== '' ? Math.max(1, parseInt(dEl.value, 10) || 3) : Infinity);
   if (dEl) localStorage.setItem('dw.isoDepth', dEl.value);
+  // P4-3 prototype: direction-dominant walk. The both-direction walk-to-leaves
+  // pulls in nearly the whole graph for hub items (bars/logs) — 'outputs only'
+  // answers "what does this enable", 'inputs only' answers "what does this need".
+  const dirEl = document.getElementById('isoDir');
+  const dir = dirEl ? dirEl.value : 'both'; // both | down | up
+  if (dirEl) localStorage.setItem('dw.isoDir', dir);
   isolatedRoot = id;
-  // walk both directions, breadth-first, up to `raw` steps (or until leaves)
+  // breadth-first over recipe edges, up to `raw` steps (or until leaves),
+  // honouring the chosen direction
   const keep = new Map([[id, 0]]);
   let frontier = [id];
   let d = 0;
@@ -1252,7 +1259,9 @@ function isolateTree(id, depthOverride = null) {
     const next = [];
     for (const cur of frontier) {
       for (const e of D.edges) {
-        const nb = e.from === cur ? e.to : (e.to === cur ? e.from : null);
+        let nb = null;
+        if (dir !== 'up' && e.from === cur) nb = e.to;         // outputs: what this makes/enables
+        else if (dir !== 'down' && e.to === cur) nb = e.from;  // inputs: what this needs
         if (nb !== null && !keep.has(nb)) { keep.set(nb, d + 1); next.push(nb); }
       }
     }
@@ -1276,7 +1285,8 @@ function isolateTree(id, depthOverride = null) {
   });
   selectNode(id, { fly: false });
   setTimeout(() => cy.fit(undefined, 70), 60);
-  toast(`Crafting tree of ${nodeById.get(id).name} · depth ${raw === Infinity ? 'all' : raw}`);
+  const dirLabel = dir === 'down' ? 'outputs only' : dir === 'up' ? 'inputs only' : 'inputs + outputs';
+  toast(`Crafting tree of ${nodeById.get(id).name} · ${dirLabel} · depth ${raw === Infinity ? 'all' : raw} · ${keep.size - 1} items`);
 }
 
 function traceInputs(id) {
@@ -1908,6 +1918,12 @@ function renderPanelBody(n) {
     <button class="btn primary" id="btnIsolate">Isolate tree</button>
     <input id="isoDepth" type="number" min="1" step="1" placeholder="all" title="How many recipe steps up & down to include. Empty = the whole tree."
            style="width:74px;flex:0 0 auto" />
+    <select id="isoDir" title="Direction-dominant isolation (P4-3): the full up+down walk can swallow nearly the whole map for hub items — outputs only answers 'what does this enable', inputs only answers 'what does this need'."
+            style="width:104px;flex:0 0 auto">
+      <option value="both">up + down</option>
+      <option value="down">outputs only</option>
+      <option value="up">inputs only</option>
+    </select>
   </div>
   <div class="p-section p-actions">
     ${n.wiki ? `<a class="btn" href="${n.wiki}" target="_blank" rel="noopener">Wiki page ↗</a>` : ''}
@@ -1965,6 +1981,12 @@ function renderPanelBody(n) {
     if (dEl) {
       dEl.value = localStorage.getItem('dw.isoDepth') ?? '';
       dEl.onkeydown = ev => { if (ev.key === 'Enter') { ev.preventDefault(); isolateTree(id); } };
+    }
+    const dirEl = document.getElementById('isoDir');
+    if (dirEl) {
+      const saved = localStorage.getItem('dw.isoDir');
+      if (saved === 'down' || saved === 'up' || saved === 'both') dirEl.value = saved;
+      dirEl.onchange = () => localStorage.setItem('dw.isoDir', dirEl.value);
     }
   }
   const bo = document.getElementById('btnOwn');

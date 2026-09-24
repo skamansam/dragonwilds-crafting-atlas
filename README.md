@@ -108,6 +108,10 @@ Everything below is also available **in the app** — press the **?** button in 
 - **Trace inputs** (panel button): highlights every transitive ingredient behind the selection.
 - **Trace makes ⤴** (panel button): the reverse — highlights everything the selection is used
   to make, directly or downstream ("what does this item allow me to craft?").
+- **Isolate direction**: the select beside **Isolate tree** picks the walk direction —
+  **up + down** (default, the full crafting context), **outputs only** ("what does this
+  enable?" — 89 nodes for Iron Bar instead of the whole-map knot) or **inputs only**
+  ("what does this need?"). Persists; combines with the depth input.
 - **Found in** (panel section): where the item is found in the world — regions, gather method
   (mined / chopped / picked / farmed / fished / chest / dungeon / drops) and the tool when the
   wiki names one (e.g. Ash Tree → Bramblemead Valley, chopped with a logging axe). Mined from
