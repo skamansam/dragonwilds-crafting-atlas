@@ -99,8 +99,16 @@ header {
 
 .divider-v { width: 1px; height: 30px; background: var(--line); }
 
+/* ── header center column: search + info + arranging pill ─── */
+.header-center {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 5px;
+  flex: 1 1 auto;              /* grow to push ⚙/? to the right edge */
+  min-width: 0;                /* allow the search box to shrink safely */
+}
+
 /* ── search ─────────────────────────────────────────────────── */
-.search-wrap { position: relative; flex: 0 1 380px; min-width: 160px; }
+.search-wrap { position: relative; width: 100%; max-width: 480px; }
 #search {
   width: 100%;
   padding: 9px 34px 9px 38px;
@@ -216,11 +224,11 @@ header {
 .fac-link { cursor: pointer; }
 .fac-link:hover { text-decoration: underline; }
 
-/* ── layout meta (shown counts + algo name + force toggle) ─── */
+/* ── layout meta (shown counts + algo name; centered under the search) ── */
 .layout-meta {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
   gap: 2px;
   font-size: 11px;
   color: var(--faint);
@@ -370,6 +378,7 @@ header {
 .legend .lg-row.lg-action .lg-swatch { border-radius: 50%; width: 8px; height: 8px; }
 .chip.retired { display: none; }
 .retired { display: none !important; } /* generic: any relocated/hidden legacy control */
+.filters { display: none !important; } /* the whole retired chip tray — every child is retired */
 
 /* ── header settings dropdown (⚙) ─────────────────────────── */
 .settings-wrap { position: relative; }
@@ -784,8 +793,10 @@ body.path-arming #panelBody { pointer-events: none; }
 #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
 /* ── help button + modal ────────────────────────────────────── */
+/* right-edge cluster: ⚙ settings + ? help hug the right edge */
+.header-right { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; }
 #helpBtn {
-  flex: 0 0 auto; width: 30px; height: 30px; margin-left: 4px;
+  flex: 0 0 auto; width: 30px; height: 30px; margin-left: 0;
   border-radius: 50%; border: 1px solid var(--line);
   background: var(--bg1); color: var(--gold);
   font: 800 15px/1 var(--font-display), serif; cursor: pointer;
@@ -845,6 +856,7 @@ body.path-arming #panelBody { pointer-events: none; }
 /* ── responsive ─────────────────────────────────────────────── */
 @media (max-width: 980px) {
   .brand .subtitle, .divider-v, .layout-meta { display: none; }
+  .header-center { order: 3; width: 100%; }
   .search-wrap { flex: 1 1 auto; }
 }
 @media (max-width: 720px) {

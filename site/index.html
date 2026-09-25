@@ -26,7 +26,9 @@
     </div>
     <div class="divider-v"></div>
 
-    <div class="search-wrap">
+    <!-- centered column: search + shown-counts/algorithm info + arranging pill -->
+    <div class="header-center">
+      <div class="search-wrap">
       <span class="search-icon">⌕</span>
       <input id="search" type="text" placeholder="Search items, stations, materials…"
              autocomplete="off" spellcheck="false" aria-label="Search items">
@@ -60,7 +62,9 @@
 
     <div class="layout-meta" id="layoutMeta"></div>
     <div id="layoutInd"><span class="spin"></span><span id="layoutIndText">Arranging…</span><div id="layoutIndBar"><div id="layoutIndBarFill"></div></div></div>
+    </div><!-- /header-center -->
 
+    <div class="header-right">
     <div class="settings-wrap">
       <button id="settingsBtn" aria-expanded="false" aria-controls="settingsPanel"
               title="Graph settings — layouts, density &amp; relayout options" aria-label="Graph settings">⚙</button>
@@ -127,6 +131,7 @@
     </div>
 
     <button id="helpBtn" title="Help — what everything does (?)." aria-label="Help">?</button>
+    </div><!-- /header-right -->
 
     <div class="readout" id="readout" hidden></div>
   </header>
