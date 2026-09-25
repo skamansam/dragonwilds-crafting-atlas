@@ -629,6 +629,34 @@ function shareSnapshot(preset, dens) {
   setTimeout(() => URL.revokeObjectURL(a.href), 2000);
   toast('Snapshot downloaded — send it in and it can ship with the atlas for everyone');
 }
+// One-shot Undo hook for settings flips (⚙ panel): toastWithUndo() arms a
+// restore callback, and the next runLayout (or an explicit call) upgrades the
+// visible toast with an Undo button. Lets "did I mean to do that?" flips —
+// re-layout on graph change, Possessions focus — be reversed in one click.
+let pendingSettingUndo = null;
+function toastWithUndo(msg, undo) {
+  pendingSettingUndo = undo;
+  toast(msg);
+}
+// swaps the live toast's text for text + an Undo button (the toast itself is
+// pointer-events:none — only the button re-enables pointer events)
+function upgradeToastWithUndo() {
+  const undo = pendingSettingUndo;
+  if (!undo) return;
+  pendingSettingUndo = null;
+  setTimeout(() => {
+    const t = document.getElementById('toast');
+    if (!t || !t.classList.contains('show')) return; // already dismissed
+    t.innerHTML = '';
+    const span = document.createElement('span');
+    span.textContent = t.dataset.msg || '';
+    const btn = document.createElement('button');
+    btn.className = 'toast-undo';
+    btn.textContent = 'Undo';
+    btn.onclick = () => { clearTimeout(toastTimer); t.classList.remove('show'); undo(); };
+    t.append(span, btn);
+  }, 0);
+}
 function runLayout(preset = currentLayout, { skipSaved = false, forceMain = false, reflow = true } = {}) {
   // auto-relayout off: skip live recomputes on graph/option changes, except
   // explicit user layout requests (algorithm select, density ✕, saved toggle)
@@ -639,6 +667,7 @@ function runLayout(preset = currentLayout, { skipSaved = false, forceMain = fals
   if (activeLayout) { try { activeLayout.stop(); } catch {} activeLayout = null; }
   stopProgressBar(null, false);
   layoutRunning = true;
+  upgradeToastWithUndo(); // a settings flip started this run — give its toast an Undo button
   const make = LAYOUTS[preset] || LAYOUTS['elk-layered-wide'];
   const opts = make();
   // P1.5-1: animation kill-switch — jump straight to the final arrangement
@@ -920,11 +949,11 @@ function applyEdgeVisibility() {
 // compatibility and mirrored so legacy clicks stay correct).
 const legend = document.getElementById('legend');
 const lgRows = {}; // kind → legend row element
-function lgMakeRow({ cls = '', swatch, label, on = true, onclick }) {
+function lgMakeRow({ cls = '', swatch, label, on = true, onclick, mirrors = [] } = {}) {
   const row = document.createElement('div');
   row.className = 'lg-row' + (cls ? ' ' + cls : '') + (on ? '' : ' off');
   row.innerHTML = `${swatch}<span>${label}</span>`;
-  row.onclick = onclick;
+  row.onclick = () => { onclick(row); for (const m of mirrors) m(row); };
   legend.appendChild(row);
   return row;
 }
@@ -1006,15 +1035,21 @@ const lgPossRow = lgMakeRow({
   swatch: '<span class="lg-check">◇</span>',
   label: 'Possessions',
   on: focusOwned,
-  onclick: () => {
+  onclick: (row) => {
     focusOwned = !focusOwned;
-    lgPossRow.classList.toggle('off', !focusOwned);
-    lgPossRow.querySelector('.lg-check').textContent = focusOwned ? '◆' : '◇';
+    row.classList.toggle('off', !focusOwned);
+    row.querySelector('.lg-check').textContent = focusOwned ? '◆' : '◇';
     document.getElementById('possessionsChip').classList.toggle('on', focusOwned); // retired chip mirrors
     applyPossessions();
-    toast(focusOwned
-      ? (owned.size ? `Showing what you can reach from ${owned.size} owned items` : 'Mark items as owned in their panel first')
-      : 'Showing everything');
+    if (focusOwned) {
+      // the re-layout can feel abrupt — hand back an Undo that drops the focus
+      toastWithUndo(
+        owned.size ? `Showing what you can reach from ${owned.size} owned items` : 'Mark items as owned in their panel first',
+        () => row.onclick(row));
+      upgradeToastWithUndo(); // now (scheduleReflow may never fire with re-layout off)
+    } else {
+      toast('Showing everything');
+    }
   },
 });
 lgPossRow.querySelector('.lg-check').textContent = focusOwned ? '◆' : '◇';
@@ -1186,35 +1221,41 @@ const autoRelayoutOn = () => { const t = document.getElementById('autoRelayout')
     autoEl.onchange = () => {
       const on = autoEl.checked;
       localStorage.setItem('dw.autoRelayout', on ? '1' : '0');
-      if (on) runLayout(); // turning it on arranges the current view now
-      toast(on ? 'Graph changes re-run the layout' : 'Layouts stay put — nodes appear where they fit');
+      const undo = () => { autoEl.checked = !on; autoEl.onchange(); };
+      if (on) {
+        toastWithUndo('Graph changes re-run the layout', undo);
+        runLayout(); // the run upgrades the toast with the Undo button
+      } else {
+        toastWithUndo('Layouts stay put — nodes appear where they fit', undo);
+        upgradeToastWithUndo(); // turning it off re-runs nothing — upgrade directly
+      }
     };
   }
   const btn = document.getElementById('settingsBtn');
   const panel = document.getElementById('settingsPanel');
   if (!btn || !panel) return;
-  const close = () => { panel.hidden = true; btn.setAttribute('aria-expanded', 'false'); };
   let outsideCloser = null;
-  btn.onclick = e => {
-    e.stopPropagation();
-    const open = panel.hidden;
-    panel.hidden = !open;
-    btn.setAttribute('aria-expanded', String(open));
-    if (open) {
+  const detach = () => {
+    if (outsideCloser) { document.removeEventListener('click', outsideCloser); outsideCloser = null; }
+    document.removeEventListener('keydown', escCloser);
+  };
+  const escCloser = e => { if (e.key === 'Escape' && !panel.hidden) { setOpen(false); e.stopPropagation(); } };
+  const setOpen = v => {
+    panel.hidden = !v;
+    btn.setAttribute('aria-expanded', String(v));
+    localStorage.setItem('dw.settingsOpen', v ? '1' : '0'); // reopen where the visitor left it
+    if (v) {
       // one-shot listeners, re-registered per open — never accumulate
-      outsideCloser = ev => { if (!panel.contains(ev.target) && ev.target !== btn) close(); };
+      outsideCloser = ev => { if (!panel.contains(ev.target) && ev.target !== btn) setOpen(false); };
       document.addEventListener('click', outsideCloser);
       document.addEventListener('keydown', escCloser, true);
     } else {
       detach();
     }
   };
-  const escCloser = e => { if (e.key === 'Escape' && !panel.hidden) { close(); detach(); e.stopPropagation(); } };
-  const detach = () => {
-    if (outsideCloser) { document.removeEventListener('click', outsideCloser); outsideCloser = null; }
-    document.removeEventListener('keydown', escCloser);
-  };
+  btn.onclick = e => { e.stopPropagation(); setOpen(panel.hidden); };
   panel.addEventListener('click', e => e.stopPropagation());
+  if (localStorage.getItem('dw.settingsOpen') === '1') setOpen(true); // restore across visits
 })();
 
 const forceToggleWrap = document.getElementById('forceToggleWrap');
@@ -1280,9 +1321,12 @@ let toastTimer = null;
 function toast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg;
+  t.dataset.msg = msg; // upgradeToastWithUndo rebuilds from this (textContent is wiped by the rebuild)
   t.classList.add('show');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.remove('show'), 1800);
+  // toasts that will gain an Undo button live longer — a click target that
+  // disappears in 1.8s is not an affordance
+  toastTimer = setTimeout(() => t.classList.remove('show'), pendingSettingUndo ? 5000 : 1800);
 }
 
 /* ── welcome stats ───────────────────────────────────────────── */

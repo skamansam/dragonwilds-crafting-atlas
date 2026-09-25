@@ -55,66 +55,69 @@
       <div class="chip retired" id="resetFilters" title="Show all categories — now a legend row">↺ All</div>
     </div>
 
-    <div class="layout-wrap">
-      <select id="layoutSelect" aria-label="Layout algorithm" title="Layout algorithm">
-        <optgroup label="Force-directed">
-          <option value="cose-bilkent">cose-bilkent · airy</option>
-          <option value="cose-bilkent-tight">cose-bilkent · compact</option>
-          <option value="cose">cose · classic</option>
-          <option value="fcose">fcose · fast bilkent</option>
-          <option value="spread">spread · speedy physics</option>
-          <option value="euler">euler · fast force</option>
-          <option value="d3-force">d3-force · D3 physics</option>
-          <option value="cola">cola · constraint force</option>
-          <option value="avsdf">avsdf · attraction-repulsion</option>
-        </optgroup>
-        <optgroup label="Trees &amp; layered">
-          <option value="tidytree">tidytree · TB (van der Ploeg)</option>
-          <option value="tidytree-lr">tidytree · left to right</option>
-          <option value="dagre">dagre · top to bottom</option>
-          <option value="dagre-lr">dagre · left to right</option>
-          <option value="elk-layered">elk · layered TB</option>
-          <option value="elk-layered-wide" selected>elk · layered TB (calm) — default</option>
-          <option value="elk-mrtree">elk · mrtree</option>
-          <option value="elk-radial">elk · radial</option>
-          <option value="klay">klay · layered legacy</option>
-          <option value="breadthfirst">breadthfirst · BFS rings</option>
-        </optgroup>
-        <optgroup label="Clustering &amp; simple">
-          <option value="cise">cise · clustered circles</option>
-          <option value="elk-force">elk · force</option>
-          <option value="concentric">concentric</option>
-          <option value="circle">circle</option>
-          <option value="grid">grid</option>
-          <option value="random">random</option>
-        </optgroup>
-      </select>
-      <label id="forceToggleWrap" title="Force-directed layouts pull connected nodes together; off keeps nodes spread out">
-        <input type="checkbox" id="forceToggle" checked> force-directed
-      </label>
-      <label id="animToggleWrap" title="Animate layouts as they run; off jumps straight to the final arrangement (faster, less CPU)">
-        <input type="checkbox" id="animToggle" checked> animate
-      </label>
-      <label id="savedToggleWrap" title="Use the precomputed layout positions bundled in site/layouts/ (instant); off always recomputes live">
-        <input type="checkbox" id="savedToggle" checked> saved positions
-      </label>
-      <label id="densWrap" title="Spread for the elk layered layouts — 100% is the tuned default. Drag to re-run live; 💾 saves the current arrangement as your instant-boot snapshot, ✕ clears it.">
-        <input type="range" id="densSlider" min="50" max="200" step="10" value="100" aria-label="Elk layout density"> density <span id="densVal">100%</span>
-        <button id="densSave" title="Save the current arrangement as a custom snapshot for this layout + density — it will boot instantly">💾</button>
-        <button id="densShare" title="Download the saved snapshot for this layout as a JSON file to share (merged into the atlas with scripts/merge-snapshots.mjs)">⤓</button>
-        <button id="densClear" title="Clear the saved custom snapshot for this layout">✕</button>
-      </label>
-    </div>
+    <!-- layout controls (algorithm select, force/animate/saved, density) moved into
+         the ⚙ settings panel below -->
 
     <div class="layout-meta" id="layoutMeta"></div>
     <div id="layoutInd"><span class="spin"></span><span id="layoutIndText">Arranging…</span><div id="layoutIndBar"><div id="layoutIndBarFill"></div></div></div>
 
     <div class="settings-wrap">
       <button id="settingsBtn" aria-expanded="false" aria-controls="settingsPanel"
-              title="Graph settings — relayout &amp; worker options" aria-label="Graph settings">⚙</button>
+              title="Graph settings — layouts, density &amp; relayout options" aria-label="Graph settings">⚙</button>
       <div id="settingsPanel" hidden>
         <div class="s-title">Graph settings</div>
-        <label title="When the shown graph changes (filters, isolation, possessions, layout algorithm), re-run the layout so nothing clumps — off keeps positions and lets nodes appear where they fit">
+        <div class="s-group">Layout</div>
+        <select id="layoutSelect" aria-label="Layout algorithm" title="Layout algorithm">
+          <optgroup label="Force-directed">
+            <option value="cose-bilkent">cose-bilkent · airy</option>
+            <option value="cose-bilkent-tight">cose-bilkent · compact</option>
+            <option value="cose">cose · classic</option>
+            <option value="fcose">fcose · fast bilkent</option>
+            <option value="spread">spread · speedy physics</option>
+            <option value="euler">euler · fast force</option>
+            <option value="d3-force">d3-force · D3 physics</option>
+            <option value="cola">cola · constraint force</option>
+            <option value="avsdf">avsdf · attraction-repulsion</option>
+          </optgroup>
+          <optgroup label="Trees &amp; layered">
+            <option value="tidytree">tidytree · TB (van der Ploeg)</option>
+            <option value="tidytree-lr">tidytree · left to right</option>
+            <option value="dagre">dagre · top to bottom</option>
+            <option value="dagre-lr">dagre · left to right</option>
+            <option value="elk-layered">elk · layered TB</option>
+            <option value="elk-layered-wide" selected>elk · layered TB (calm) — default</option>
+            <option value="elk-mrtree">elk · mrtree</option>
+            <option value="elk-radial">elk · radial</option>
+            <option value="klay">klay · layered legacy</option>
+            <option value="breadthfirst">breadthfirst · BFS rings</option>
+          </optgroup>
+          <optgroup label="Clustering &amp; simple">
+            <option value="cise">cise · clustered circles</option>
+            <option value="elk-force">elk · force</option>
+            <option value="concentric">concentric</option>
+            <option value="circle">circle</option>
+            <option value="grid">grid</option>
+            <option value="random">random</option>
+          </optgroup>
+        </select>
+        <label id="forceToggleWrap" title="Force-directed layouts pull connected nodes together; off keeps nodes spread out">
+          <input type="checkbox" id="forceToggle" checked> force-directed
+        </label>
+        <label id="animToggleWrap" title="Animate layouts as they run; off jumps straight to the final arrangement (faster, less CPU)">
+          <input type="checkbox" id="animToggle" checked> animate
+        </label>
+        <label id="savedToggleWrap" title="Use the precomputed layout positions bundled in site/layouts/ (instant); off always recomputes live">
+          <input type="checkbox" id="savedToggle" checked> saved positions
+        </label>
+        <label id="densWrap" title="Spread for the elk layered layouts — 100% is the tuned default. Drag to re-run live; 💾 saves the current arrangement as your instant-boot snapshot, ✕ clears it.">
+          <input type="range" id="densSlider" min="50" max="200" step="10" value="100" aria-label="Elk layout density"> density <span id="densVal">100%</span>
+          <button id="densSave" title="Save the current arrangement as a custom snapshot for this layout + density — it will boot instantly">💾</button>
+          <button id="densShare" title="Download the saved snapshot for this layout as a JSON file to share (merged into the atlas with scripts/merge-snapshots.mjs)">⤓</button>
+          <button id="densClear" title="Clear the saved custom snapshot for this layout">✕</button>
+        </label>
+        <div class="s-sep"></div>
+        <div class="s-group">Behaviour</div>
+        <label title="When the shown graph changes (filters, isolation, possessions), re-run the layout so nothing clumps — off keeps positions and lets nodes appear where they fit">
           <input type="checkbox" id="autoRelayout" checked> re-layout on graph change
         </label>
         <label title="Run heavy layouts in a background worker thread so the page stays responsive. Falls back to the main thread automatically.">
@@ -220,23 +223,24 @@
           </div>
           <div class="h-col">
             <h3>Layouts</h3>
-            <p><b>24 algorithms</b>, grouped force / trees / simple. Similar ones ship on purpose —
-            the same graph renders differently under each, and subtrees can prefer different
-            algorithms than the whole. <b>force-directed</b> off = spread presets; <b>animate</b>
-            off = jump straight to the result; <b>saved positions</b> applies the bundled
-            snapshot instantly (marked <b>· saved</b>). The <b>density</b> slider tunes elk layer
-            spacing live (50–200%), and <b>💾</b> saves the current arrangement as a custom
-            snapshot that boots instantly (marked <b>· custom</b>; <b>✕</b> clears it). <b>⤓</b>
-            downloads that snapshot as a JSON file to share — merged ones ship with the atlas
-            for every visitor (marked <b>· curated</b>). <b>worker layout</b> computes heavy
-            layouts in a background thread so the page keeps responding; if a worker can't run
-            a layout it falls back to the main thread automatically — both live in the
-            <b>⚙ graph settings</b> dropdown in the header, next to <b>re-layout on graph
-            change</b> (on: any change to what's shown re-runs the layout so nothing clumps;
-            off: nodes appear where they fit without moving the rest). The gold
+            <p>All of the graph controls live in the <b>⚙ graph settings</b> dropdown in the header:
+            the <b>algorithm select</b> (24 algorithms, grouped force / trees / simple — similar ones
+            ship on purpose; the same graph renders differently under each, and subtrees can
+            prefer different algorithms than the whole),
+            <b>force-directed</b> (off = spread presets), <b>animate</b> (off jumps straight to
+            the result), <b>saved positions</b> (applies the bundled snapshot instantly, marked
+            <b>· saved</b>), the <b>density</b> slider (tunes elk layer spacing live, 50–200%;
+            <b>💾</b> saves the arrangement as a custom snapshot that boots instantly, marked
+            <b>· custom</b>; <b>✕</b> clears it; <b>⤓</b> downloads it to share — merged ones ship
+            with the atlas for every visitor, marked <b>· curated</b>), <b>worker layout</b>
+            (computes heavy layouts in a background thread so the page keeps responding; if a
+            worker can't run a layout it falls back to the main thread automatically) and
+            <b>re-layout on graph change</b> (on: any change to what's shown re-runs the layout
+            so nothing clumps; off: nodes appear where they fit without moving the rest).
+            Toggles that re-arrange the map toast an <b>Undo</b> link for a few seconds. The gold
             <b>Arranging</b> pill spins and shows a <b>live progress bar</b> until the layout
-            settles; algorithms that can't run here
-            (rooted-tree ones on the full map) tell you so instead of failing silently.</p>
+            settles; algorithms that can't run here (rooted-tree ones on the full map) tell you
+            so instead of failing silently.</p>
           </div>
           <div class="h-col">
             <h3>Keys</h3>

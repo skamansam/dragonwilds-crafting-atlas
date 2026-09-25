@@ -142,7 +142,7 @@ Everything below is also available **in the app** — press the **?** button in 
 
 ### Layouts
 
-- **24 layout algorithms** in the dropdown, grouped: force-directed (cose-bilkent, fcose,
+- **24 layout algorithms** in the ⚙ graph settings panel, grouped: force-directed (cose-bilkent, fcose,
   spread, euler, d3-force, cola, avsdf…), trees & layered (tidytree, dagre, elk,
   elk-layered-wide, klay, breadthfirst), and clustering & simple (cise, concentric, circle,
   grid, random). Similar algorithms ship deliberately — the same graph can render very
@@ -177,11 +177,13 @@ Everything below is also available **in the app** — press the **?** button in 
   (`scripts/merge-snapshots.mjs` checks the bounding box, coordinates and node ids), it
   ships in `site/layouts/curated.js` — every visitor gets the arrangement instantly,
   marked **· curated**. Precedence: your own 💾 snapshot → curated → bundled manifest.
-- **Graph settings** (the ⚙ dropdown in the header): holds the map-wide layout options —
-  **re-layout on graph change** (on: any change to what's shown — filters, isolation,
-  possessions, algorithm switches — re-runs the layout so nothing clumps; off: node positions
-  stay put and the changed graph places itself where it fits; persisted) and **worker
-  layout** (below).
+- **Graph settings** (the ⚙ dropdown in the header): holds **all** the graph options — the
+  **algorithm select**, **force-directed**, **animate** and **saved positions** toggles, the
+  **density** slider with its 💾/⤓/✕ snapshot buttons, plus **re-layout on graph change** (on:
+  any change to what's shown — filters, isolation, possessions — re-runs the layout so nothing
+  clumps; off: node positions stay put and the changed graph places itself where it fits;
+  persisted) and **worker layout** (below). The panel reopens where you left it, and toggles
+  that re-arrange the map toast an **Undo** link for a few seconds.
 - **Worker layout** (P1-2, on by default): the **worker layout** checkbox runs heavy layouts
   in a background Web Worker (`site/layout-worker.js` — headless cytoscape with every vendor
   extension loaded) so the page keeps responding while physics computes. Positions come back
@@ -235,6 +237,7 @@ node scripts/build-found-in.mjs    # location prose in cache/raw → site/found-
 node scripts/build-exports.mjs     # site/data.js → data.cyjs + data.graphml + atlas-style.xml
 node scripts/fetch-icon-files.mjs  # download icons → site/icons/ (then shrink >60 KB files)
 node scripts/test-site.mjs         # Playwright smoke test (site must be served on :8477)
+node scripts/test-ui.mjs           # full Playwright UI suite (serves site/ itself)
 node scripts/build-location-checklists.mjs  # missing find spots → docs/checklists/*.md
 ```
 
@@ -242,19 +245,24 @@ node scripts/build-location-checklists.mjs  # missing find spots → docs/checkl
 
 The found-in parser is best-effort: many items end up with a gather method but no
 region, and some with no source info at all. `build-location-checklists.mjs` turns
-those gaps into `docs/checklists/*.md` — one checkbox list per gather method
-(mined, picked, chopped, farmed, caught, chest, dungeon, drops), a
-`partial-locations.md` cross-view of items missing a region, and `unknown-source.md`
-for items with nothing annotated.
+those gaps into two markdown **tables** in `docs/checklists/`:
 
-`unknown-source.md` is sorted by **likely in-game progression** (a heuristic — the
-dataset carries no level gates): metal-tier names, raw gatherables and materials
-first; monster-drop materials and usables next; lore/relics, cosmetics, furniture
-plans and quest rewards last, each under its own heading. A playing session can
-walk it front to back instead of drifting through an alphabetical sea of vestiges.
+- `needs-locations.md` — items the wiki prose already ties to a gather method but
+  whose region is missing or incomplete (already-known regions come pre-ticked).
+- `unknown-source.md` — items with no annotation at all, grouped by **likely
+  in-game progression** (a heuristic — the dataset carries no level gates):
+  metal-tier names, raw gatherables and materials first; monster-drop materials
+  and usables next; lore/relics, cosmetics, plans and quest rewards last.
 
-Ticking a box and appending `— found in: <region>, <how>` on its line is how
-hand-verified find spots are recorded against the header's citable regions.
+Every row is `Item | Wiki | How it's obtained | <one column per location> | Notes`,
+with the location columns in **[Ashenfall page order](https://dragonwilds.runescape.wiki/w/Ashenfall)**
+(Brynmoor → Temple Woods → Bramblemead Valley → … → The Burning Spire, then
+`Ashenfall (whole world)` — 34 columns). The **how** column is natural prose mined
+from the cached wiki pages where possible: drop items read "killed from: cows,
+deer, and wolves" instead of a bare "monster drop". While playing, put an `x` in
+every column where you found the item and use **Notes** for anything richer
+(which monster, which chest, which tool); a merge-back script will fold filled-in
+rows into `site/found-in.js`.
 Regenerating the checklists overwrites the files, so fold any filled-in answers
 back into `site/found-in.js` before re-running the generator (a merge-back script
 is planned for exactly that).

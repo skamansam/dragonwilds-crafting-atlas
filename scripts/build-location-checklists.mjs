@@ -1,19 +1,26 @@
-// Builds docs/checklists/*.md — per gather-method checklists of items whose
-// location is missing or incomplete in site/found-in.js, so a human can play
-// through, note where things are actually found, and hand the list back.
+// Builds docs/checklists/*.md — hand-annotation tables for items whose location
+// is missing or incomplete in site/found-in.js, so a human can play through,
+// note where things are actually found, and hand the data back.
 //
-// Files (one per gather method, plus two catch-alls):
-//   mined.md chopped.md picked.md farmed.md caught.md chest.md dungeon.md
-//   drops.md unknown-source.md  (no annotation at all)
-//   partial-locations.md        (has a method but missing region — fill that in)
+// Two files:
+//   needs-locations.md   annotated with a method but missing its region(s)
+//   unknown-source.md    no source annotation at all (grouped by likely
+//                        in-game progression, one table per tier)
 //
-// Each entry is a markdown checkbox with: item name, kind, wiki link, and the
-// current best guess (existing method-only annotation or "unknown"). Regions to
-// choose from are listed once per file header. Regenerate:
+// Table shape (one row per item):
+//   Item | Wiki | How it's obtained | <every named Ashenfall location, in the
+//   order of https://dragonwilds.runescape.wiki/w/Ashenfall> | Ashenfall (whole
+//   world) | Notes
+// Cells start blank (already-known regions come pre-ticked with `x`); the
+// annotator adds an `x` per place the item was found, and free-form detail
+// (which monster, which chest, which tool) in Notes.
+//
+// The "How it's obtained" wording is natural prose, enriched from the cached
+// wiki pages where possible — e.g. drops say WHAT drops them ("killed from:
+// cows, deer, wolves") rather than a bare "monster drop".
+//
+// Deterministic output so re-runs diff cleanly. Regenerate:
 //   node scripts/build-location-checklists.mjs
-//
-// Deterministic output (method files sorted by item id, unknown-source sorted by
-// likely in-game progression) so re-runs diff cleanly.
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -47,21 +54,120 @@ const NOT_GATHERABLE_KINDS = new Set(['skill', 'spell', 'station']);
 const nodeById = new Map(D.nodes.map(n => [n.id, n]));
 const foundable = D.nodes.filter(n => !inDegree.get(n.id) && !NOT_GATHERABLE_KINDS.has(n.kind));
 
-const REGIONS = ['Temple Woods', 'Bramblemead Valley', 'Fractured Plains', 'Bloodblight Swamp', 'Whispering Swamp', 'Ghornfell', 'Bleakfields Valley', 'Ashenfall (whole world)'];
+// ---------------------------------------------------------------------------
+// Citable locations — every named place on the Ashenfall wiki page, in page
+// order (the five major divisions each followed by their territories, south →
+// far north → the dragonkin reaches → the sands):
+//   https://dragonwilds.runescape.wiki/w/Ashenfall
+// The app's map hubs currently only know the 7 canonical regions; a merge-back
+// script will have to map (or extend) before these reach found-in.js.
+// ---------------------------------------------------------------------------
+const ASHENFALL_LOCATIONS = [
+  'Brynmoor',                       // division: the south
+  'Temple Woods', 'Bramblemead Valley', 'Whispering Swamp',
+  'Ghornfell',                      // division: the north
+  'Fractured Plains', 'Bloodblight Swamp', 'Stormtouched Highlands',
+  'Fellhollow',                     // division: the far north
+  'Bleakfields Valley', 'Forgotten Temple', "Dragon's Run", 'Emberwood',
+  'Witchwillow Range', "Hope's Fall", 'Lake of Lost Souls', 'Silverthorn Keep',
+  'Coalridge Pass',
+  'Dowdun Reach',                   // division: the mountainous reach
+  'The Approach', 'The Courtyard', 'The Nexus', 'The Library', 'The Grand Hall',
+  'The Garrison', 'The Pastures', 'The Menagerie', 'The Bastion',
+  'Umbral Sands',                   // division: the far south-east
+  'Alcarrid Oasis', 'Dunes of Uzzer', 'Manafem Plains', 'The Burning Spire',
+  'Ashenfall (whole world)',        // no specific spot — found anywhere
+];
 
-const METHOD_LABEL = {
-  mined: 'Mined (pickaxe)',
-  chopped: 'Chopped (logging axe)',
-  picked: 'Picked / collected',
-  farmed: 'Farmed (farming plot)',
-  caught: 'Fished / trapped',
-  chest: 'Chest loot',
-  dungeon: 'Dungeon / vault',
-  drops: 'Monster drop',
-  other: 'Other (unclear method)',
+// Natural "how it's obtained" wording per method key (found-in.js shape).
+const HOW_LABEL = {
+  mined: 'mined with a pickaxe',
+  chopped: 'chopped with a logging axe',
+  picked: 'picked / collected by hand',
+  farmed: 'grown on a farming plot',
+  caught: 'fished / trapped',
+  chest: 'looted from chests',
+  dungeon: 'found in dungeons & dragonkin vaults',
+  drops: 'dropped by monsters',
+  other: 'other (unclear method)',
 };
 
 const wikiURL = n => n.wiki || (n.pageid ? `https://dragonwilds.runescape.wiki/w/Special:Redirect/page/${n.pageid}` : null);
+// [[Wolf|wolves]] → "wolves" (the pipe alias is the display text); [[cow]] → "cow"
+const stripLinks = t => t.replace(/\[\[([^\]|]*)(\|([^\]]*))?\]\]/g, (_, target, _p, alias) => alias || target).replace(/'''?/g, '');
+
+// --------------------------------------------------------------------------
+// "How" enrichment — pull the drop source straight out of the cached wiki
+// prose, so "Animal Hide" reads "killed from: cows, deer, wolves" instead of
+// a bare "dropped by monsters". Only cached pages are consulted (no network).
+// --------------------------------------------------------------------------
+const rawCache = new Map(); // pageid → wikitext intro (lazy)
+function introFor(n) {
+  if (!n.pageid) return null;
+  if (rawCache.has(n.pageid)) return rawCache.get(n.pageid);
+  let intro = null;
+  try {
+    const j = JSON.parse(fs.readFileSync(path.join(ROOT, 'cache/raw', n.pageid + '.json'), 'utf8'));
+    const w = j.wikitext || '';
+    intro = w ? stripLinks(w.split(/^==/m)[0]).replace(/\{\{[^}]*\}\}/g, ' ') : null;
+  } catch { /* uncached page — fine */ }
+  rawCache.set(n.pageid, intro);
+  return intro;
+}
+// Kill-source capture — WHAT do you have to kill. Covers the explicit forms
+// ("dropped by cows, deer and wolves", "obtained by killing zogres") AND the
+// gather-prose that actually describes kills: the wiki never says "drop" for
+// hides — "gathered from animals like cows, deer, and wolves" — so without
+// this they would ride a bare "picked / collected" method label.
+const KILL_PATTERNS = [
+  /\b(?:dropped by|dropped from|obtained by killing|killed from|by killing)\b\s+([^.;]{3,110})/i,
+  /\bgathered from ((?:large |small |big )?(?:animals?|creatures?|monsters?|beasts)\b[^.;]{0,90})/i,
+  // list-shaped: "gathered from rats, kebbits, and chinchompas" — small-creature
+  // prose that never says "animals". Cut early on anything that isn't a name list.
+  /\bgathered from ((?:[a-z][a-z'’\- ]{2,28})(?:,\s*| and | or )+[^.;]{0,80})/i,
+];
+function killSource(id) {
+  const n = nodeById.get(id);
+  const intro = n && introFor(n);
+  if (!intro) return null;
+  for (const re of KILL_PATTERNS) {
+    const m = intro.match(re);
+    if (!m) continue;
+    const src = m[1]
+      .replace(/\s+/g, ' ')
+      // cut purpose clauses: "…, required to create the Abysmal Whip",
+      // "…which can be tanned…", "…that can be processed…", "…or from Chest …"
+      .split(/\b(?:which|that) can be\b|,\s*(?:required|used|processed|found|tanned)\b|\bor from\b|\bto create\b|\bwhen killed\b|\band used in\b|\band unlocks\b|\bduring the\b/i)[0]
+      // "…enemies and Chest within the Scorned Wilderness" → "…enemies"
+      .split(/\b(?:and|or)\s+(?:[A-Za-z]+\s+)?(?:[Cc]hests?|[Dd]ungeons?|[Vv]aults?)\b/)[0]
+      .replace(/^killing\s+/i, '') // "killed from: killing kebbits" → "killed from: kebbits"
+      .replace(/\s+(?:and|or|such as|including|like|with)\s*$/i, '')
+      .replace(/[,;\s]+$/, '')
+      .trim();
+    if (src.length > 2) return src.slice(0, 110);
+  }
+  return null;
+}
+
+// The "How it's obtained" cell: one phrase per known entry, joined by " · ".
+// When the wiki prose names the killers, even a "picked"-classified entry is
+// reworded to "killed from: …" so the checklist reads like the game plays.
+function howCell(id) {
+  const fi = FI[id] || [];
+  const kill = killSource(id);
+  if (!fi.length) return kill ? `killed from: ${kill}` : 'unknown — please say how you got it';
+  const parts = [];
+  for (const f of fi) {
+    let how = HOW_LABEL[f.method] || f.method || 'other (unclear method)';
+    if (kill && ['drops', 'picked', 'other'].includes(f.method)) {
+      how = `killed from: ${kill}`;
+    } else if (f.tool && (f.method === 'mined' || f.method === 'chopped')) {
+      how += ` (${f.tool})`;
+    }
+    if (!parts.includes(how)) parts.push(how);
+  }
+  return parts.join(' · ');
+}
 
 // ---------------------------------------------------------------------------
 // Progression order for unknown-source.md — "likely in-game progression".
@@ -79,7 +185,6 @@ const ZONE_TIER = [ // sub-regions as they gate in the main quest
 ];
 // classic RS herb ladder — the very first things a new character picks
 const HERB_RE = /\b(guam|marrentill|tarromin|harralander|ranarr|irit|avantoe|kwuarm|snapdragon|cadantine|lantadyme|dwarf weed)\b/i;
-// lore / quest / cosmetic artefact patterns → their bucket score
 // lore / plans / cosmetic artefact patterns → their bucket score. Checked
 // BEFORE zone/keyword matches so "Whispering Elbow Pad" (vestige) or
 // "PLAN: Barrel Pile" don't ride zone-name or drop-word matches.
@@ -161,122 +266,92 @@ function progressionSort(unknownList) {
   return scored;
 }
 
-function entryLine(n, current) {
-  const bits = [`- [ ] **${n.id}**`];
-  bits.push(`*${n.itemType || n.kind}*`);
-  const url = wikiURL(n);
-  if (url) bits.push(`[wiki](${url})`);
-  bits.push(current ? `— currently: *${current}*` : '— currently: **no source info**');
-  return bits.join(' · ');
+// ---------------------------------------------------------------------------
+// Table emission
+// ---------------------------------------------------------------------------
+const LOC_COLUMNS = [...ASHENFALL_LOCATIONS]; // table column order == page order
+
+function tableHeader() {
+  return '| Item | Wiki | How it\'s obtained | ' + LOC_COLUMNS.join(' | ') + ' | Notes |\n'
+    + '|' + Array(3 + LOC_COLUMNS.length + 1).fill(' --- ').join('|') + '|\n';
 }
 
-// current best guess shown on the line (only when it lacks a region)
-function currentGuess(id) {
-  const fi = FI[id] || [];
-  if (!fi.length) return null;
-  const parts = fi.map(f => `${METHOD_LABEL[f.method] || f.method}${f.tool ? ` (${f.tool})` : ''}${f.region ? ` @ ${f.region}` : ''}`);
-  return parts.join('; ');
+// one row per item; already-annotated regions come pre-ticked with `x`
+function tableRow(n, methodCell, knownRegions) {
+  const url = wikiURL(n);
+  const cells = LOC_COLUMNS.map(loc => (knownRegions && knownRegions.has(loc) ? 'x' : ''));
+  return `| **${n.id}** | ${url ? `[wiki](${url})` : '—'} | ${methodCell} | ${cells.join(' | ')} | |`;
+}
+
+function table(items) { // items: [{ n, methodCell, knownRegions }]
+  return tableHeader() + items.map(it => tableRow(it.n, it.methodCell, it.knownRegions)).join('\n') + '\n';
 }
 
 // classify every foundable item
-const byMethod = new Map(); // method -> [{n, fi}]
-const unknown = [];
-const partial = []; // annotated but at least one entry lacks a region
+const partial = [];   // annotated but at least one entry lacks a region
+const unknown = [];   // no annotation at all
 for (const n of foundable) {
   const fi = FI[n.id] || [];
   if (!fi.length) { unknown.push(n); continue; }
-  if (fi.some(f => !f.region)) {
-    partial.push({ n, fi });
-    // also list it under its primary method file as a partial
-    const m = fi.find(f => f.method) || { method: 'other' };
-    if (!byMethod.has(m.method)) byMethod.set(m.method, []);
-    byMethod.get(m.method).push({ n, fi, partial: true });
-  }
-  for (const f of fi) {
-    if (f.region) continue; // fully located on this entry
-    if (!byMethod.has(f.method)) byMethod.set(f.method, []);
-    // (first hit above already pushed; avoid double-push for the same node)
-    if (!byMethod.get(f.method).some(x => x.n.id === n.id)) byMethod.get(f.method).push({ n, fi, partial: true });
-  }
-}
-// method-only items with NO region anywhere go in their method file as the main list
-for (const n of foundable) {
-  const fi = FI[n.id] || [];
-  if (!fi.length || fi.some(f => f.region)) continue; // unknown or partial handled above
-  const m = fi[0];
-  if (!byMethod.has(m.method)) byMethod.set(m.method, []);
-  byMethod.get(m.method).push({ n, fi, partial: false });
+  if (fi.some(f => !f.region)) partial.push(n);
 }
 
 const OUT_DIR = path.join(ROOT, 'docs/checklists');
 fs.mkdirSync(OUT_DIR, { recursive: true });
 
-const header = (title, intro, items, extra = '') => `# ${title}
-
-${intro}
-
-**Regions you can cite:** ${REGIONS.map(r => `\`${r}\``).join(' · ')}
-
-${extra}**${items.length} item${items.length === 1 ? '' : 's'}** need a location below. Tick the box once the wiki-worthy source is known, and write it on the line: \`— found in: <region>, <how>\`.
-
-`;
+const locFooter = `**Locations are in [Ashenfall page order](https://dragonwilds.runescape.wiki/w/Ashenfall)** — each major division followed by its territories, south → far north → the dragonkin reaches → the sands. \`Ashenfall (whole world)\` means the item is not tied to a spot (it drops anywhere). Put an \`x\` in every column where you found the item, and use **Notes** for anything richer — which monster, which chest, which tool.\n`;
 
 const files = [];
 
-// per-method files
-for (const [method, list] of [...byMethod.entries()].sort((a, b) => a[0].localeCompare(b[0]))) {
-  const label = METHOD_LABEL[method] || method;
-  const uniq = [...new Map(list.map(x => [x.n.id, x])).values()].sort((a, b) => a.n.id.localeCompare(b.n.id));
-  const intro = `Items the wiki prose already ties to **${label.toLowerCase()}** but whose ${'`region`'} is missing. If you find one somewhere else, say so — the annotation accepts multiple regions.`;
-  let md = header(`${label} — missing regions`, intro, uniq);
-  md += uniq.map(({ n, fi }) => entryLine(n, currentGuess(n.id))).join('\n') + '\n';
-  const file = path.join(OUT_DIR, `${method}.md`);
+// needs-locations.md — method known (from the wiki prose), region missing
+{
+  const items = partial.sort((a, b) => a.id.localeCompare(b.id)).map(n => {
+    const known = new Set((FI[n.id] || []).map(f => f.region).filter(Boolean));
+    return { n, methodCell: howCell(n.id), knownRegions: known };
+  });
+  const intro = `Items the wiki prose already ties to a gather method but whose **where** is missing or incomplete. Known regions are pre-ticked; fill the gaps while you play.`;
+  const md = `# Needs locations — ${items.length} item${items.length === 1 ? '' : 's'}\n\n${intro}\n\n${locFooter}\n`
+    + table(items);
+  const file = path.join(OUT_DIR, 'needs-locations.md');
   fs.writeFileSync(file, md);
-  files.push([file, uniq.length]);
+  files.push([file, items.length]);
 }
 
-// unknown-source catch-all — sorted by likely in-game progression, then
-// grouped under progression-tier headings (metal tier → zone tier → raw
-// gatherables → materials → drop mats → usables → lore → quest → unknown)
+// unknown-source.md — no annotation at all; grouped by likely in-game
+// progression (early-game gatherables first, lore/quest items last), one
+// table per tier, groups in first-appearance (progression) order
 {
   const scored = progressionSort(unknown);
-  const intro = `Items with **no source annotation at all** — the wiki prose never said where they come from (or the parser couldn't tell). Note both the method and the region.\n\nSorted by **likely in-game progression** (early-game gatherables first, lore/quest items last); a heuristic — name patterns, metal/zone tiers and what recipes consume the item, since the dataset carries no level gates.`;
-  let md = header('Unknown source — needs method + region', intro, scored);
-  // group under progression-tier headings for quicker in-game lookup
-  let cur = null;
-  for (const { n, group } of scored) {
-    if (group !== cur) { cur = group; md += `\n## ${GROUP_HEADING[group] || group}\n\n`; }
-    md += entryLine(n, null) + '\n';
+  const intro = `Items with **no source annotation at all** — the wiki prose never said where they come from (or the parser couldn't tell). Note both the **how** (the third column starts as *unknown*) and the **where**.\n\nGrouped by **likely in-game progression** (a heuristic — name patterns, metal/zone tiers and what recipes consume the item, since the dataset carries no level gates).`;
+  let md = `# Unknown source — needs method + location — ${scored.length} items\n\n${intro}\n\n${locFooter}`;
+  // stable group buckets in first-appearance order (progressionSort already
+  // ordered them; groupby must not re-sort)
+  const groups = [];
+  const seen = new Set();
+  for (const { group } of scored) {
+    if (!seen.has(group)) { seen.add(group); groups.push(group); }
+  }
+  for (const group of groups) {
+    const members = scored.filter(x => x.group === group);
+    md += `\n## ${GROUP_HEADING[group] || group} — ${members.length}\n\n`
+      + table(members.map(({ n }) => ({ n, methodCell: 'unknown — please say how you got it', knownRegions: null })));
   }
   const file = path.join(OUT_DIR, 'unknown-source.md');
   fs.writeFileSync(file, md);
   files.push([file, scored.length]);
 }
 
-// partial-locations cross-view: annotated, but at least one entry lacks a region
-const partSorted = partial.sort((a, b) => a.n.id.localeCompare(b.n.id));
-{
-  const intro = `Items that **have some location info but not enough** — every line below is missing at least one ${'`region`'}. The item may also appear in a method file.`;
-  let md = header('Partial locations — needs the missing region(s)', intro, partSorted);
-  md += partSorted.map(({ n, fi }) => {
-    const have = fi.filter(f => f.region).map(f => `${METHOD_LABEL[f.method] || f.method} @ ${f.region}`).join('; ') || 'nothing pinned yet';
-    return `- [ ] **${n.id}** — have: *${have}* — still needed: ${fi.filter(f => !f.region).map(f => METHOD_LABEL[f.method] || f.method).join(', ') || 'a region for the current guess'}`;
-  }).join('\n') + '\n';
-  const file = path.join(OUT_DIR, 'partial-locations.md');
-  fs.writeFileSync(file, md);
-  files.push([file, partSorted.length]);
-}
-
 // summary
 let total = 0;
 console.log('checklists written to docs/checklists/:');
 for (const [file, count] of files) { console.log(`  ${path.basename(file).padEnd(22)} ${String(count).padStart(4)} items`); total += count; }
-console.log(`  (${total} checklist lines across ${files.length} files; ${unknown.length} fully unannotated, ${partSorted.length} partial)`);
+console.log(`  (${total} checklist rows across ${files.length} files; ${unknown.length} fully unannotated, ${partial.length} partial)`);
+console.log(`  locations per row: ${LOC_COLUMNS.length} (Ashenfall page order)`);
 
 // sanity: every foundable accounted for exactly once across unknown + partial + fully-located
 const located = foundable.filter(n => (FI[n.id] || []).length && (FI[n.id] || []).every(f => f.region)).length;
-if (unknown.length + partSorted.length + located !== foundable.length) {
-  console.error(`ACCOUNTING MISMATCH: unknown ${unknown.length} + partial ${partSorted.length} + located ${located} != foundable ${foundable.length}`);
+if (unknown.length + partial.length + located !== foundable.length) {
+  console.error(`ACCOUNTING MISMATCH: unknown ${unknown.length} + partial ${partial.length} + located ${located} != foundable ${foundable.length}`);
   process.exit(1);
 }
-console.log(`accounting OK: ${unknown.length} unknown + ${partSorted.length} partial + ${located} fully located = ${foundable.length} foundable`);
+console.log(`accounting OK: ${unknown.length} unknown + ${partial.length} partial + ${located} fully located = ${foundable.length} foundable`);

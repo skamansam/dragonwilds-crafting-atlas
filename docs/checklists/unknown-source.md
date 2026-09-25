@@ -1,475 +1,492 @@
-# Unknown source — needs method + region
+# Unknown source — needs method + location — 435 items
 
-Items with **no source annotation at all** — the wiki prose never said where they come from (or the parser couldn't tell). Note both the method and the region.
+Items with **no source annotation at all** — the wiki prose never said where they come from (or the parser couldn't tell). Note both the **how** (the third column starts as *unknown*) and the **where**.
 
-Sorted by **likely in-game progression** (early-game gatherables first, lore/quest items last); a heuristic — name patterns, metal/zone tiers and what recipes consume the item, since the dataset carries no level gates.
+Grouped by **likely in-game progression** (a heuristic — name patterns, metal/zone tiers and what recipes consume the item, since the dataset carries no level gates).
 
-**Regions you can cite:** `Temple Woods` · `Bramblemead Valley` · `Fractured Plains` · `Bloodblight Swamp` · `Whispering Swamp` · `Ghornfell` · `Bleakfields Valley` · `Ashenfall (whole world)`
+**Locations are in [Ashenfall page order](https://dragonwilds.runescape.wiki/w/Ashenfall)** — each major division followed by its territories, south → far north → the dragonkin reaches → the sands. `Ashenfall (whole world)` means the item is not tied to a spot (it drops anywhere). Put an `x` in every column where you found the item, and use **Notes** for anything richer — which monster, which chest, which tool.
 
-**435 items** need a location below. Tick the box once the wiki-worthy source is known, and write it on the line: `— found in: <region>, <how>`.
+## Metal-tier names — 7
 
+| Item | Wiki | How it's obtained | Brynmoor | Temple Woods | Bramblemead Valley | Whispering Swamp | Ghornfell | Fractured Plains | Bloodblight Swamp | Stormtouched Highlands | Fellhollow | Bleakfields Valley | Forgotten Temple | Dragon's Run | Emberwood | Witchwillow Range | Hope's Fall | Lake of Lost Souls | Silverthorn Keep | Coalridge Pass | Dowdun Reach | The Approach | The Courtyard | The Nexus | The Library | The Grand Hall | The Garrison | The Pastures | The Menagerie | The Bastion | Umbral Sands | Alcarrid Oasis | Dunes of Uzzer | Manafem Plains | The Burning Spire | Ashenfall (whole world) | Notes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| **Bronze Salvage Pile** | [wiki](https://dragonwilds.runescape.wiki/w/Bronze_Salvage_Pile) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Iron Salvage Pile** | [wiki](https://dragonwilds.runescape.wiki/w/Iron_Salvage_Pile) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Steel Salvage Pile** | [wiki](https://dragonwilds.runescape.wiki/w/Steel_Salvage_Pile) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Silver Salvage Pile** | [wiki](https://dragonwilds.runescape.wiki/w/Silver_Salvage_Pile) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Gold Salvage Pile** | [wiki](https://dragonwilds.runescape.wiki/w/Gold_Salvage_Pile) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Mithril Salvage Pile** | [wiki](https://dragonwilds.runescape.wiki/w/Mithril_Salvage_Pile) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Dragon Blood** | [wiki](https://dragonwilds.runescape.wiki/w/Dragon_Blood) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
 
-## Metal-tier names
+## Raw gatherables — 16
 
-- [ ] **Bronze Salvage Pile** · *Basic Material* · [wiki](https://dragonwilds.runescape.wiki/w/Bronze_Salvage_Pile) · — currently: **no source info**
-- [ ] **Iron Salvage Pile** · *Basic Material* · [wiki](https://dragonwilds.runescape.wiki/w/Iron_Salvage_Pile) · — currently: **no source info**
-- [ ] **Steel Salvage Pile** · *Basic Material* · [wiki](https://dragonwilds.runescape.wiki/w/Steel_Salvage_Pile) · — currently: **no source info**
-- [ ] **Silver Salvage Pile** · *Basic Material* · [wiki](https://dragonwilds.runescape.wiki/w/Silver_Salvage_Pile) · — currently: **no source info**
-- [ ] **Gold Salvage Pile** · *Basic Material* · [wiki](https://dragonwilds.runescape.wiki/w/Gold_Salvage_Pile) · — currently: **no source info**
-- [ ] **Mithril Salvage Pile** · *Basic Material* · [wiki](https://dragonwilds.runescape.wiki/w/Mithril_Salvage_Pile) · — currently: **no source info**
-- [ ] **Dragon Blood** · *Basic Material* · [wiki](https://dragonwilds.runescape.wiki/w/Dragon_Blood) · — currently: **no source info**
+| Item | Wiki | How it's obtained | Brynmoor | Temple Woods | Bramblemead Valley | Whispering Swamp | Ghornfell | Fractured Plains | Bloodblight Swamp | Stormtouched Highlands | Fellhollow | Bleakfields Valley | Forgotten Temple | Dragon's Run | Emberwood | Witchwillow Range | Hope's Fall | Lake of Lost Souls | Silverthorn Keep | Coalridge Pass | Dowdun Reach | The Approach | The Courtyard | The Nexus | The Library | The Grand Hall | The Garrison | The Pastures | The Menagerie | The Bastion | Umbral Sands | Alcarrid Oasis | Dunes of Uzzer | Manafem Plains | The Burning Spire | Ashenfall (whole world) | Notes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| **Antler** | [wiki](https://dragonwilds.runescape.wiki/w/Antler) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Cactus Steak** | [wiki](https://dragonwilds.runescape.wiki/w/Cactus_Steak) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Irit** | [wiki](https://dragonwilds.runescape.wiki/w/Irit) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Hollow Bark** | [wiki](https://dragonwilds.runescape.wiki/w/Hollow_Bark) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Marrentill** | — | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Berry Compote** | [wiki](https://dragonwilds.runescape.wiki/w/Berry_Compote) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Bird Nest** | [wiki](https://dragonwilds.runescape.wiki/w/Bird_Nest) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Desert Weed (plant)** | [wiki](https://dragonwilds.runescape.wiki/w/Desert_Weed_(plant)) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Divine Cabbage** | [wiki](https://dragonwilds.runescape.wiki/w/Divine_Cabbage) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Dwellberry Glazed Roast Meat** | [wiki](https://dragonwilds.runescape.wiki/w/Dwellberry_Glazed_Roast_Meat) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Empty Vial** | [wiki](https://dragonwilds.runescape.wiki/w/Empty_Vial) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Kalphite Egg** | [wiki](https://dragonwilds.runescape.wiki/w/Kalphite_Egg) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Pumpkin (plant)** | [wiki](https://dragonwilds.runescape.wiki/w/Pumpkin_(plant)) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Twilight Lily** | [wiki](https://dragonwilds.runescape.wiki/w/Twilight_Lily) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Vial** | [wiki](https://dragonwilds.runescape.wiki/w/Vial) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Vine Root** | [wiki](https://dragonwilds.runescape.wiki/w/Vine_Root) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
 
-## Raw gatherables
+## Materials — 37
 
-- [ ] **Antler** · *Basic Material* · [wiki](https://dragonwilds.runescape.wiki/w/Antler) · — currently: **no source info**
-- [ ] **Cactus Steak** · *Raw Ingredient* · [wiki](https://dragonwilds.runescape.wiki/w/Cactus_Steak) · — currently: **no source info**
-- [ ] **Irit** · *Resource* · [wiki](https://dragonwilds.runescape.wiki/w/Irit) · — currently: **no source info**
-- [ ] **Hollow Bark** · *Resource* · [wiki](https://dragonwilds.runescape.wiki/w/Hollow_Bark) · — currently: **no source info**
-- [ ] **Marrentill** · *Material* · — currently: **no source info**
-- [ ] **Berry Compote** · *Food* · [wiki](https://dragonwilds.runescape.wiki/w/Berry_Compote) · — currently: **no source info**
-- [ ] **Bird Nest** · *Container* · [wiki](https://dragonwilds.runescape.wiki/w/Bird_Nest) · — currently: **no source info**
-- [ ] **Desert Weed (plant)** · *Resource Node* · [wiki](https://dragonwilds.runescape.wiki/w/Desert_Weed_(plant)) · — currently: **no source info**
-- [ ] **Divine Cabbage** · *Resource* · [wiki](https://dragonwilds.runescape.wiki/w/Divine_Cabbage) · — currently: **no source info**
-- [ ] **Dwellberry Glazed Roast Meat** · *Food* · [wiki](https://dragonwilds.runescape.wiki/w/Dwellberry_Glazed_Roast_Meat) · — currently: **no source info**
-- [ ] **Empty Vial** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Empty_Vial) · — currently: **no source info**
-- [ ] **Kalphite Egg** · *Resource Node* · [wiki](https://dragonwilds.runescape.wiki/w/Kalphite_Egg) · — currently: **no source info**
-- [ ] **Pumpkin (plant)** · *Resource Node* · [wiki](https://dragonwilds.runescape.wiki/w/Pumpkin_(plant)) · — currently: **no source info**
-- [ ] **Twilight Lily** · *Resource* · [wiki](https://dragonwilds.runescape.wiki/w/Twilight_Lily) · — currently: **no source info**
-- [ ] **Vial** · *Resource* · [wiki](https://dragonwilds.runescape.wiki/w/Vial) · — currently: **no source info**
-- [ ] **Vine Root** · *Resource* · [wiki](https://dragonwilds.runescape.wiki/w/Vine_Root) · — currently: **no source info**
+| Item | Wiki | How it's obtained | Brynmoor | Temple Woods | Bramblemead Valley | Whispering Swamp | Ghornfell | Fractured Plains | Bloodblight Swamp | Stormtouched Highlands | Fellhollow | Bleakfields Valley | Forgotten Temple | Dragon's Run | Emberwood | Witchwillow Range | Hope's Fall | Lake of Lost Souls | Silverthorn Keep | Coalridge Pass | Dowdun Reach | The Approach | The Courtyard | The Nexus | The Library | The Grand Hall | The Garrison | The Pastures | The Menagerie | The Bastion | Umbral Sands | Alcarrid Oasis | Dunes of Uzzer | Manafem Plains | The Burning Spire | Ashenfall (whole world) | Notes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| **Animal Bone** | [wiki](https://dragonwilds.runescape.wiki/w/Animal_Bone) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Feathers** | [wiki](https://dragonwilds.runescape.wiki/w/Feathers) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Black Metal Scraps** | [wiki](https://dragonwilds.runescape.wiki/w/Black_Metal_Scraps) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Black Salvage Pile** | [wiki](https://dragonwilds.runescape.wiki/w/Black_Salvage_Pile) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Dire Wolf Hide** | [wiki](https://dragonwilds.runescape.wiki/w/Dire_Wolf_Hide) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Undead Bone** | [wiki](https://dragonwilds.runescape.wiki/w/Undead_Bone) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Warped Feathers** | [wiki](https://dragonwilds.runescape.wiki/w/Warped_Feathers) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Amylase Crystal** | [wiki](https://dragonwilds.runescape.wiki/w/Amylase_Crystal) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Ascension Shard (Power Level 4)** | — | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Ascension Shard (Power Level 5)** | — | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Ascension Shard (Power Level 6)** | — | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Ascension Shard (Power Level 7)** | — | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Blue  Dragon Leather** | — | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Blue Dragon Scale** | [wiki](https://dragonwilds.runescape.wiki/w/Blue_Dragon_Scale) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Corpse Cotton** | [wiki](https://dragonwilds.runescape.wiki/w/Corpse_Cotton) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Cursed Essence** | [wiki](https://dragonwilds.runescape.wiki/w/Cursed_Essence) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Draconic Leather Scraps** | [wiki](https://dragonwilds.runescape.wiki/w/Draconic_Leather_Scraps) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Dragonwolf Hide** | [wiki](https://dragonwilds.runescape.wiki/w/Dragonwolf_Hide) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Garou Artifact** | [wiki](https://dragonwilds.runescape.wiki/w/Garou_Artifact) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Hard Leather Scraps** | [wiki](https://dragonwilds.runescape.wiki/w/Hard_Leather_Scraps) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Mystic Fibres** | [wiki](https://dragonwilds.runescape.wiki/w/Mystic_Fibres) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Noxious Draconic Visage** | [wiki](https://dragonwilds.runescape.wiki/w/Noxious_Draconic_Visage) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Vile Ashes** | [wiki](https://dragonwilds.runescape.wiki/w/Vile_Ashes) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Withered Heart** | [wiki](https://dragonwilds.runescape.wiki/w/Withered_Heart) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Abyssal Ashes** | [wiki](https://dragonwilds.runescape.wiki/w/Abyssal_Ashes) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Anima Vent** | [wiki](https://dragonwilds.runescape.wiki/w/Anima_Vent) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Ascension Shard** | [wiki](https://dragonwilds.runescape.wiki/w/Ascension_Shard) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Doric's Smithing Supplies** | [wiki](https://dragonwilds.runescape.wiki/w/Doric's_Smithing_Supplies) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Doric's Superior Smithing Supplies** | [wiki](https://dragonwilds.runescape.wiki/w/Doric's_Superior_Smithing_Supplies) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Emerald** | [wiki](https://dragonwilds.runescape.wiki/w/Emerald) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Fuel Briquette** | [wiki](https://dragonwilds.runescape.wiki/w/Fuel_Briquette) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Garou Chit** | [wiki](https://dragonwilds.runescape.wiki/w/Garou_Chit) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Monstrous Fang** | [wiki](https://dragonwilds.runescape.wiki/w/Monstrous_Fang) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Rune Essence Geyser** | [wiki](https://dragonwilds.runescape.wiki/w/Rune_Essence_Geyser) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Sapphire Emblem** | [wiki](https://dragonwilds.runescape.wiki/w/Sapphire_Emblem) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Soda Ash** | [wiki](https://dragonwilds.runescape.wiki/w/Soda_Ash) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Unholy Water** | [wiki](https://dragonwilds.runescape.wiki/w/Unholy_Water) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
 
-## Materials
+## Monster-drop materials & packs — 19
 
-- [ ] **Animal Bone** · *Basic Material* · [wiki](https://dragonwilds.runescape.wiki/w/Animal_Bone) · — currently: **no source info**
-- [ ] **Feathers** · *Basic Material* · [wiki](https://dragonwilds.runescape.wiki/w/Feathers) · — currently: **no source info**
-- [ ] **Black Metal Scraps** · *Basic Material* · [wiki](https://dragonwilds.runescape.wiki/w/Black_Metal_Scraps) · — currently: **no source info**
-- [ ] **Black Salvage Pile** · *Basic Material* · [wiki](https://dragonwilds.runescape.wiki/w/Black_Salvage_Pile) · — currently: **no source info**
-- [ ] **Dire Wolf Hide** · *Basic Material* · [wiki](https://dragonwilds.runescape.wiki/w/Dire_Wolf_Hide) · — currently: **no source info**
-- [ ] **Undead Bone** · *Basic Material* · [wiki](https://dragonwilds.runescape.wiki/w/Undead_Bone) · — currently: **no source info**
-- [ ] **Warped Feathers** · *Basic Material* · [wiki](https://dragonwilds.runescape.wiki/w/Warped_Feathers) · — currently: **no source info**
-- [ ] **Amylase Crystal** · *Component* · [wiki](https://dragonwilds.runescape.wiki/w/Amylase_Crystal) · — currently: **no source info**
-- [ ] **Ascension Shard (Power Level 4)** · *Material* · — currently: **no source info**
-- [ ] **Ascension Shard (Power Level 5)** · *Material* · — currently: **no source info**
-- [ ] **Ascension Shard (Power Level 6)** · *Material* · — currently: **no source info**
-- [ ] **Ascension Shard (Power Level 7)** · *Material* · — currently: **no source info**
-- [ ] **Blue  Dragon Leather** · *Material* · — currently: **no source info**
-- [ ] **Blue Dragon Scale** · *Basic Material* · [wiki](https://dragonwilds.runescape.wiki/w/Blue_Dragon_Scale) · — currently: **no source info**
-- [ ] **Corpse Cotton** · *Basic Material* · [wiki](https://dragonwilds.runescape.wiki/w/Corpse_Cotton) · — currently: **no source info**
-- [ ] **Cursed Essence** · *Processed Material* · [wiki](https://dragonwilds.runescape.wiki/w/Cursed_Essence) · — currently: **no source info**
-- [ ] **Draconic Leather Scraps** · *Basic Material* · [wiki](https://dragonwilds.runescape.wiki/w/Draconic_Leather_Scraps) · — currently: **no source info**
-- [ ] **Dragonwolf Hide** · *Resource* · [wiki](https://dragonwilds.runescape.wiki/w/Dragonwolf_Hide) · — currently: **no source info**
-- [ ] **Garou Artifact** · *Basic Material* · [wiki](https://dragonwilds.runescape.wiki/w/Garou_Artifact) · — currently: **no source info**
-- [ ] **Hard Leather Scraps** · *Resource* · [wiki](https://dragonwilds.runescape.wiki/w/Hard_Leather_Scraps) · — currently: **no source info**
-- [ ] **Mystic Fibres** · *Basic Material* · [wiki](https://dragonwilds.runescape.wiki/w/Mystic_Fibres) · — currently: **no source info**
-- [ ] **Noxious Draconic Visage** · *Component* · [wiki](https://dragonwilds.runescape.wiki/w/Noxious_Draconic_Visage) · — currently: **no source info**
-- [ ] **Vile Ashes** · *Processed Material* · [wiki](https://dragonwilds.runescape.wiki/w/Vile_Ashes) · — currently: **no source info**
-- [ ] **Withered Heart** · *Basic Material* · [wiki](https://dragonwilds.runescape.wiki/w/Withered_Heart) · — currently: **no source info**
-- [ ] **Abyssal Ashes** · *Basic Material* · [wiki](https://dragonwilds.runescape.wiki/w/Abyssal_Ashes) · — currently: **no source info**
-- [ ] **Anima Vent** · *Resource Node* · [wiki](https://dragonwilds.runescape.wiki/w/Anima_Vent) · — currently: **no source info**
-- [ ] **Ascension Shard** · *Basic Material* · [wiki](https://dragonwilds.runescape.wiki/w/Ascension_Shard) · — currently: **no source info**
-- [ ] **Doric's Smithing Supplies** · *Resource* · [wiki](https://dragonwilds.runescape.wiki/w/Doric's_Smithing_Supplies) · — currently: **no source info**
-- [ ] **Doric's Superior Smithing Supplies** · *Resource* · [wiki](https://dragonwilds.runescape.wiki/w/Doric's_Superior_Smithing_Supplies) · — currently: **no source info**
-- [ ] **Emerald** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Emerald) · — currently: **no source info**
-- [ ] **Fuel Briquette** · *Resource* · [wiki](https://dragonwilds.runescape.wiki/w/Fuel_Briquette) · — currently: **no source info**
-- [ ] **Garou Chit** · *Basic Material* · [wiki](https://dragonwilds.runescape.wiki/w/Garou_Chit) · — currently: **no source info**
-- [ ] **Monstrous Fang** · *Basic Material* · [wiki](https://dragonwilds.runescape.wiki/w/Monstrous_Fang) · — currently: **no source info**
-- [ ] **Rune Essence Geyser** · *Resource Node* · [wiki](https://dragonwilds.runescape.wiki/w/Rune_Essence_Geyser) · — currently: **no source info**
-- [ ] **Sapphire Emblem** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Sapphire_Emblem) · — currently: **no source info**
-- [ ] **Soda Ash** · *Resource* · [wiki](https://dragonwilds.runescape.wiki/w/Soda_Ash) · — currently: **no source info**
-- [ ] **Unholy Water** · *Resource* · [wiki](https://dragonwilds.runescape.wiki/w/Unholy_Water) · — currently: **no source info**
+| Item | Wiki | How it's obtained | Brynmoor | Temple Woods | Bramblemead Valley | Whispering Swamp | Ghornfell | Fractured Plains | Bloodblight Swamp | Stormtouched Highlands | Fellhollow | Bleakfields Valley | Forgotten Temple | Dragon's Run | Emberwood | Witchwillow Range | Hope's Fall | Lake of Lost Souls | Silverthorn Keep | Coalridge Pass | Dowdun Reach | The Approach | The Courtyard | The Nexus | The Library | The Grand Hall | The Garrison | The Pastures | The Menagerie | The Bastion | Umbral Sands | Alcarrid Oasis | Dunes of Uzzer | Manafem Plains | The Burning Spire | Ashenfall (whole world) | Notes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| **Goblin Pack** | [wiki](https://dragonwilds.runescape.wiki/w/Goblin_Pack) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Kalphite Ichor** | [wiki](https://dragonwilds.runescape.wiki/w/Kalphite_Ichor) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Kalphite Shell Fragments** | [wiki](https://dragonwilds.runescape.wiki/w/Kalphite_Shell_Fragments) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Poison Ichor** | [wiki](https://dragonwilds.runescape.wiki/w/Poison_Ichor) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Zombie Pack** | [wiki](https://dragonwilds.runescape.wiki/w/Zombie_Pack) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Ash Pile** | [wiki](https://dragonwilds.runescape.wiki/w/Ash_Pile) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Curse Fragment (Despair)** | [wiki](https://dragonwilds.runescape.wiki/w/Curse_Fragment_(Despair)) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Curse Fragment (Grief)** | [wiki](https://dragonwilds.runescape.wiki/w/Curse_Fragment_(Grief)) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Fang Barbed Arrow** | [wiki](https://dragonwilds.runescape.wiki/w/Fang_Barbed_Arrow) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Fang Fire Arrow** | [wiki](https://dragonwilds.runescape.wiki/w/Fang_Fire_Arrow) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Food & Drink Salvage** | [wiki](https://dragonwilds.runescape.wiki/w/Food_%26_Drink_Salvage) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Garou Pack** | [wiki](https://dragonwilds.runescape.wiki/w/Garou_Pack) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Kot Pack** | [wiki](https://dragonwilds.runescape.wiki/w/Kot_Pack) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Moon Garou Pack** | [wiki](https://dragonwilds.runescape.wiki/w/Moon_Garou_Pack) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Skeleton Pack** | [wiki](https://dragonwilds.runescape.wiki/w/Skeleton_Pack) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Small Ash Pile** | [wiki](https://dragonwilds.runescape.wiki/w/Small_Ash_Pile) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Zamorakian Mage Pack** | [wiki](https://dragonwilds.runescape.wiki/w/Zamorakian_Mage_Pack) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Zamorakian Warrior Pack** | [wiki](https://dragonwilds.runescape.wiki/w/Zamorakian_Warrior_Pack) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Zogre Pack** | [wiki](https://dragonwilds.runescape.wiki/w/Zogre_Pack) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
 
-## Monster-drop materials & packs
+## Usables (potions, food, gear…) — 30
 
-- [ ] **Goblin Pack** · *Container* · [wiki](https://dragonwilds.runescape.wiki/w/Goblin_Pack) · — currently: **no source info**
-- [ ] **Kalphite Ichor** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Kalphite_Ichor) · — currently: **no source info**
-- [ ] **Kalphite Shell Fragments** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Kalphite_Shell_Fragments) · — currently: **no source info**
-- [ ] **Poison Ichor** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Poison_Ichor) · — currently: **no source info**
-- [ ] **Zombie Pack** · *Container* · [wiki](https://dragonwilds.runescape.wiki/w/Zombie_Pack) · — currently: **no source info**
-- [ ] **Ash Pile** · *Container* · [wiki](https://dragonwilds.runescape.wiki/w/Ash_Pile) · — currently: **no source info**
-- [ ] **Curse Fragment (Despair)** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Curse_Fragment_(Despair)) · — currently: **no source info**
-- [ ] **Curse Fragment (Grief)** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Curse_Fragment_(Grief)) · — currently: **no source info**
-- [ ] **Fang Barbed Arrow** · *Arrow* · [wiki](https://dragonwilds.runescape.wiki/w/Fang_Barbed_Arrow) · — currently: **no source info**
-- [ ] **Fang Fire Arrow** · *Arrow* · [wiki](https://dragonwilds.runescape.wiki/w/Fang_Fire_Arrow) · — currently: **no source info**
-- [ ] **Food & Drink Salvage** · *Container* · [wiki](https://dragonwilds.runescape.wiki/w/Food_%26_Drink_Salvage) · — currently: **no source info**
-- [ ] **Garou Pack** · *Container* · [wiki](https://dragonwilds.runescape.wiki/w/Garou_Pack) · — currently: **no source info**
-- [ ] **Kot Pack** · *Container* · [wiki](https://dragonwilds.runescape.wiki/w/Kot_Pack) · — currently: **no source info**
-- [ ] **Moon Garou Pack** · *Container* · [wiki](https://dragonwilds.runescape.wiki/w/Moon_Garou_Pack) · — currently: **no source info**
-- [ ] **Skeleton Pack** · *Container* · [wiki](https://dragonwilds.runescape.wiki/w/Skeleton_Pack) · — currently: **no source info**
-- [ ] **Small Ash Pile** · *Container* · [wiki](https://dragonwilds.runescape.wiki/w/Small_Ash_Pile) · — currently: **no source info**
-- [ ] **Zamorakian Mage Pack** · *Container* · [wiki](https://dragonwilds.runescape.wiki/w/Zamorakian_Mage_Pack) · — currently: **no source info**
-- [ ] **Zamorakian Warrior Pack** · *Container* · [wiki](https://dragonwilds.runescape.wiki/w/Zamorakian_Warrior_Pack) · — currently: **no source info**
-- [ ] **Zogre Pack** · *Container* · [wiki](https://dragonwilds.runescape.wiki/w/Zogre_Pack) · — currently: **no source info**
+| Item | Wiki | How it's obtained | Brynmoor | Temple Woods | Bramblemead Valley | Whispering Swamp | Ghornfell | Fractured Plains | Bloodblight Swamp | Stormtouched Highlands | Fellhollow | Bleakfields Valley | Forgotten Temple | Dragon's Run | Emberwood | Witchwillow Range | Hope's Fall | Lake of Lost Souls | Silverthorn Keep | Coalridge Pass | Dowdun Reach | The Approach | The Courtyard | The Nexus | The Library | The Grand Hall | The Garrison | The Pastures | The Menagerie | The Bastion | Umbral Sands | Alcarrid Oasis | Dunes of Uzzer | Manafem Plains | The Burning Spire | Ashenfall (whole world) | Notes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| **Cactus Water** | [wiki](https://dragonwilds.runescape.wiki/w/Cactus_Water) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Peach** | [wiki](https://dragonwilds.runescape.wiki/w/Peach) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Ancestral Robe Legs** | [wiki](https://dragonwilds.runescape.wiki/w/Ancestral_Robe_Legs) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Corroded Jewellery** | [wiki](https://dragonwilds.runescape.wiki/w/Corroded_Jewellery) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Dragon Crossbow** | [wiki](https://dragonwilds.runescape.wiki/w/Dragon_Crossbow) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Dragon Full Helm** | [wiki](https://dragonwilds.runescape.wiki/w/Dragon_Full_Helm) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Dragon Kiteshield** | [wiki](https://dragonwilds.runescape.wiki/w/Dragon_Kiteshield) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Dragon Med Helm** | [wiki](https://dragonwilds.runescape.wiki/w/Dragon_Med_Helm) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Dragon Platelegs** | [wiki](https://dragonwilds.runescape.wiki/w/Dragon_Platelegs) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Dragon Scimitar** | [wiki](https://dragonwilds.runescape.wiki/w/Dragon_Scimitar) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Dwellberry Glazed Roast Flank** | [wiki](https://dragonwilds.runescape.wiki/w/Dwellberry_Glazed_Roast_Flank) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Fortifying Crunchies** | [wiki](https://dragonwilds.runescape.wiki/w/Fortifying_Crunchies) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Fortifying Soup** | [wiki](https://dragonwilds.runescape.wiki/w/Fortifying_Soup) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Fortifying Stew** | [wiki](https://dragonwilds.runescape.wiki/w/Fortifying_Stew) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Healing Potion** | [wiki](https://dragonwilds.runescape.wiki/w/Healing_Potion) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Hearty Crunchies** | [wiki](https://dragonwilds.runescape.wiki/w/Hearty_Crunchies) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Hearty Fortifying Soup** | [wiki](https://dragonwilds.runescape.wiki/w/Hearty_Fortifying_Soup) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Hearty Soup** | [wiki](https://dragonwilds.runescape.wiki/w/Hearty_Soup) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Hearty Stew** | [wiki](https://dragonwilds.runescape.wiki/w/Hearty_Stew) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Kuldra's Wrath** | [wiki](https://dragonwilds.runescape.wiki/w/Kuldra's_Wrath) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Lesser Healing Potion** | [wiki](https://dragonwilds.runescape.wiki/w/Lesser_Healing_Potion) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Mixed Platter** | [wiki](https://dragonwilds.runescape.wiki/w/Mixed_Platter) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Poisoned Steel Arrow** | [wiki](https://dragonwilds.runescape.wiki/w/Poisoned_Steel_Arrow) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Redberry Glazed Roast Flank** | [wiki](https://dragonwilds.runescape.wiki/w/Redberry_Glazed_Roast_Flank) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Steel Barbed Arrow** | [wiki](https://dragonwilds.runescape.wiki/w/Steel_Barbed_Arrow) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Steel Greatword** | [wiki](https://dragonwilds.runescape.wiki/w/Steel_Greatword) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Weak Healing Potion** | [wiki](https://dragonwilds.runescape.wiki/w/Weak_Healing_Potion) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Wooden Arrow** | [wiki](https://dragonwilds.runescape.wiki/w/Wooden_Arrow) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Wooden Club** | [wiki](https://dragonwilds.runescape.wiki/w/Wooden_Club) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Woodsman Ring** | [wiki](https://dragonwilds.runescape.wiki/w/Woodsman_Ring) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
 
-## Usables (potions, food, gear…)
+## Lore & relics — 88
 
-- [ ] **Cactus Water** · *Drink* · [wiki](https://dragonwilds.runescape.wiki/w/Cactus_Water) · — currently: **no source info**
-- [ ] **Peach** · *Food* · [wiki](https://dragonwilds.runescape.wiki/w/Peach) · — currently: **no source info**
-- [ ] **Ancestral Robe Legs** · *Mage Armour* · [wiki](https://dragonwilds.runescape.wiki/w/Ancestral_Robe_Legs) · — currently: **no source info**
-- [ ] **Corroded Jewellery** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/Corroded_Jewellery) · — currently: **no source info**
-- [ ] **Dragon Crossbow** · *Ranged Weapon* · [wiki](https://dragonwilds.runescape.wiki/w/Dragon_Crossbow) · — currently: **no source info**
-- [ ] **Dragon Full Helm** · *Melee Armour* · [wiki](https://dragonwilds.runescape.wiki/w/Dragon_Full_Helm) · — currently: **no source info**
-- [ ] **Dragon Kiteshield** · *Shield* · [wiki](https://dragonwilds.runescape.wiki/w/Dragon_Kiteshield) · — currently: **no source info**
-- [ ] **Dragon Med Helm** · *Melee Armour* · [wiki](https://dragonwilds.runescape.wiki/w/Dragon_Med_Helm) · — currently: **no source info**
-- [ ] **Dragon Platelegs** · *Melee Armour* · [wiki](https://dragonwilds.runescape.wiki/w/Dragon_Platelegs) · — currently: **no source info**
-- [ ] **Dragon Scimitar** · *Melee Weapon* · [wiki](https://dragonwilds.runescape.wiki/w/Dragon_Scimitar) · — currently: **no source info**
-- [ ] **Dwellberry Glazed Roast Flank** · *Food* · [wiki](https://dragonwilds.runescape.wiki/w/Dwellberry_Glazed_Roast_Flank) · — currently: **no source info**
-- [ ] **Fortifying Crunchies** · *Food* · [wiki](https://dragonwilds.runescape.wiki/w/Fortifying_Crunchies) · — currently: **no source info**
-- [ ] **Fortifying Soup** · *Food* · [wiki](https://dragonwilds.runescape.wiki/w/Fortifying_Soup) · — currently: **no source info**
-- [ ] **Fortifying Stew** · *Food* · [wiki](https://dragonwilds.runescape.wiki/w/Fortifying_Stew) · — currently: **no source info**
-- [ ] **Healing Potion** · *Potion* · [wiki](https://dragonwilds.runescape.wiki/w/Healing_Potion) · — currently: **no source info**
-- [ ] **Hearty Crunchies** · *Food* · [wiki](https://dragonwilds.runescape.wiki/w/Hearty_Crunchies) · — currently: **no source info**
-- [ ] **Hearty Fortifying Soup** · *Food* · [wiki](https://dragonwilds.runescape.wiki/w/Hearty_Fortifying_Soup) · — currently: **no source info**
-- [ ] **Hearty Soup** · *Food* · [wiki](https://dragonwilds.runescape.wiki/w/Hearty_Soup) · — currently: **no source info**
-- [ ] **Hearty Stew** · *Food* · [wiki](https://dragonwilds.runescape.wiki/w/Hearty_Stew) · — currently: **no source info**
-- [ ] **Kuldra's Wrath** · *Magic Weapon* · [wiki](https://dragonwilds.runescape.wiki/w/Kuldra's_Wrath) · — currently: **no source info**
-- [ ] **Lesser Healing Potion** · *Potion* · [wiki](https://dragonwilds.runescape.wiki/w/Lesser_Healing_Potion) · — currently: **no source info**
-- [ ] **Mixed Platter** · *Food* · [wiki](https://dragonwilds.runescape.wiki/w/Mixed_Platter) · — currently: **no source info**
-- [ ] **Poisoned Steel Arrow** · *Arrow* · [wiki](https://dragonwilds.runescape.wiki/w/Poisoned_Steel_Arrow) · — currently: **no source info**
-- [ ] **Redberry Glazed Roast Flank** · *Food* · [wiki](https://dragonwilds.runescape.wiki/w/Redberry_Glazed_Roast_Flank) · — currently: **no source info**
-- [ ] **Steel Barbed Arrow** · *Arrow* · [wiki](https://dragonwilds.runescape.wiki/w/Steel_Barbed_Arrow) · — currently: **no source info**
-- [ ] **Steel Greatword** · *Melee Weapon* · [wiki](https://dragonwilds.runescape.wiki/w/Steel_Greatword) · — currently: **no source info**
-- [ ] **Weak Healing Potion** · *Potion* · [wiki](https://dragonwilds.runescape.wiki/w/Weak_Healing_Potion) · — currently: **no source info**
-- [ ] **Wooden Arrow** · *Arrow* · [wiki](https://dragonwilds.runescape.wiki/w/Wooden_Arrow) · — currently: **no source info**
-- [ ] **Wooden Club** · *Melee Weapon* · [wiki](https://dragonwilds.runescape.wiki/w/Wooden_Club) · — currently: **no source info**
-- [ ] **Woodsman Ring** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Woodsman_Ring) · — currently: **no source info**
+| Item | Wiki | How it's obtained | Brynmoor | Temple Woods | Bramblemead Valley | Whispering Swamp | Ghornfell | Fractured Plains | Bloodblight Swamp | Stormtouched Highlands | Fellhollow | Bleakfields Valley | Forgotten Temple | Dragon's Run | Emberwood | Witchwillow Range | Hope's Fall | Lake of Lost Souls | Silverthorn Keep | Coalridge Pass | Dowdun Reach | The Approach | The Courtyard | The Nexus | The Library | The Grand Hall | The Garrison | The Pastures | The Menagerie | The Bastion | Umbral Sands | Alcarrid Oasis | Dunes of Uzzer | Manafem Plains | The Burning Spire | Ashenfall (whole world) | Notes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| **A Cracked Bronze Vanity Mirror** | [wiki](https://dragonwilds.runescape.wiki/w/A_Cracked_Bronze_Vanity_Mirror) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **A Mysterious Crescent Carving** | [wiki](https://dragonwilds.runescape.wiki/w/A_Mysterious_Crescent_Carving) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **A Simple Broken Bow** | [wiki](https://dragonwilds.runescape.wiki/w/A_Simple_Broken_Bow) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **A String of Sinew** | [wiki](https://dragonwilds.runescape.wiki/w/A_String_of_Sinew) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **A Threadbare Grain Sack** | [wiki](https://dragonwilds.runescape.wiki/w/A_Threadbare_Grain_Sack) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **An Educational Blade** | [wiki](https://dragonwilds.runescape.wiki/w/An_Educational_Blade) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **An Ember Edged Remnant of Cloth** | [wiki](https://dragonwilds.runescape.wiki/w/An_Ember_Edged_Remnant_of_Cloth) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Arrowhead of Ancient Origin** | [wiki](https://dragonwilds.runescape.wiki/w/Arrowhead_of_Ancient_Origin) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Barbed Appendage** | [wiki](https://dragonwilds.runescape.wiki/w/Barbed_Appendage) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Battle-Scarred Black Metal** | [wiki](https://dragonwilds.runescape.wiki/w/Battle-Scarred_Black_Metal) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Bloodstained Black Visor** | [wiki](https://dragonwilds.runescape.wiki/w/Bloodstained_Black_Visor) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Bloodstained Hilt** | [wiki](https://dragonwilds.runescape.wiki/w/Bloodstained_Hilt) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Bludgeoning Obsidian Construct** | [wiki](https://dragonwilds.runescape.wiki/w/Bludgeoning_Obsidian_Construct) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Burnished Belt Buckle** | [wiki](https://dragonwilds.runescape.wiki/w/Burnished_Belt_Buckle) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Carved Bone Animal Lure** | [wiki](https://dragonwilds.runescape.wiki/w/Carved_Bone_Animal_Lure) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Chewed Blue Cloth** | [wiki](https://dragonwilds.runescape.wiki/w/Chewed_Blue_Cloth) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Chewed Green Cloth** | [wiki](https://dragonwilds.runescape.wiki/w/Chewed_Green_Cloth) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Chewed Pink Cloth** | [wiki](https://dragonwilds.runescape.wiki/w/Chewed_Pink_Cloth) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Chewed Red Cloth** | [wiki](https://dragonwilds.runescape.wiki/w/Chewed_Red_Cloth) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Chewed Yellow Cloth** | [wiki](https://dragonwilds.runescape.wiki/w/Chewed_Yellow_Cloth) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Chipped Obsidian Construct** | [wiki](https://dragonwilds.runescape.wiki/w/Chipped_Obsidian_Construct) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Cloying Damp Cowl** | [wiki](https://dragonwilds.runescape.wiki/w/Cloying_Damp_Cowl) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Commemorative Coin** | [wiki](https://dragonwilds.runescape.wiki/w/Commemorative_Coin) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Corroded White Visor** | [wiki](https://dragonwilds.runescape.wiki/w/Corroded_White_Visor) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Crucible Engram of Betrayal** | [wiki](https://dragonwilds.runescape.wiki/w/Crucible_Engram_of_Betrayal) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Crucible Engram of Helplessness** | [wiki](https://dragonwilds.runescape.wiki/w/Crucible_Engram_of_Helplessness) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Crucible Engram of Humiliation** | [wiki](https://dragonwilds.runescape.wiki/w/Crucible_Engram_of_Humiliation) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Crucible Engram of the Hounded** | [wiki](https://dragonwilds.runescape.wiki/w/Crucible_Engram_of_the_Hounded) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Crushed Obsidian Construct** | [wiki](https://dragonwilds.runescape.wiki/w/Crushed_Obsidian_Construct) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Crushed White Cuisse** | [wiki](https://dragonwilds.runescape.wiki/w/Crushed_White_Cuisse) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Curse Carrying Crown** | [wiki](https://dragonwilds.runescape.wiki/w/Curse_Carrying_Crown) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Dented White Pauldron** | [wiki](https://dragonwilds.runescape.wiki/w/Dented_White_Pauldron) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Dusty Black Pocket** | [wiki](https://dragonwilds.runescape.wiki/w/Dusty_Black_Pocket) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Elongated Obsidian Construct** | [wiki](https://dragonwilds.runescape.wiki/w/Elongated_Obsidian_Construct) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Fabric That Hums With You** | [wiki](https://dragonwilds.runescape.wiki/w/Fabric_That_Hums_With_You) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Grim Black Codpiece** | [wiki](https://dragonwilds.runescape.wiki/w/Grim_Black_Codpiece) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Hardy Weathered Shell** | [wiki](https://dragonwilds.runescape.wiki/w/Hardy_Weathered_Shell) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Inspiring Insignia** | [wiki](https://dragonwilds.runescape.wiki/w/Inspiring_Insignia) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Limp Black Lining** | [wiki](https://dragonwilds.runescape.wiki/w/Limp_Black_Lining) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Lunate Shawl** | [wiki](https://dragonwilds.runescape.wiki/w/Lunate_Shawl) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Lunular Wrappings** | [wiki](https://dragonwilds.runescape.wiki/w/Lunular_Wrappings) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Moth Eaten Black Cloth** | [wiki](https://dragonwilds.runescape.wiki/w/Moth_Eaten_Black_Cloth) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Moth Eaten Blue Cloth** | [wiki](https://dragonwilds.runescape.wiki/w/Moth_Eaten_Blue_Cloth) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Moth Eaten Green Cloth** | [wiki](https://dragonwilds.runescape.wiki/w/Moth_Eaten_Green_Cloth) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Moth Eaten Orange Cloth** | [wiki](https://dragonwilds.runescape.wiki/w/Moth_Eaten_Orange_Cloth) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Moth Eaten Pink Cloth** | [wiki](https://dragonwilds.runescape.wiki/w/Moth_Eaten_Pink_Cloth) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Moth Eaten Purple Cloth** | [wiki](https://dragonwilds.runescape.wiki/w/Moth_Eaten_Purple_Cloth) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Moth Eaten Red Cloth** | [wiki](https://dragonwilds.runescape.wiki/w/Moth_Eaten_Red_Cloth) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Moth Eaten White Cloth** | [wiki](https://dragonwilds.runescape.wiki/w/Moth_Eaten_White_Cloth) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Moth Eaten Yellow Cloth** | [wiki](https://dragonwilds.runescape.wiki/w/Moth_Eaten_Yellow_Cloth) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Ornate Golden Scarab** | [wiki](https://dragonwilds.runescape.wiki/w/Ornate_Golden_Scarab) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Plate of Pure Obsidian** | [wiki](https://dragonwilds.runescape.wiki/w/Plate_of_Pure_Obsidian) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Remnants of a Rotting Robe** | [wiki](https://dragonwilds.runescape.wiki/w/Remnants_of_a_Rotting_Robe) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Remnants of a Shattered Skull** | [wiki](https://dragonwilds.runescape.wiki/w/Remnants_of_a_Shattered_Skull) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Selenic Veil** | [wiki](https://dragonwilds.runescape.wiki/w/Selenic_Veil) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Serrated Claw** | [wiki](https://dragonwilds.runescape.wiki/w/Serrated_Claw) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Shard of Black Pauldron** | [wiki](https://dragonwilds.runescape.wiki/w/Shard_of_Black_Pauldron) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Shard of Smoky Glass** | [wiki](https://dragonwilds.runescape.wiki/w/Shard_of_Smoky_Glass) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Shattered Black Blade (Umbral Sands)** | [wiki](https://dragonwilds.runescape.wiki/w/Shattered_Black_Blade_(Umbral_Sands)) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Shred of Sunbleached Weave** | [wiki](https://dragonwilds.runescape.wiki/w/Shred_of_Sunbleached_Weave) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Sigil of a Phoenix** | [wiki](https://dragonwilds.runescape.wiki/w/Sigil_of_a_Phoenix) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Simply Splendid Feather** | [wiki](https://dragonwilds.runescape.wiki/w/Simply_Splendid_Feather) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Slightly Chaffing Chestguard** | [wiki](https://dragonwilds.runescape.wiki/w/Slightly_Chaffing_Chestguard) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Sodden Black Leather** | [wiki](https://dragonwilds.runescape.wiki/w/Sodden_Black_Leather) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Softly Vibrating Orb** | [wiki](https://dragonwilds.runescape.wiki/w/Softly_Vibrating_Orb) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Soiled Blue Cloth** | [wiki](https://dragonwilds.runescape.wiki/w/Soiled_Blue_Cloth) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Soiled Green Cloth** | [wiki](https://dragonwilds.runescape.wiki/w/Soiled_Green_Cloth) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Soiled Pink Cloth** | [wiki](https://dragonwilds.runescape.wiki/w/Soiled_Pink_Cloth) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Soiled Red Cloth** | [wiki](https://dragonwilds.runescape.wiki/w/Soiled_Red_Cloth) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Soiled Yellow Cloth** | [wiki](https://dragonwilds.runescape.wiki/w/Soiled_Yellow_Cloth) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Sun-Bleached Head Wrap** | [wiki](https://dragonwilds.runescape.wiki/w/Sun-Bleached_Head_Wrap) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Sun-Bleached Leggings** | [wiki](https://dragonwilds.runescape.wiki/w/Sun-Bleached_Leggings) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Sun-Bleached Vest** | [wiki](https://dragonwilds.runescape.wiki/w/Sun-Bleached_Vest) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Suspiciously Light Tattered Boots** | [wiki](https://dragonwilds.runescape.wiki/w/Suspiciously_Light_Tattered_Boots) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Tastefully Torn Tights** | [wiki](https://dragonwilds.runescape.wiki/w/Tastefully_Torn_Tights) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Tome of Agility - Vol 1** | [wiki](https://dragonwilds.runescape.wiki/w/Tome_of_Agility_-_Vol_1) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Tome of Agility - Vol 2** | [wiki](https://dragonwilds.runescape.wiki/w/Tome_of_Agility_-_Vol_2) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Tome of the Dragon Slayer** | [wiki](https://dragonwilds.runescape.wiki/w/Tome_of_the_Dragon_Slayer) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Tome of the Titan** | [wiki](https://dragonwilds.runescape.wiki/w/Tome_of_the_Titan) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Tome of the Undying** | [wiki](https://dragonwilds.runescape.wiki/w/Tome_of_the_Undying) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Tome of Volcano** | [wiki](https://dragonwilds.runescape.wiki/w/Tome_of_Volcano) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Twtiching Antenna** | [wiki](https://dragonwilds.runescape.wiki/w/Twtiching_Antenna) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **VESTIGE: A Brutal Bladehead** | — | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **VESTIGE: A Corroded Serrated Blade** | — | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **VESTIGE: A Simple Broken Bow** | — | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Weighted Training Band** | [wiki](https://dragonwilds.runescape.wiki/w/Weighted_Training_Band) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Whispering Elbow Pad** | [wiki](https://dragonwilds.runescape.wiki/w/Whispering_Elbow_Pad) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Wizard's Kneecap** | [wiki](https://dragonwilds.runescape.wiki/w/Wizard's_Kneecap) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
 
-## Lore & relics
+## Cosmetics, capes & mounts — 66
 
-- [ ] **A Cracked Bronze Vanity Mirror** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/A_Cracked_Bronze_Vanity_Mirror) · — currently: **no source info**
-- [ ] **A Mysterious Crescent Carving** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/A_Mysterious_Crescent_Carving) · — currently: **no source info**
-- [ ] **A Simple Broken Bow** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/A_Simple_Broken_Bow) · — currently: **no source info**
-- [ ] **A String of Sinew** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/A_String_of_Sinew) · — currently: **no source info**
-- [ ] **A Threadbare Grain Sack** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/A_Threadbare_Grain_Sack) · — currently: **no source info**
-- [ ] **An Educational Blade** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/An_Educational_Blade) · — currently: **no source info**
-- [ ] **An Ember Edged Remnant of Cloth** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/An_Ember_Edged_Remnant_of_Cloth) · — currently: **no source info**
-- [ ] **Arrowhead of Ancient Origin** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Arrowhead_of_Ancient_Origin) · — currently: **no source info**
-- [ ] **Barbed Appendage** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Barbed_Appendage) · — currently: **no source info**
-- [ ] **Battle-Scarred Black Metal** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Battle-Scarred_Black_Metal) · — currently: **no source info**
-- [ ] **Bloodstained Black Visor** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Bloodstained_Black_Visor) · — currently: **no source info**
-- [ ] **Bloodstained Hilt** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Bloodstained_Hilt) · — currently: **no source info**
-- [ ] **Bludgeoning Obsidian Construct** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Bludgeoning_Obsidian_Construct) · — currently: **no source info**
-- [ ] **Burnished Belt Buckle** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Burnished_Belt_Buckle) · — currently: **no source info**
-- [ ] **Carved Bone Animal Lure** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Carved_Bone_Animal_Lure) · — currently: **no source info**
-- [ ] **Chewed Blue Cloth** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Chewed_Blue_Cloth) · — currently: **no source info**
-- [ ] **Chewed Green Cloth** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Chewed_Green_Cloth) · — currently: **no source info**
-- [ ] **Chewed Pink Cloth** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Chewed_Pink_Cloth) · — currently: **no source info**
-- [ ] **Chewed Red Cloth** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Chewed_Red_Cloth) · — currently: **no source info**
-- [ ] **Chewed Yellow Cloth** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Chewed_Yellow_Cloth) · — currently: **no source info**
-- [ ] **Chipped Obsidian Construct** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Chipped_Obsidian_Construct) · — currently: **no source info**
-- [ ] **Cloying Damp Cowl** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Cloying_Damp_Cowl) · — currently: **no source info**
-- [ ] **Commemorative Coin** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Commemorative_Coin) · — currently: **no source info**
-- [ ] **Corroded White Visor** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Corroded_White_Visor) · — currently: **no source info**
-- [ ] **Crucible Engram of Betrayal** · *Basic Material* · [wiki](https://dragonwilds.runescape.wiki/w/Crucible_Engram_of_Betrayal) · — currently: **no source info**
-- [ ] **Crucible Engram of Helplessness** · *Basic Material* · [wiki](https://dragonwilds.runescape.wiki/w/Crucible_Engram_of_Helplessness) · — currently: **no source info**
-- [ ] **Crucible Engram of Humiliation** · *Basic Material* · [wiki](https://dragonwilds.runescape.wiki/w/Crucible_Engram_of_Humiliation) · — currently: **no source info**
-- [ ] **Crucible Engram of the Hounded** · *Basic Material* · [wiki](https://dragonwilds.runescape.wiki/w/Crucible_Engram_of_the_Hounded) · — currently: **no source info**
-- [ ] **Crushed Obsidian Construct** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Crushed_Obsidian_Construct) · — currently: **no source info**
-- [ ] **Crushed White Cuisse** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Crushed_White_Cuisse) · — currently: **no source info**
-- [ ] **Curse Carrying Crown** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Curse_Carrying_Crown) · — currently: **no source info**
-- [ ] **Dented White Pauldron** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Dented_White_Pauldron) · — currently: **no source info**
-- [ ] **Dusty Black Pocket** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Dusty_Black_Pocket) · — currently: **no source info**
-- [ ] **Elongated Obsidian Construct** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Elongated_Obsidian_Construct) · — currently: **no source info**
-- [ ] **Fabric That Hums With You** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Fabric_That_Hums_With_You) · — currently: **no source info**
-- [ ] **Grim Black Codpiece** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Grim_Black_Codpiece) · — currently: **no source info**
-- [ ] **Hardy Weathered Shell** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Hardy_Weathered_Shell) · — currently: **no source info**
-- [ ] **Inspiring Insignia** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Inspiring_Insignia) · — currently: **no source info**
-- [ ] **Limp Black Lining** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Limp_Black_Lining) · — currently: **no source info**
-- [ ] **Lunate Shawl** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Lunate_Shawl) · — currently: **no source info**
-- [ ] **Lunular Wrappings** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Lunular_Wrappings) · — currently: **no source info**
-- [ ] **Moth Eaten Black Cloth** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Moth_Eaten_Black_Cloth) · — currently: **no source info**
-- [ ] **Moth Eaten Blue Cloth** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Moth_Eaten_Blue_Cloth) · — currently: **no source info**
-- [ ] **Moth Eaten Green Cloth** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Moth_Eaten_Green_Cloth) · — currently: **no source info**
-- [ ] **Moth Eaten Orange Cloth** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Moth_Eaten_Orange_Cloth) · — currently: **no source info**
-- [ ] **Moth Eaten Pink Cloth** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Moth_Eaten_Pink_Cloth) · — currently: **no source info**
-- [ ] **Moth Eaten Purple Cloth** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Moth_Eaten_Purple_Cloth) · — currently: **no source info**
-- [ ] **Moth Eaten Red Cloth** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Moth_Eaten_Red_Cloth) · — currently: **no source info**
-- [ ] **Moth Eaten White Cloth** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Moth_Eaten_White_Cloth) · — currently: **no source info**
-- [ ] **Moth Eaten Yellow Cloth** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Moth_Eaten_Yellow_Cloth) · — currently: **no source info**
-- [ ] **Ornate Golden Scarab** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Ornate_Golden_Scarab) · — currently: **no source info**
-- [ ] **Plate of Pure Obsidian** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Plate_of_Pure_Obsidian) · — currently: **no source info**
-- [ ] **Remnants of a Rotting Robe** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Remnants_of_a_Rotting_Robe) · — currently: **no source info**
-- [ ] **Remnants of a Shattered Skull** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Remnants_of_a_Shattered_Skull) · — currently: **no source info**
-- [ ] **Selenic Veil** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Selenic_Veil) · — currently: **no source info**
-- [ ] **Serrated Claw** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Serrated_Claw) · — currently: **no source info**
-- [ ] **Shard of Black Pauldron** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Shard_of_Black_Pauldron) · — currently: **no source info**
-- [ ] **Shard of Smoky Glass** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Shard_of_Smoky_Glass) · — currently: **no source info**
-- [ ] **Shattered Black Blade (Umbral Sands)** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Shattered_Black_Blade_(Umbral_Sands)) · — currently: **no source info**
-- [ ] **Shred of Sunbleached Weave** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Shred_of_Sunbleached_Weave) · — currently: **no source info**
-- [ ] **Sigil of a Phoenix** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Sigil_of_a_Phoenix) · — currently: **no source info**
-- [ ] **Simply Splendid Feather** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Simply_Splendid_Feather) · — currently: **no source info**
-- [ ] **Slightly Chaffing Chestguard** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Slightly_Chaffing_Chestguard) · — currently: **no source info**
-- [ ] **Sodden Black Leather** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Sodden_Black_Leather) · — currently: **no source info**
-- [ ] **Softly Vibrating Orb** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Softly_Vibrating_Orb) · — currently: **no source info**
-- [ ] **Soiled Blue Cloth** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Soiled_Blue_Cloth) · — currently: **no source info**
-- [ ] **Soiled Green Cloth** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Soiled_Green_Cloth) · — currently: **no source info**
-- [ ] **Soiled Pink Cloth** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Soiled_Pink_Cloth) · — currently: **no source info**
-- [ ] **Soiled Red Cloth** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Soiled_Red_Cloth) · — currently: **no source info**
-- [ ] **Soiled Yellow Cloth** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Soiled_Yellow_Cloth) · — currently: **no source info**
-- [ ] **Sun-Bleached Head Wrap** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Sun-Bleached_Head_Wrap) · — currently: **no source info**
-- [ ] **Sun-Bleached Leggings** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Sun-Bleached_Leggings) · — currently: **no source info**
-- [ ] **Sun-Bleached Vest** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Sun-Bleached_Vest) · — currently: **no source info**
-- [ ] **Suspiciously Light Tattered Boots** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Suspiciously_Light_Tattered_Boots) · — currently: **no source info**
-- [ ] **Tastefully Torn Tights** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Tastefully_Torn_Tights) · — currently: **no source info**
-- [ ] **Tome of Agility - Vol 1** · *Resource* · [wiki](https://dragonwilds.runescape.wiki/w/Tome_of_Agility_-_Vol_1) · — currently: **no source info**
-- [ ] **Tome of Agility - Vol 2** · *Resource* · [wiki](https://dragonwilds.runescape.wiki/w/Tome_of_Agility_-_Vol_2) · — currently: **no source info**
-- [ ] **Tome of the Dragon Slayer** · *Resource* · [wiki](https://dragonwilds.runescape.wiki/w/Tome_of_the_Dragon_Slayer) · — currently: **no source info**
-- [ ] **Tome of the Titan** · *Consumable Tome* · [wiki](https://dragonwilds.runescape.wiki/w/Tome_of_the_Titan) · — currently: **no source info**
-- [ ] **Tome of the Undying** · *Resource* · [wiki](https://dragonwilds.runescape.wiki/w/Tome_of_the_Undying) · — currently: **no source info**
-- [ ] **Tome of Volcano** · *Tome* · [wiki](https://dragonwilds.runescape.wiki/w/Tome_of_Volcano) · — currently: **no source info**
-- [ ] **Twtiching Antenna** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Twtiching_Antenna) · — currently: **no source info**
-- [ ] **VESTIGE: A Brutal Bladehead** · *Reference* · — currently: **no source info**
-- [ ] **VESTIGE: A Corroded Serrated Blade** · *Reference* · — currently: **no source info**
-- [ ] **VESTIGE: A Simple Broken Bow** · *Reference* · — currently: **no source info**
-- [ ] **Weighted Training Band** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Weighted_Training_Band) · — currently: **no source info**
-- [ ] **Whispering Elbow Pad** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Whispering_Elbow_Pad) · — currently: **no source info**
-- [ ] **Wizard's Kneecap** · *Vestige* · [wiki](https://dragonwilds.runescape.wiki/w/Wizard's_Kneecap) · — currently: **no source info**
+| Item | Wiki | How it's obtained | Brynmoor | Temple Woods | Bramblemead Valley | Whispering Swamp | Ghornfell | Fractured Plains | Bloodblight Swamp | Stormtouched Highlands | Fellhollow | Bleakfields Valley | Forgotten Temple | Dragon's Run | Emberwood | Witchwillow Range | Hope's Fall | Lake of Lost Souls | Silverthorn Keep | Coalridge Pass | Dowdun Reach | The Approach | The Courtyard | The Nexus | The Library | The Grand Hall | The Garrison | The Pastures | The Menagerie | The Bastion | Umbral Sands | Alcarrid Oasis | Dunes of Uzzer | Manafem Plains | The Burning Spire | Ashenfall (whole world) | Notes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| **Agility Cape** | [wiki](https://dragonwilds.runescape.wiki/w/Agility_Cape) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Agility Cape (Trimmed)** | [wiki](https://dragonwilds.runescape.wiki/w/Agility_Cape_(Trimmed)) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Artisan Cape** | [wiki](https://dragonwilds.runescape.wiki/w/Artisan_Cape) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Artisan Cape (Trimmed)** | [wiki](https://dragonwilds.runescape.wiki/w/Artisan_Cape_(Trimmed)) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Attack Cape** | [wiki](https://dragonwilds.runescape.wiki/w/Attack_Cape) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Attack Cape (Trimmed)** | [wiki](https://dragonwilds.runescape.wiki/w/Attack_Cape_(Trimmed)) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Black Adventurer's Cape** | [wiki](https://dragonwilds.runescape.wiki/w/Black_Adventurer's_Cape) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Blue Adventurer's Cape** | [wiki](https://dragonwilds.runescape.wiki/w/Blue_Adventurer's_Cape) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Blue Dyed Cape** | [wiki](https://dragonwilds.runescape.wiki/w/Blue_Dyed_Cape) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Blue Hex Cape** | [wiki](https://dragonwilds.runescape.wiki/w/Blue_Hex_Cape) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Community Cape** | [wiki](https://dragonwilds.runescape.wiki/w/Community_Cape) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Construction Cape** | [wiki](https://dragonwilds.runescape.wiki/w/Construction_Cape) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Construction Cape (Trimmed)** | [wiki](https://dragonwilds.runescape.wiki/w/Construction_Cape_(Trimmed)) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Cooking Cape** | [wiki](https://dragonwilds.runescape.wiki/w/Cooking_Cape) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Cooking Cape (Trimmed)** | [wiki](https://dragonwilds.runescape.wiki/w/Cooking_Cape_(Trimmed)) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Dragonbane Cape** | [wiki](https://dragonwilds.runescape.wiki/w/Dragonbane_Cape) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Dragonslayer's Cape** | [wiki](https://dragonwilds.runescape.wiki/w/Dragonslayer's_Cape) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Garou Highborn's Cloak** | [wiki](https://dragonwilds.runescape.wiki/w/Garou_Highborn's_Cloak) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Gilded Paladin Cape** | [wiki](https://dragonwilds.runescape.wiki/w/Gilded_Paladin_Cape) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Goblin War Banner** | [wiki](https://dragonwilds.runescape.wiki/w/Goblin_War_Banner) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Goblin War Banner Cape** | [wiki](https://dragonwilds.runescape.wiki/w/Goblin_War_Banner_Cape) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Green Adventurer's Cape** | [wiki](https://dragonwilds.runescape.wiki/w/Green_Adventurer's_Cape) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Green Dyad Cape** | [wiki](https://dragonwilds.runescape.wiki/w/Green_Dyad_Cape) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Green Hex Cape** | [wiki](https://dragonwilds.runescape.wiki/w/Green_Hex_Cape) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Magic Cape** | [wiki](https://dragonwilds.runescape.wiki/w/Magic_Cape) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Magic Cape (Trimmed)** | [wiki](https://dragonwilds.runescape.wiki/w/Magic_Cape_(Trimmed)) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **MOUNT: Astralbeak Warbler** | [wiki](https://dragonwilds.runescape.wiki/w/MOUNT%3A_Astralbeak_Warbler) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **MOUNT: Coastal Sunbeak** | [wiki](https://dragonwilds.runescape.wiki/w/MOUNT%3A_Coastal_Sunbeak) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **MOUNT: Infernal Blightbeak** | [wiki](https://dragonwilds.runescape.wiki/w/MOUNT%3A_Infernal_Blightbeak) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **MOUNT: Magic Carpet** | [wiki](https://dragonwilds.runescape.wiki/w/MOUNT%3A_Magic_Carpet) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **MOUNT: Manafem Midnight** | [wiki](https://dragonwilds.runescape.wiki/w/MOUNT%3A_Manafem_Midnight) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **MOUNT: Mossbeak Hunter** | [wiki](https://dragonwilds.runescape.wiki/w/MOUNT%3A_Mossbeak_Hunter) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **MOUNT: Oakfeather Raptor** | [wiki](https://dragonwilds.runescape.wiki/w/MOUNT%3A_Oakfeather_Raptor) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **MOUNT: Scorchweave Rug** | [wiki](https://dragonwilds.runescape.wiki/w/MOUNT%3A_Scorchweave_Rug) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **MOUNT: Uzzerian Umber** | [wiki](https://dragonwilds.runescape.wiki/w/MOUNT%3A_Uzzerian_Umber) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **MOUNT: Zamorakian Pledgesaddle** | [wiki](https://dragonwilds.runescape.wiki/w/MOUNT%3A_Zamorakian_Pledgesaddle) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Obsidian Cape** | [wiki](https://dragonwilds.runescape.wiki/w/Obsidian_Cape) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Orange Adventurer's Cape** | [wiki](https://dragonwilds.runescape.wiki/w/Orange_Adventurer's_Cape) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Pink Adventurer's Cape** | [wiki](https://dragonwilds.runescape.wiki/w/Pink_Adventurer's_Cape) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Pink Dyad Cape** | [wiki](https://dragonwilds.runescape.wiki/w/Pink_Dyad_Cape) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Pink Hex Cape** | [wiki](https://dragonwilds.runescape.wiki/w/Pink_Hex_Cape) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Pioneer's Cape** | [wiki](https://dragonwilds.runescape.wiki/w/Pioneer's_Cape) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Pioneer's Scarf** | [wiki](https://dragonwilds.runescape.wiki/w/Pioneer's_Scarf) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Prayer Cape** | [wiki](https://dragonwilds.runescape.wiki/w/Prayer_Cape) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Purple Adventurer's Cape** | [wiki](https://dragonwilds.runescape.wiki/w/Purple_Adventurer's_Cape) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Ranged Cape** | [wiki](https://dragonwilds.runescape.wiki/w/Ranged_Cape) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Ranged Cape (Trimmed)** | [wiki](https://dragonwilds.runescape.wiki/w/Ranged_Cape_(Trimmed)) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Red Adventurer's Cape** | [wiki](https://dragonwilds.runescape.wiki/w/Red_Adventurer's_Cape) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Red Desert Cape** | [wiki](https://dragonwilds.runescape.wiki/w/Red_Desert_Cape) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Red Dyad Cape** | [wiki](https://dragonwilds.runescape.wiki/w/Red_Dyad_Cape) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Red Hex Cape** | [wiki](https://dragonwilds.runescape.wiki/w/Red_Hex_Cape) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Runecrafting Cape** | [wiki](https://dragonwilds.runescape.wiki/w/Runecrafting_Cape) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Runecrafting Cape (Trimmed)** | [wiki](https://dragonwilds.runescape.wiki/w/Runecrafting_Cape_(Trimmed)) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Saradominist Cloak** | [wiki](https://dragonwilds.runescape.wiki/w/Saradominist_Cloak) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Shadowscale Cape** | [wiki](https://dragonwilds.runescape.wiki/w/Shadowscale_Cape) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Spectral Chinchompa Cape** | [wiki](https://dragonwilds.runescape.wiki/w/Spectral_Chinchompa_Cape) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Stormtouched Cape** | [wiki](https://dragonwilds.runescape.wiki/w/Stormtouched_Cape) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Tattered Cape** | [wiki](https://dragonwilds.runescape.wiki/w/Tattered_Cape) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Umbral Sands Cape** | [wiki](https://dragonwilds.runescape.wiki/w/Umbral_Sands_Cape) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **White Adventurer's Cape** | [wiki](https://dragonwilds.runescape.wiki/w/White_Adventurer's_Cape) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Woodcutting Cape** | [wiki](https://dragonwilds.runescape.wiki/w/Woodcutting_Cape) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Woodcutting Cape (Trimmed)** | [wiki](https://dragonwilds.runescape.wiki/w/Woodcutting_Cape_(Trimmed)) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Yellow Adventurer's Cape** | [wiki](https://dragonwilds.runescape.wiki/w/Yellow_Adventurer's_Cape) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Yellow Dyad Cape** | [wiki](https://dragonwilds.runescape.wiki/w/Yellow_Dyad_Cape) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Yellow Hex Cape** | [wiki](https://dragonwilds.runescape.wiki/w/Yellow_Hex_Cape) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Zamorak Cape** | [wiki](https://dragonwilds.runescape.wiki/w/Zamorak_Cape) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
 
-## Cosmetics, capes & mounts
+## Plans & blueprints — 108
 
-- [ ] **Agility Cape** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Agility_Cape) · — currently: **no source info**
-- [ ] **Agility Cape (Trimmed)** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Agility_Cape_(Trimmed)) · — currently: **no source info**
-- [ ] **Artisan Cape** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Artisan_Cape) · — currently: **no source info**
-- [ ] **Artisan Cape (Trimmed)** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Artisan_Cape_(Trimmed)) · — currently: **no source info**
-- [ ] **Attack Cape** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Attack_Cape) · — currently: **no source info**
-- [ ] **Attack Cape (Trimmed)** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Attack_Cape_(Trimmed)) · — currently: **no source info**
-- [ ] **Black Adventurer's Cape** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Black_Adventurer's_Cape) · — currently: **no source info**
-- [ ] **Blue Adventurer's Cape** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Blue_Adventurer's_Cape) · — currently: **no source info**
-- [ ] **Blue Dyed Cape** · *Armour* · [wiki](https://dragonwilds.runescape.wiki/w/Blue_Dyed_Cape) · — currently: **no source info**
-- [ ] **Blue Hex Cape** · *Armour* · [wiki](https://dragonwilds.runescape.wiki/w/Blue_Hex_Cape) · — currently: **no source info**
-- [ ] **Community Cape** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Community_Cape) · — currently: **no source info**
-- [ ] **Construction Cape** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Construction_Cape) · — currently: **no source info**
-- [ ] **Construction Cape (Trimmed)** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Construction_Cape_(Trimmed)) · — currently: **no source info**
-- [ ] **Cooking Cape** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Cooking_Cape) · — currently: **no source info**
-- [ ] **Cooking Cape (Trimmed)** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Cooking_Cape_(Trimmed)) · — currently: **no source info**
-- [ ] **Dragonbane Cape** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Dragonbane_Cape) · — currently: **no source info**
-- [ ] **Dragonslayer's Cape** · *Cape* · [wiki](https://dragonwilds.runescape.wiki/w/Dragonslayer's_Cape) · — currently: **no source info**
-- [ ] **Garou Highborn's Cloak** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Garou_Highborn's_Cloak) · — currently: **no source info**
-- [ ] **Gilded Paladin Cape** · *Cape* · [wiki](https://dragonwilds.runescape.wiki/w/Gilded_Paladin_Cape) · — currently: **no source info**
-- [ ] **Goblin War Banner** · *other* · [wiki](https://dragonwilds.runescape.wiki/w/Goblin_War_Banner) · — currently: **no source info**
-- [ ] **Goblin War Banner Cape** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Goblin_War_Banner_Cape) · — currently: **no source info**
-- [ ] **Green Adventurer's Cape** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Green_Adventurer's_Cape) · — currently: **no source info**
-- [ ] **Green Dyad Cape** · *Armour* · [wiki](https://dragonwilds.runescape.wiki/w/Green_Dyad_Cape) · — currently: **no source info**
-- [ ] **Green Hex Cape** · *Armour* · [wiki](https://dragonwilds.runescape.wiki/w/Green_Hex_Cape) · — currently: **no source info**
-- [ ] **Magic Cape** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Magic_Cape) · — currently: **no source info**
-- [ ] **Magic Cape (Trimmed)** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Magic_Cape_(Trimmed)) · — currently: **no source info**
-- [ ] **MOUNT: Astralbeak Warbler** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/MOUNT%3A_Astralbeak_Warbler) · — currently: **no source info**
-- [ ] **MOUNT: Coastal Sunbeak** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/MOUNT%3A_Coastal_Sunbeak) · — currently: **no source info**
-- [ ] **MOUNT: Infernal Blightbeak** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/MOUNT%3A_Infernal_Blightbeak) · — currently: **no source info**
-- [ ] **MOUNT: Magic Carpet** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/MOUNT%3A_Magic_Carpet) · — currently: **no source info**
-- [ ] **MOUNT: Manafem Midnight** · *Mount* · [wiki](https://dragonwilds.runescape.wiki/w/MOUNT%3A_Manafem_Midnight) · — currently: **no source info**
-- [ ] **MOUNT: Mossbeak Hunter** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/MOUNT%3A_Mossbeak_Hunter) · — currently: **no source info**
-- [ ] **MOUNT: Oakfeather Raptor** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/MOUNT%3A_Oakfeather_Raptor) · — currently: **no source info**
-- [ ] **MOUNT: Scorchweave Rug** · *Mount* · [wiki](https://dragonwilds.runescape.wiki/w/MOUNT%3A_Scorchweave_Rug) · — currently: **no source info**
-- [ ] **MOUNT: Uzzerian Umber** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/MOUNT%3A_Uzzerian_Umber) · — currently: **no source info**
-- [ ] **MOUNT: Zamorakian Pledgesaddle** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/MOUNT%3A_Zamorakian_Pledgesaddle) · — currently: **no source info**
-- [ ] **Obsidian Cape** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Obsidian_Cape) · — currently: **no source info**
-- [ ] **Orange Adventurer's Cape** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Orange_Adventurer's_Cape) · — currently: **no source info**
-- [ ] **Pink Adventurer's Cape** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Pink_Adventurer's_Cape) · — currently: **no source info**
-- [ ] **Pink Dyad Cape** · *Armour* · [wiki](https://dragonwilds.runescape.wiki/w/Pink_Dyad_Cape) · — currently: **no source info**
-- [ ] **Pink Hex Cape** · *Armour* · [wiki](https://dragonwilds.runescape.wiki/w/Pink_Hex_Cape) · — currently: **no source info**
-- [ ] **Pioneer's Cape** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Pioneer's_Cape) · — currently: **no source info**
-- [ ] **Pioneer's Scarf** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Pioneer's_Scarf) · — currently: **no source info**
-- [ ] **Prayer Cape** · *other* · [wiki](https://dragonwilds.runescape.wiki/w/Prayer_Cape) · — currently: **no source info**
-- [ ] **Purple Adventurer's Cape** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Purple_Adventurer's_Cape) · — currently: **no source info**
-- [ ] **Ranged Cape** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Ranged_Cape) · — currently: **no source info**
-- [ ] **Ranged Cape (Trimmed)** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Ranged_Cape_(Trimmed)) · — currently: **no source info**
-- [ ] **Red Adventurer's Cape** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Red_Adventurer's_Cape) · — currently: **no source info**
-- [ ] **Red Desert Cape** · *Armour* · [wiki](https://dragonwilds.runescape.wiki/w/Red_Desert_Cape) · — currently: **no source info**
-- [ ] **Red Dyad Cape** · *Armour* · [wiki](https://dragonwilds.runescape.wiki/w/Red_Dyad_Cape) · — currently: **no source info**
-- [ ] **Red Hex Cape** · *Armour* · [wiki](https://dragonwilds.runescape.wiki/w/Red_Hex_Cape) · — currently: **no source info**
-- [ ] **Runecrafting Cape** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Runecrafting_Cape) · — currently: **no source info**
-- [ ] **Runecrafting Cape (Trimmed)** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Runecrafting_Cape_(Trimmed)) · — currently: **no source info**
-- [ ] **Saradominist Cloak** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Saradominist_Cloak) · — currently: **no source info**
-- [ ] **Shadowscale Cape** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Shadowscale_Cape) · — currently: **no source info**
-- [ ] **Spectral Chinchompa Cape** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Spectral_Chinchompa_Cape) · — currently: **no source info**
-- [ ] **Stormtouched Cape** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Stormtouched_Cape) · — currently: **no source info**
-- [ ] **Tattered Cape** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Tattered_Cape) · — currently: **no source info**
-- [ ] **Umbral Sands Cape** · *Armour* · [wiki](https://dragonwilds.runescape.wiki/w/Umbral_Sands_Cape) · — currently: **no source info**
-- [ ] **White Adventurer's Cape** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/White_Adventurer's_Cape) · — currently: **no source info**
-- [ ] **Woodcutting Cape** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Woodcutting_Cape) · — currently: **no source info**
-- [ ] **Woodcutting Cape (Trimmed)** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Woodcutting_Cape_(Trimmed)) · — currently: **no source info**
-- [ ] **Yellow Adventurer's Cape** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Yellow_Adventurer's_Cape) · — currently: **no source info**
-- [ ] **Yellow Dyad Cape** · *Armour* · [wiki](https://dragonwilds.runescape.wiki/w/Yellow_Dyad_Cape) · — currently: **no source info**
-- [ ] **Yellow Hex Cape** · *Armour* · [wiki](https://dragonwilds.runescape.wiki/w/Yellow_Hex_Cape) · — currently: **no source info**
-- [ ] **Zamorak Cape** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Zamorak_Cape) · — currently: **no source info**
+| Item | Wiki | How it's obtained | Brynmoor | Temple Woods | Bramblemead Valley | Whispering Swamp | Ghornfell | Fractured Plains | Bloodblight Swamp | Stormtouched Highlands | Fellhollow | Bleakfields Valley | Forgotten Temple | Dragon's Run | Emberwood | Witchwillow Range | Hope's Fall | Lake of Lost Souls | Silverthorn Keep | Coalridge Pass | Dowdun Reach | The Approach | The Courtyard | The Nexus | The Library | The Grand Hall | The Garrison | The Pastures | The Menagerie | The Bastion | Umbral Sands | Alcarrid Oasis | Dunes of Uzzer | Manafem Plains | The Burning Spire | Ashenfall (whole world) | Notes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| **PATTERN: Bloodblight Cape** | [wiki](https://dragonwilds.runescape.wiki/w/PATTERN%3A_Bloodblight_Cape) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PATTERN: Bramblemead Cape** | [wiki](https://dragonwilds.runescape.wiki/w/PATTERN%3A_Bramblemead_Cape) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PATTERN: Stormtouched Cape** | [wiki](https://dragonwilds.runescape.wiki/w/PATTERN%3A_Stormtouched_Cape) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Plan Bundle: Armadyl Flags** | [wiki](https://dragonwilds.runescape.wiki/w/Plan_Bundle%3A_Armadyl_Flags) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Plan Bundle: Bandos Flags** | [wiki](https://dragonwilds.runescape.wiki/w/Plan_Bundle%3A_Bandos_Flags) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Plan Bundle: Guthix Flags** | [wiki](https://dragonwilds.runescape.wiki/w/Plan_Bundle%3A_Guthix_Flags) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Plan Bundle: Saradomin Flags** | [wiki](https://dragonwilds.runescape.wiki/w/Plan_Bundle%3A_Saradomin_Flags) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Plan Bundle: Zamorak Flags** | [wiki](https://dragonwilds.runescape.wiki/w/Plan_Bundle%3A_Zamorak_Flags) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Armadyl Banner 01** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Armadyl_Banner_01) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Armadyl Banner 02** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Armadyl_Banner_02) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Armadyl Banner 03** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Armadyl_Banner_03) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Armadyl Flag 01** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Armadyl_Flag_01) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Armadyl Flag 02** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Armadyl_Flag_02) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Armadyl Flag 03** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Armadyl_Flag_03) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Armadyl Flag 04** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Armadyl_Flag_04) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Armadyl Flag 05** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Armadyl_Flag_05) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Armadyl Flag 06** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Armadyl_Flag_06) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Bandos Banner 01** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Bandos_Banner_01) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Bandos Banner 02** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Bandos_Banner_02) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Bandos Banner 03** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Bandos_Banner_03) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Bandos Flag 01** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Bandos_Flag_01) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Bandos Flag 02** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Bandos_Flag_02) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Bandos Flag 03** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Bandos_Flag_03) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Bandos Flag 04** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Bandos_Flag_04) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Bandos Flag 05** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Bandos_Flag_05) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Bandos Flag 06** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Bandos_Flag_06) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Barrel Pile** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Barrel_Pile) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Blue Wall-Mounted Torch** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Blue_Wall-Mounted_Torch) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Bowl of Onions** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Bowl_of_Onions) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Bowl of Peaches** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Bowl_of_Peaches) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Broken Wooden Crate** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Broken_Wooden_Crate) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Dragonkin Gargoyle 01** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Dragonkin_Gargoyle_01) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Dragonkin Gargoyle 02** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Dragonkin_Gargoyle_02) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Dragonkin Gargoyle 03** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Dragonkin_Gargoyle_03) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Dragonkin Obelisk 01** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Dragonkin_Obelisk_01) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Dragonkin Obelisk 02** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Dragonkin_Obelisk_02) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Dragonkin Obelisk 03** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Dragonkin_Obelisk_03) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Dragonkin Statue 01** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Dragonkin_Statue_01) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Dragonkin Statue 02** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Dragonkin_Statue_02) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Garou Drum** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Garou_Drum) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Garou Hanging Ornament 01** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Garou_Hanging_Ornament_01) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Garou Hanging Ornament 02** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Garou_Hanging_Ornament_02) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Garou Hanging Ornament 03** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Garou_Hanging_Ornament_03) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Garou Hanging Ornament 04** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Garou_Hanging_Ornament_04) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Garou Hanging Pelt** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Garou_Hanging_Pelt) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Garou Stool** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Garou_Stool) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Garou Trophy 01** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Garou_Trophy_01) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Garou Trophy 02** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Garou_Trophy_02) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Garou Trophy 03** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Garou_Trophy_03) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Garou Trophy 04** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Garou_Trophy_04) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Garou Tusks 01** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Garou_Tusks_01) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Garou Tusks 02** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Garou_Tusks_02) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Garou Tusks 03** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Garou_Tusks_03) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Garou Wall Banner** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Garou_Wall_Banner) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Grave 1** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Grave_1) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Grave 2** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Grave_2) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Grave 3** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Grave_3) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Grave 4** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Grave_4) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Green Standing Torch** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Green_Standing_Torch) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Green Wall-Mounted Torch** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Green_Wall-Mounted_Torch) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Guthix Banner 01** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Guthix_Banner_01) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Guthix Banner 02** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Guthix_Banner_02) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Guthix Banner 03** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Guthix_Banner_03) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Guthix Flag 01** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Guthix_Flag_01) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Guthix Flag 02** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Guthix_Flag_02) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Guthix Flag 03** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Guthix_Flag_03) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Guthix Flag 04** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Guthix_Flag_04) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Guthix Flag 05** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Guthix_Flag_05) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Guthix Flag 06** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Guthix_Flag_06) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Keg Barrel** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Keg_Barrel) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Moon Garou Bed** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Moon_Garou_Bed) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Moon Garou Chair 01** | — | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Moon Garou Chair 02** | — | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Open Wooden Barrel** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Open_Wooden_Barrel) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Potted Dwellberry Bush** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Potted_Dwellberry_Bush) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Potted Onion** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Potted_Onion) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Potted Redberry Bush** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Potted_Redberry_Bush) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Purple Standing Torch** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Purple_Standing_Torch) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Purple Wall-Mounted Torch** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Purple_Wall-Mounted_Torch) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Red Standing Torch** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Red_Standing_Torch) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Red Wall-Mounted Torch** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Red_Wall-Mounted_Torch) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Saradomin Banner 01** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Saradomin_Banner_01) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Saradomin Banner 02** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Saradomin_Banner_02) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Saradomin Banner 03** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Saradomin_Banner_03) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Saradomin Flag 01** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Saradomin_Flag_01) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Saradomin Flag 02** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Saradomin_Flag_02) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Saradomin Flag 03** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Saradomin_Flag_03) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Saradomin Flag 04** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Saradomin_Flag_04) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Saradomin Flag 05** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Saradomin_Flag_05) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Saradomin Flag 06** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Saradomin_Flag_06) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Sealed Wooden Crate** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Sealed_Wooden_Crate) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Spectral Book** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Spectral_Book) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Stack of Bowls** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Stack_of_Bowls) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Stacked Wooden Crates** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Stacked_Wooden_Crates) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Textile Kit** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Textile_Kit) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Vial Shelf** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Vial_Shelf) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Wooden Barrel** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Wooden_Barrel) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Wooden Bin** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Wooden_Bin) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Wooden Bin Pile** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Wooden_Bin_Pile) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Zamorak Banner 01** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Zamorak_Banner_01) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Zamorak Banner 02** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Zamorak_Banner_02) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Zamorak Banner 03** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Zamorak_Banner_03) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Zamorak Flag 01** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Zamorak_Flag_01) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Zamorak Flag 02** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Zamorak_Flag_02) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Zamorak Flag 03** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Zamorak_Flag_03) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Zamorak Flag 04** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Zamorak_Flag_04) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Zamorak Flag 05** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Zamorak_Flag_05) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **PLAN: Zamorak Flag 06** | [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Zamorak_Flag_06) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
 
-## Plans & blueprints
+## Quest & reward items — 46
 
-- [ ] **PATTERN: Bloodblight Cape** · *Pattern* · [wiki](https://dragonwilds.runescape.wiki/w/PATTERN%3A_Bloodblight_Cape) · — currently: **no source info**
-- [ ] **PATTERN: Bramblemead Cape** · *Pattern* · [wiki](https://dragonwilds.runescape.wiki/w/PATTERN%3A_Bramblemead_Cape) · — currently: **no source info**
-- [ ] **PATTERN: Stormtouched Cape** · *Pattern* · [wiki](https://dragonwilds.runescape.wiki/w/PATTERN%3A_Stormtouched_Cape) · — currently: **no source info**
-- [ ] **Plan Bundle: Armadyl Flags** · *Container* · [wiki](https://dragonwilds.runescape.wiki/w/Plan_Bundle%3A_Armadyl_Flags) · — currently: **no source info**
-- [ ] **Plan Bundle: Bandos Flags** · *Container* · [wiki](https://dragonwilds.runescape.wiki/w/Plan_Bundle%3A_Bandos_Flags) · — currently: **no source info**
-- [ ] **Plan Bundle: Guthix Flags** · *Container* · [wiki](https://dragonwilds.runescape.wiki/w/Plan_Bundle%3A_Guthix_Flags) · — currently: **no source info**
-- [ ] **Plan Bundle: Saradomin Flags** · *Container* · [wiki](https://dragonwilds.runescape.wiki/w/Plan_Bundle%3A_Saradomin_Flags) · — currently: **no source info**
-- [ ] **Plan Bundle: Zamorak Flags** · *Container* · [wiki](https://dragonwilds.runescape.wiki/w/Plan_Bundle%3A_Zamorak_Flags) · — currently: **no source info**
-- [ ] **PLAN: Armadyl Banner 01** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Armadyl_Banner_01) · — currently: **no source info**
-- [ ] **PLAN: Armadyl Banner 02** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Armadyl_Banner_02) · — currently: **no source info**
-- [ ] **PLAN: Armadyl Banner 03** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Armadyl_Banner_03) · — currently: **no source info**
-- [ ] **PLAN: Armadyl Flag 01** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Armadyl_Flag_01) · — currently: **no source info**
-- [ ] **PLAN: Armadyl Flag 02** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Armadyl_Flag_02) · — currently: **no source info**
-- [ ] **PLAN: Armadyl Flag 03** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Armadyl_Flag_03) · — currently: **no source info**
-- [ ] **PLAN: Armadyl Flag 04** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Armadyl_Flag_04) · — currently: **no source info**
-- [ ] **PLAN: Armadyl Flag 05** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Armadyl_Flag_05) · — currently: **no source info**
-- [ ] **PLAN: Armadyl Flag 06** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Armadyl_Flag_06) · — currently: **no source info**
-- [ ] **PLAN: Bandos Banner 01** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Bandos_Banner_01) · — currently: **no source info**
-- [ ] **PLAN: Bandos Banner 02** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Bandos_Banner_02) · — currently: **no source info**
-- [ ] **PLAN: Bandos Banner 03** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Bandos_Banner_03) · — currently: **no source info**
-- [ ] **PLAN: Bandos Flag 01** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Bandos_Flag_01) · — currently: **no source info**
-- [ ] **PLAN: Bandos Flag 02** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Bandos_Flag_02) · — currently: **no source info**
-- [ ] **PLAN: Bandos Flag 03** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Bandos_Flag_03) · — currently: **no source info**
-- [ ] **PLAN: Bandos Flag 04** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Bandos_Flag_04) · — currently: **no source info**
-- [ ] **PLAN: Bandos Flag 05** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Bandos_Flag_05) · — currently: **no source info**
-- [ ] **PLAN: Bandos Flag 06** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Bandos_Flag_06) · — currently: **no source info**
-- [ ] **PLAN: Barrel Pile** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Barrel_Pile) · — currently: **no source info**
-- [ ] **PLAN: Blue Wall-Mounted Torch** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Blue_Wall-Mounted_Torch) · — currently: **no source info**
-- [ ] **PLAN: Bowl of Onions** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Bowl_of_Onions) · — currently: **no source info**
-- [ ] **PLAN: Bowl of Peaches** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Bowl_of_Peaches) · — currently: **no source info**
-- [ ] **PLAN: Broken Wooden Crate** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Broken_Wooden_Crate) · — currently: **no source info**
-- [ ] **PLAN: Dragonkin Gargoyle 01** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Dragonkin_Gargoyle_01) · — currently: **no source info**
-- [ ] **PLAN: Dragonkin Gargoyle 02** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Dragonkin_Gargoyle_02) · — currently: **no source info**
-- [ ] **PLAN: Dragonkin Gargoyle 03** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Dragonkin_Gargoyle_03) · — currently: **no source info**
-- [ ] **PLAN: Dragonkin Obelisk 01** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Dragonkin_Obelisk_01) · — currently: **no source info**
-- [ ] **PLAN: Dragonkin Obelisk 02** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Dragonkin_Obelisk_02) · — currently: **no source info**
-- [ ] **PLAN: Dragonkin Obelisk 03** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Dragonkin_Obelisk_03) · — currently: **no source info**
-- [ ] **PLAN: Dragonkin Statue 01** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Dragonkin_Statue_01) · — currently: **no source info**
-- [ ] **PLAN: Dragonkin Statue 02** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Dragonkin_Statue_02) · — currently: **no source info**
-- [ ] **PLAN: Garou Drum** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Garou_Drum) · — currently: **no source info**
-- [ ] **PLAN: Garou Hanging Ornament 01** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Garou_Hanging_Ornament_01) · — currently: **no source info**
-- [ ] **PLAN: Garou Hanging Ornament 02** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Garou_Hanging_Ornament_02) · — currently: **no source info**
-- [ ] **PLAN: Garou Hanging Ornament 03** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Garou_Hanging_Ornament_03) · — currently: **no source info**
-- [ ] **PLAN: Garou Hanging Ornament 04** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Garou_Hanging_Ornament_04) · — currently: **no source info**
-- [ ] **PLAN: Garou Hanging Pelt** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Garou_Hanging_Pelt) · — currently: **no source info**
-- [ ] **PLAN: Garou Stool** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Garou_Stool) · — currently: **no source info**
-- [ ] **PLAN: Garou Trophy 01** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Garou_Trophy_01) · — currently: **no source info**
-- [ ] **PLAN: Garou Trophy 02** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Garou_Trophy_02) · — currently: **no source info**
-- [ ] **PLAN: Garou Trophy 03** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Garou_Trophy_03) · — currently: **no source info**
-- [ ] **PLAN: Garou Trophy 04** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Garou_Trophy_04) · — currently: **no source info**
-- [ ] **PLAN: Garou Tusks 01** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Garou_Tusks_01) · — currently: **no source info**
-- [ ] **PLAN: Garou Tusks 02** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Garou_Tusks_02) · — currently: **no source info**
-- [ ] **PLAN: Garou Tusks 03** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Garou_Tusks_03) · — currently: **no source info**
-- [ ] **PLAN: Garou Wall Banner** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Garou_Wall_Banner) · — currently: **no source info**
-- [ ] **PLAN: Grave 1** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Grave_1) · — currently: **no source info**
-- [ ] **PLAN: Grave 2** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Grave_2) · — currently: **no source info**
-- [ ] **PLAN: Grave 3** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Grave_3) · — currently: **no source info**
-- [ ] **PLAN: Grave 4** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Grave_4) · — currently: **no source info**
-- [ ] **PLAN: Green Standing Torch** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Green_Standing_Torch) · — currently: **no source info**
-- [ ] **PLAN: Green Wall-Mounted Torch** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Green_Wall-Mounted_Torch) · — currently: **no source info**
-- [ ] **PLAN: Guthix Banner 01** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Guthix_Banner_01) · — currently: **no source info**
-- [ ] **PLAN: Guthix Banner 02** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Guthix_Banner_02) · — currently: **no source info**
-- [ ] **PLAN: Guthix Banner 03** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Guthix_Banner_03) · — currently: **no source info**
-- [ ] **PLAN: Guthix Flag 01** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Guthix_Flag_01) · — currently: **no source info**
-- [ ] **PLAN: Guthix Flag 02** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Guthix_Flag_02) · — currently: **no source info**
-- [ ] **PLAN: Guthix Flag 03** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Guthix_Flag_03) · — currently: **no source info**
-- [ ] **PLAN: Guthix Flag 04** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Guthix_Flag_04) · — currently: **no source info**
-- [ ] **PLAN: Guthix Flag 05** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Guthix_Flag_05) · — currently: **no source info**
-- [ ] **PLAN: Guthix Flag 06** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Guthix_Flag_06) · — currently: **no source info**
-- [ ] **PLAN: Keg Barrel** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Keg_Barrel) · — currently: **no source info**
-- [ ] **PLAN: Moon Garou Bed** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Moon_Garou_Bed) · — currently: **no source info**
-- [ ] **PLAN: Moon Garou Chair 01** · *Reference* · — currently: **no source info**
-- [ ] **PLAN: Moon Garou Chair 02** · *Reference* · — currently: **no source info**
-- [ ] **PLAN: Open Wooden Barrel** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Open_Wooden_Barrel) · — currently: **no source info**
-- [ ] **PLAN: Potted Dwellberry Bush** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Potted_Dwellberry_Bush) · — currently: **no source info**
-- [ ] **PLAN: Potted Onion** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Potted_Onion) · — currently: **no source info**
-- [ ] **PLAN: Potted Redberry Bush** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Potted_Redberry_Bush) · — currently: **no source info**
-- [ ] **PLAN: Purple Standing Torch** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Purple_Standing_Torch) · — currently: **no source info**
-- [ ] **PLAN: Purple Wall-Mounted Torch** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Purple_Wall-Mounted_Torch) · — currently: **no source info**
-- [ ] **PLAN: Red Standing Torch** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Red_Standing_Torch) · — currently: **no source info**
-- [ ] **PLAN: Red Wall-Mounted Torch** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Red_Wall-Mounted_Torch) · — currently: **no source info**
-- [ ] **PLAN: Saradomin Banner 01** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Saradomin_Banner_01) · — currently: **no source info**
-- [ ] **PLAN: Saradomin Banner 02** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Saradomin_Banner_02) · — currently: **no source info**
-- [ ] **PLAN: Saradomin Banner 03** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Saradomin_Banner_03) · — currently: **no source info**
-- [ ] **PLAN: Saradomin Flag 01** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Saradomin_Flag_01) · — currently: **no source info**
-- [ ] **PLAN: Saradomin Flag 02** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Saradomin_Flag_02) · — currently: **no source info**
-- [ ] **PLAN: Saradomin Flag 03** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Saradomin_Flag_03) · — currently: **no source info**
-- [ ] **PLAN: Saradomin Flag 04** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Saradomin_Flag_04) · — currently: **no source info**
-- [ ] **PLAN: Saradomin Flag 05** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Saradomin_Flag_05) · — currently: **no source info**
-- [ ] **PLAN: Saradomin Flag 06** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Saradomin_Flag_06) · — currently: **no source info**
-- [ ] **PLAN: Sealed Wooden Crate** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Sealed_Wooden_Crate) · — currently: **no source info**
-- [ ] **PLAN: Spectral Book** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Spectral_Book) · — currently: **no source info**
-- [ ] **PLAN: Stack of Bowls** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Stack_of_Bowls) · — currently: **no source info**
-- [ ] **PLAN: Stacked Wooden Crates** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Stacked_Wooden_Crates) · — currently: **no source info**
-- [ ] **PLAN: Textile Kit** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Textile_Kit) · — currently: **no source info**
-- [ ] **PLAN: Vial Shelf** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Vial_Shelf) · — currently: **no source info**
-- [ ] **PLAN: Wooden Barrel** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Wooden_Barrel) · — currently: **no source info**
-- [ ] **PLAN: Wooden Bin** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Wooden_Bin) · — currently: **no source info**
-- [ ] **PLAN: Wooden Bin Pile** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Wooden_Bin_Pile) · — currently: **no source info**
-- [ ] **PLAN: Zamorak Banner 01** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Zamorak_Banner_01) · — currently: **no source info**
-- [ ] **PLAN: Zamorak Banner 02** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Zamorak_Banner_02) · — currently: **no source info**
-- [ ] **PLAN: Zamorak Banner 03** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Zamorak_Banner_03) · — currently: **no source info**
-- [ ] **PLAN: Zamorak Flag 01** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Zamorak_Flag_01) · — currently: **no source info**
-- [ ] **PLAN: Zamorak Flag 02** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Zamorak_Flag_02) · — currently: **no source info**
-- [ ] **PLAN: Zamorak Flag 03** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Zamorak_Flag_03) · — currently: **no source info**
-- [ ] **PLAN: Zamorak Flag 04** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Zamorak_Flag_04) · — currently: **no source info**
-- [ ] **PLAN: Zamorak Flag 05** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Zamorak_Flag_05) · — currently: **no source info**
-- [ ] **PLAN: Zamorak Flag 06** · *Consumable* · [wiki](https://dragonwilds.runescape.wiki/w/PLAN%3A_Zamorak_Flag_06) · — currently: **no source info**
+| Item | Wiki | How it's obtained | Brynmoor | Temple Woods | Bramblemead Valley | Whispering Swamp | Ghornfell | Fractured Plains | Bloodblight Swamp | Stormtouched Highlands | Fellhollow | Bleakfields Valley | Forgotten Temple | Dragon's Run | Emberwood | Witchwillow Range | Hope's Fall | Lake of Lost Souls | Silverthorn Keep | Coalridge Pass | Dowdun Reach | The Approach | The Courtyard | The Nexus | The Library | The Grand Hall | The Garrison | The Pastures | The Menagerie | The Bastion | Umbral Sands | Alcarrid Oasis | Dunes of Uzzer | Manafem Plains | The Burning Spire | Ashenfall (whole world) | Notes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| **Smouldering Draconic Visage** | [wiki](https://dragonwilds.runescape.wiki/w/Smouldering_Draconic_Visage) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Undead Draconic Visage** | [wiki](https://dragonwilds.runescape.wiki/w/Undead_Draconic_Visage) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Advert-Inna-Bottle** | [wiki](https://dragonwilds.runescape.wiki/w/Advert-Inna-Bottle) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Aetheric Fundamentals, a Primordial Primer** | [wiki](https://dragonwilds.runescape.wiki/w/Aetheric_Fundamentals%2C_a_Primordial_Primer) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Bedraggled Spellbook** | [wiki](https://dragonwilds.runescape.wiki/w/Bedraggled_Spellbook) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Black Knight Fortress Reward Pack** | [wiki](https://dragonwilds.runescape.wiki/w/Black_Knight_Fortress_Reward_Pack) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Bucket of Milk** | [wiki](https://dragonwilds.runescape.wiki/w/Bucket_of_Milk) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Crystal Seed** | [wiki](https://dragonwilds.runescape.wiki/w/Crystal_Seed) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Dragon Slayer Reward Pack** | [wiki](https://dragonwilds.runescape.wiki/w/Dragon_Slayer_Reward_Pack) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Druid's Bandosian Amulet** | [wiki](https://dragonwilds.runescape.wiki/w/Druid's_Bandosian_Amulet) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Eventide - A New Spawn** | [wiki](https://dragonwilds.runescape.wiki/w/Eventide_-_A_New_Spawn) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Fuzan's Head** | [wiki](https://dragonwilds.runescape.wiki/w/Fuzan's_Head) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Garou Arms** | [wiki](https://dragonwilds.runescape.wiki/w/Garou_Arms) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Glass Owl** | [wiki](https://dragonwilds.runescape.wiki/w/Glass_Owl) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Goblin Legs** | [wiki](https://dragonwilds.runescape.wiki/w/Goblin_Legs) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Human Torso** | [wiki](https://dragonwilds.runescape.wiki/w/Human_Torso) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Icthlarin's Little Helper Reward Pack** | [wiki](https://dragonwilds.runescape.wiki/w/Icthlarin's_Little_Helper_Reward_Pack) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Imaru's Head** | [wiki](https://dragonwilds.runescape.wiki/w/Imaru's_Head) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Kuldra's Head** | [wiki](https://dragonwilds.runescape.wiki/w/Kuldra's_Head) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Lougrim's Staff** | [wiki](https://dragonwilds.runescape.wiki/w/Lougrim's_Staff) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Magnet** | [wiki](https://dragonwilds.runescape.wiki/w/Magnet) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Moonstone** | [wiki](https://dragonwilds.runescape.wiki/w/Moonstone) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Mysterious Orb (Charged)** | [wiki](https://dragonwilds.runescape.wiki/w/Mysterious_Orb_(Charged)) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Mysterious Orb (Uncharged)** | [wiki](https://dragonwilds.runescape.wiki/w/Mysterious_Orb_(Uncharged)) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Queenslayer's Reward Pack** | [wiki](https://dragonwilds.runescape.wiki/w/Queenslayer's_Reward_Pack) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Regicide Reward Pack** | [wiki](https://dragonwilds.runescape.wiki/w/Regicide_Reward_Pack) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Reward Pack: Brynmoor Bronze** | [wiki](https://dragonwilds.runescape.wiki/w/Reward_Pack%3A_Brynmoor_Bronze) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Reward Pack: Brynmoor Gold** | [wiki](https://dragonwilds.runescape.wiki/w/Reward_Pack%3A_Brynmoor_Gold) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Reward Pack: Brynmoor Silver** | [wiki](https://dragonwilds.runescape.wiki/w/Reward_Pack%3A_Brynmoor_Silver) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Reward Pack: Dowdun Reach Bronze** | [wiki](https://dragonwilds.runescape.wiki/w/Reward_Pack%3A_Dowdun_Reach_Bronze) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Reward Pack: Dowdun Reach Gold** | [wiki](https://dragonwilds.runescape.wiki/w/Reward_Pack%3A_Dowdun_Reach_Gold) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Reward Pack: Dowdun Reach Silver** | [wiki](https://dragonwilds.runescape.wiki/w/Reward_Pack%3A_Dowdun_Reach_Silver) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Reward Pack: Fellhollow Bronze** | [wiki](https://dragonwilds.runescape.wiki/w/Reward_Pack%3A_Fellhollow_Bronze) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Reward Pack: Fellhollow Gold** | [wiki](https://dragonwilds.runescape.wiki/w/Reward_Pack%3A_Fellhollow_Gold) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Reward Pack: Fellhollow Silver** | [wiki](https://dragonwilds.runescape.wiki/w/Reward_Pack%3A_Fellhollow_Silver) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Reward Pack: Umbral Sands Bronze** | [wiki](https://dragonwilds.runescape.wiki/w/Reward_Pack%3A_Umbral_Sands_Bronze) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Reward Pack: Umbral Sands Gold** | [wiki](https://dragonwilds.runescape.wiki/w/Reward_Pack%3A_Umbral_Sands_Gold) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Reward Pack: Umbral Sands Silver** | [wiki](https://dragonwilds.runescape.wiki/w/Reward_Pack%3A_Umbral_Sands_Silver) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Salve Crystal** | [wiki](https://dragonwilds.runescape.wiki/w/Salve_Crystal) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **The Binding of Ib** | [wiki](https://dragonwilds.runescape.wiki/w/The_Binding_of_Ib) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **The Importance of Chaos** | [wiki](https://dragonwilds.runescape.wiki/w/The_Importance_of_Chaos) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **The Pride of the Avernic** | [wiki](https://dragonwilds.runescape.wiki/w/The_Pride_of_the_Avernic) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **The Radiant's Heart** | [wiki](https://dragonwilds.runescape.wiki/w/The_Radiant's_Heart) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Undead Chicken** | [wiki](https://dragonwilds.runescape.wiki/w/Undead_Chicken) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Velgar's Head** | [wiki](https://dragonwilds.runescape.wiki/w/Velgar's_Head) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Withering Heights Reward Pack** | [wiki](https://dragonwilds.runescape.wiki/w/Withering_Heights_Reward_Pack) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
 
-## Quest & reward items
+## Unclassified — 18
 
-- [ ] **Smouldering Draconic Visage** · *Quest Item* · [wiki](https://dragonwilds.runescape.wiki/w/Smouldering_Draconic_Visage) · — currently: **no source info**
-- [ ] **Undead Draconic Visage** · *Quest Item* · [wiki](https://dragonwilds.runescape.wiki/w/Undead_Draconic_Visage) · — currently: **no source info**
-- [ ] **Advert-Inna-Bottle** · *Quest Item* · [wiki](https://dragonwilds.runescape.wiki/w/Advert-Inna-Bottle) · — currently: **no source info**
-- [ ] **Aetheric Fundamentals, a Primordial Primer** · *Quest Item* · [wiki](https://dragonwilds.runescape.wiki/w/Aetheric_Fundamentals%2C_a_Primordial_Primer) · — currently: **no source info**
-- [ ] **Bedraggled Spellbook** · *Quest Item* · [wiki](https://dragonwilds.runescape.wiki/w/Bedraggled_Spellbook) · — currently: **no source info**
-- [ ] **Black Knight Fortress Reward Pack** · *Container* · [wiki](https://dragonwilds.runescape.wiki/w/Black_Knight_Fortress_Reward_Pack) · — currently: **no source info**
-- [ ] **Bucket of Milk** · *Quest Item* · [wiki](https://dragonwilds.runescape.wiki/w/Bucket_of_Milk) · — currently: **no source info**
-- [ ] **Crystal Seed** · *Quest Item* · [wiki](https://dragonwilds.runescape.wiki/w/Crystal_Seed) · — currently: **no source info**
-- [ ] **Dragon Slayer Reward Pack** · *Container* · [wiki](https://dragonwilds.runescape.wiki/w/Dragon_Slayer_Reward_Pack) · — currently: **no source info**
-- [ ] **Druid's Bandosian Amulet** · *Quest Item* · [wiki](https://dragonwilds.runescape.wiki/w/Druid's_Bandosian_Amulet) · — currently: **no source info**
-- [ ] **Eventide - A New Spawn** · *Quest Item* · [wiki](https://dragonwilds.runescape.wiki/w/Eventide_-_A_New_Spawn) · — currently: **no source info**
-- [ ] **Fuzan's Head** · *Quest Item* · [wiki](https://dragonwilds.runescape.wiki/w/Fuzan's_Head) · — currently: **no source info**
-- [ ] **Garou Arms** · *Quest Item* · [wiki](https://dragonwilds.runescape.wiki/w/Garou_Arms) · — currently: **no source info**
-- [ ] **Glass Owl** · *Quest Item* · [wiki](https://dragonwilds.runescape.wiki/w/Glass_Owl) · — currently: **no source info**
-- [ ] **Goblin Legs** · *Quest Item* · [wiki](https://dragonwilds.runescape.wiki/w/Goblin_Legs) · — currently: **no source info**
-- [ ] **Human Torso** · *Quest Item* · [wiki](https://dragonwilds.runescape.wiki/w/Human_Torso) · — currently: **no source info**
-- [ ] **Icthlarin's Little Helper Reward Pack** · *Container* · [wiki](https://dragonwilds.runescape.wiki/w/Icthlarin's_Little_Helper_Reward_Pack) · — currently: **no source info**
-- [ ] **Imaru's Head** · *Quest Item* · [wiki](https://dragonwilds.runescape.wiki/w/Imaru's_Head) · — currently: **no source info**
-- [ ] **Kuldra's Head** · *Quest Item* · [wiki](https://dragonwilds.runescape.wiki/w/Kuldra's_Head) · — currently: **no source info**
-- [ ] **Lougrim's Staff** · *Quest Item* · [wiki](https://dragonwilds.runescape.wiki/w/Lougrim's_Staff) · — currently: **no source info**
-- [ ] **Magnet** · *Quest Item* · [wiki](https://dragonwilds.runescape.wiki/w/Magnet) · — currently: **no source info**
-- [ ] **Moonstone** · *Quest Item* · [wiki](https://dragonwilds.runescape.wiki/w/Moonstone) · — currently: **no source info**
-- [ ] **Mysterious Orb (Charged)** · *Quest Item* · [wiki](https://dragonwilds.runescape.wiki/w/Mysterious_Orb_(Charged)) · — currently: **no source info**
-- [ ] **Mysterious Orb (Uncharged)** · *Quest Item* · [wiki](https://dragonwilds.runescape.wiki/w/Mysterious_Orb_(Uncharged)) · — currently: **no source info**
-- [ ] **Queenslayer's Reward Pack** · *Resource* · [wiki](https://dragonwilds.runescape.wiki/w/Queenslayer's_Reward_Pack) · — currently: **no source info**
-- [ ] **Regicide Reward Pack** · *Container* · [wiki](https://dragonwilds.runescape.wiki/w/Regicide_Reward_Pack) · — currently: **no source info**
-- [ ] **Reward Pack: Brynmoor Bronze** · *Container* · [wiki](https://dragonwilds.runescape.wiki/w/Reward_Pack%3A_Brynmoor_Bronze) · — currently: **no source info**
-- [ ] **Reward Pack: Brynmoor Gold** · *Container* · [wiki](https://dragonwilds.runescape.wiki/w/Reward_Pack%3A_Brynmoor_Gold) · — currently: **no source info**
-- [ ] **Reward Pack: Brynmoor Silver** · *Container* · [wiki](https://dragonwilds.runescape.wiki/w/Reward_Pack%3A_Brynmoor_Silver) · — currently: **no source info**
-- [ ] **Reward Pack: Dowdun Reach Bronze** · *Container* · [wiki](https://dragonwilds.runescape.wiki/w/Reward_Pack%3A_Dowdun_Reach_Bronze) · — currently: **no source info**
-- [ ] **Reward Pack: Dowdun Reach Gold** · *Container* · [wiki](https://dragonwilds.runescape.wiki/w/Reward_Pack%3A_Dowdun_Reach_Gold) · — currently: **no source info**
-- [ ] **Reward Pack: Dowdun Reach Silver** · *Container* · [wiki](https://dragonwilds.runescape.wiki/w/Reward_Pack%3A_Dowdun_Reach_Silver) · — currently: **no source info**
-- [ ] **Reward Pack: Fellhollow Bronze** · *Container* · [wiki](https://dragonwilds.runescape.wiki/w/Reward_Pack%3A_Fellhollow_Bronze) · — currently: **no source info**
-- [ ] **Reward Pack: Fellhollow Gold** · *Container* · [wiki](https://dragonwilds.runescape.wiki/w/Reward_Pack%3A_Fellhollow_Gold) · — currently: **no source info**
-- [ ] **Reward Pack: Fellhollow Silver** · *Container* · [wiki](https://dragonwilds.runescape.wiki/w/Reward_Pack%3A_Fellhollow_Silver) · — currently: **no source info**
-- [ ] **Reward Pack: Umbral Sands Bronze** · *Container* · [wiki](https://dragonwilds.runescape.wiki/w/Reward_Pack%3A_Umbral_Sands_Bronze) · — currently: **no source info**
-- [ ] **Reward Pack: Umbral Sands Gold** · *Container* · [wiki](https://dragonwilds.runescape.wiki/w/Reward_Pack%3A_Umbral_Sands_Gold) · — currently: **no source info**
-- [ ] **Reward Pack: Umbral Sands Silver** · *Container* · [wiki](https://dragonwilds.runescape.wiki/w/Reward_Pack%3A_Umbral_Sands_Silver) · — currently: **no source info**
-- [ ] **Salve Crystal** · *Quest Item* · [wiki](https://dragonwilds.runescape.wiki/w/Salve_Crystal) · — currently: **no source info**
-- [ ] **The Binding of Ib** · *Quest Item* · [wiki](https://dragonwilds.runescape.wiki/w/The_Binding_of_Ib) · — currently: **no source info**
-- [ ] **The Importance of Chaos** · *Quest Item* · [wiki](https://dragonwilds.runescape.wiki/w/The_Importance_of_Chaos) · — currently: **no source info**
-- [ ] **The Pride of the Avernic** · *Quest Item* · [wiki](https://dragonwilds.runescape.wiki/w/The_Pride_of_the_Avernic) · — currently: **no source info**
-- [ ] **The Radiant's Heart** · *Quest Item* · [wiki](https://dragonwilds.runescape.wiki/w/The_Radiant's_Heart) · — currently: **no source info**
-- [ ] **Undead Chicken** · *Quest Item* · [wiki](https://dragonwilds.runescape.wiki/w/Undead_Chicken) · — currently: **no source info**
-- [ ] **Velgar's Head** · *Quest Item* · [wiki](https://dragonwilds.runescape.wiki/w/Velgar's_Head) · — currently: **no source info**
-- [ ] **Withering Heights Reward Pack** · *Resource* · [wiki](https://dragonwilds.runescape.wiki/w/Withering_Heights_Reward_Pack) · — currently: **no source info**
-
-## Unclassified
-
-- [ ] **Dihydrogen Monoxide** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Dihydrogen_Monoxide) · — currently: **no source info**
-- [ ] **Air** · *Reference* · — currently: **no source info**
-- [ ] **Astral** · *Reference* · — currently: **no source info**
-- [ ] **Blacksmith Bench** · *Reference* · — currently: **no source info**
-- [ ] **Clay Slab** · *other* · [wiki](https://dragonwilds.runescape.wiki/w/Clay_Slab) · — currently: **no source info**
-- [ ] **Clay Slab (Unfired)** · *Unknown* · [wiki](https://dragonwilds.runescape.wiki/w/Clay_Slab_(Unfired)) · — currently: **no source info**
-- [ ] **Earth** · *Reference* · — currently: **no source info**
-- [ ] **Edna** · *Reference* · — currently: **no source info**
-- [ ] **Fire** · *Reference* · — currently: **no source info**
-- [ ] **Fletching Table** · *Reference* · — currently: **no source info**
-- [ ] **Large Wardstone** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Large_Wardstone) · — currently: **no source info**
-- [ ] **Law** · *Reference* · — currently: **no source info**
-- [ ] **Lightning-in-a-bottle** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Lightning-in-a-bottle) · — currently: **no source info**
-- [ ] **Lougrim's Shrine** · *Reference* · — currently: **no source info**
-- [ ] **Medium Wardstone** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Medium_Wardstone) · — currently: **no source info**
-- [ ] **Nature** · *Reference* · — currently: **no source info**
-- [ ] **Saradomin Symbol** · *Basic Item* · [wiki](https://dragonwilds.runescape.wiki/w/Saradomin_Symbol) · — currently: **no source info**
-- [ ] **Water** · *Reference* · — currently: **no source info**
+| Item | Wiki | How it's obtained | Brynmoor | Temple Woods | Bramblemead Valley | Whispering Swamp | Ghornfell | Fractured Plains | Bloodblight Swamp | Stormtouched Highlands | Fellhollow | Bleakfields Valley | Forgotten Temple | Dragon's Run | Emberwood | Witchwillow Range | Hope's Fall | Lake of Lost Souls | Silverthorn Keep | Coalridge Pass | Dowdun Reach | The Approach | The Courtyard | The Nexus | The Library | The Grand Hall | The Garrison | The Pastures | The Menagerie | The Bastion | Umbral Sands | Alcarrid Oasis | Dunes of Uzzer | Manafem Plains | The Burning Spire | Ashenfall (whole world) | Notes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| **Dihydrogen Monoxide** | [wiki](https://dragonwilds.runescape.wiki/w/Dihydrogen_Monoxide) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Air** | — | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Astral** | — | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Blacksmith Bench** | — | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Clay Slab** | [wiki](https://dragonwilds.runescape.wiki/w/Clay_Slab) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Clay Slab (Unfired)** | [wiki](https://dragonwilds.runescape.wiki/w/Clay_Slab_(Unfired)) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Earth** | — | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Edna** | — | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Fire** | — | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Fletching Table** | — | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Large Wardstone** | [wiki](https://dragonwilds.runescape.wiki/w/Large_Wardstone) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Law** | — | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Lightning-in-a-bottle** | [wiki](https://dragonwilds.runescape.wiki/w/Lightning-in-a-bottle) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Lougrim's Shrine** | — | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Medium Wardstone** | [wiki](https://dragonwilds.runescape.wiki/w/Medium_Wardstone) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Nature** | — | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Saradomin Symbol** | [wiki](https://dragonwilds.runescape.wiki/w/Saradomin_Symbol) | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
+| **Water** | — | unknown — please say how you got it |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | |
