@@ -62,12 +62,18 @@ await page.keyboard.press('Enter');
 await page.waitForTimeout(800);
 await page.screenshot({ path: shots + '/06-furnace.png' });
 
-// 7. toggle a filter off
-await page.click('.chip[data-cat="food"]');
+// 7. toggle a filter off (the legend is the filter surface; header chips are retired)
+await page.evaluate(() => {
+  const row = [...document.querySelectorAll('#legend .lg-row')].find(r => r.querySelector('span:last-child')?.textContent === 'Food');
+  row.click();
+});
 await page.waitForTimeout(400);
 const visibleAfterFilter = await page.evaluate(() => window.__cy.nodes(':visible').length);
 console.log('visible nodes after hiding food:', visibleAfterFilter);
-await page.click('.chip[data-cat="food"]'); // restore
+await page.evaluate(() => {
+  const row = [...document.querySelectorAll('#legend .lg-row')].find(r => r.querySelector('span:last-child')?.textContent === 'Food');
+  row.click(); // restore
+});
 await page.waitForTimeout(300);
 
 // 8. spells/skills in panel

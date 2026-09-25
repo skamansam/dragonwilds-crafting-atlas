@@ -629,7 +629,10 @@ function shareSnapshot(preset, dens) {
   setTimeout(() => URL.revokeObjectURL(a.href), 2000);
   toast('Snapshot downloaded — send it in and it can ship with the atlas for everyone');
 }
-function runLayout(preset = currentLayout, { skipSaved = false, forceMain = false } = {}) {
+function runLayout(preset = currentLayout, { skipSaved = false, forceMain = false, reflow = true } = {}) {
+  // auto-relayout off: skip live recomputes on graph/option changes, except
+  // explicit user layout requests (algorithm select, density ✕, saved toggle)
+  if (!reflow && !autoRelayoutOn()) return;
   // stop any in-flight layout so a new selection always wins — and kill its
   // progress bar: a superseded layout's layoutstop early-returns, so the bar
   // must not depend on that handler for cleanup
@@ -671,7 +674,7 @@ function runLayout(preset = currentLayout, { skipSaved = false, forceMain = fals
     delete all[preset + '~meta'];
     try { localStorage.setItem('dw.customLayouts', JSON.stringify(all)); } catch {}
     toast(`Custom snapshot cleared for ${preset} @ ${densPct}%`);
-    runLayout(preset);
+    runLayout(preset, { reflow: false });
   };
   // ⤓ share: export the current 💾 snapshot so it can be merged into the
   // site's curated set (scripts/merge-snapshots.mjs)
@@ -834,10 +837,12 @@ function populate() {
         if (n.data('meta').kind === 'region') n.removeClass('orphan');
         else if (craftDeg === 0) n.addClass('orphan');
       });
+      bootPopulating = true; // applyCategoryVisibility's reflow must not double-run the boot layout
       applyCategoryVisibility();
       applyEdgeVisibility();
+      bootPopulating = false;
     });
-    runLayout();
+    runLayout(); // the boot layout — never gated by the auto-relayout option
   } catch (e) {
     console.error('populate failed:', e);
   }
@@ -862,7 +867,21 @@ function applyCategoryVisibility() {
   });
   applyEdgeVisibility(); // re-assert link prefs — the loop above strips .hidden from every edge
   updateReadout();
+  scheduleReflow(); // ⚙ re-layout on graph change (no-op when the option is off)
   if (!isolatedRoot) fitSoon();
+}
+
+// ⚙ "re-layout on graph change": the shown graph changed (filters, isolation,
+// possessions). Re-run the current layout so nothing clumps — skipped entirely
+// when the option is off (positions stay put). Debounced: filter storms and
+// isolation re-assertions settle once, not per batch.
+let reflowTimer = null;
+let bootPopulating = false; // the boot populate already runs the layout itself
+function scheduleReflow() {
+  if (bootPopulating) return;
+  if (!autoRelayoutOn()) return;
+  clearTimeout(reflowTimer);
+  reflowTimer = setTimeout(() => runLayout(currentLayout), 180);
 }
 
 let fitTimer = null;
@@ -926,6 +945,86 @@ for (const k of Object.keys(kindColor)) {
     },
   });
 }
+// ── VIEW section: map-wide toggles that used to live in the header ──
+// (dead ends, possessions + count, show-all). The header keeps retired,
+// hidden clones of these controls so probes and scripts stay compatible.
+const lgViewSec = document.createElement('div');
+lgViewSec.className = 'lg-title lg-sec';
+lgViewSec.textContent = 'VIEW';
+legend.appendChild(lgViewSec);
+const lgDeadRow = lgMakeRow({
+  cls: 'lg-toggle',
+  swatch: '<span class="lg-check">◇</span>',
+  label: 'Dead ends',
+  on: showOrphans,
+  onclick: () => {
+    showOrphans = !showOrphans;
+    lgDeadRow.classList.toggle('off', !showOrphans);
+    lgDeadRow.querySelector('.lg-check').textContent = showOrphans ? '◆' : '◇';
+    const oc = document.getElementById('orphansChip');
+    oc.classList.toggle('on', showOrphans); // retired header chip mirrors
+    applyCategoryVisibility();
+  },
+});
+lgDeadRow.querySelector('.lg-check').textContent = showOrphans ? '◆' : '◇';
+// master switch — everything back on in one click (was impossible before:
+// with every item row off there was no way to recover short of a reload)
+let lgAllRow = null; // assigned after the LINKS section is built
+function showEverything() {
+  for (const k of Object.keys(kindColor)) activeCats.add(k);
+  for (const k of Object.keys(lgRows)) lgSyncKind(k);
+  showOrphans = true;
+  document.getElementById('orphansChip').classList.add('on');
+  lgDeadRow.classList.remove('off');
+  lgDeadRow.querySelector('.lg-check').textContent = '◆';
+  edgePrefs.materials = true;
+  localStorage.setItem('dw.showMatEdges', '1');
+  lgMatRow.classList.remove('off');
+  document.getElementById('edgeMatChip').classList.add('on');
+  edgePrefs.skills = true;
+  localStorage.setItem('dw.showSkillEdges', '1');
+  lgSkillRow.classList.remove('off');
+  document.getElementById('edgeSkillChip').classList.add('on');
+  edgePrefs.regions = true;
+  localStorage.setItem('dw.showRegionEdges', '1');
+  lgRegionRow.classList.remove('off');
+  if (lgAllRow) lgAllRow.classList.remove('attention');
+  applyCategoryVisibility();
+  applyEdgeVisibility();
+  toast('Everything is showing — items, dead ends and all link kinds');
+}
+lgMakeRow({
+  cls: 'lg-action',
+  swatch: '<span class="lg-swatch" style="background:var(--gold-bright)"></span>',
+  label: 'Show everything',
+  on: true,
+  onclick: showEverything,
+});
+// possessions toggle + live owned count (moved from the header)
+const lgPossRow = lgMakeRow({
+  cls: 'lg-toggle',
+  swatch: '<span class="lg-check">◇</span>',
+  label: 'Possessions',
+  on: focusOwned,
+  onclick: () => {
+    focusOwned = !focusOwned;
+    lgPossRow.classList.toggle('off', !focusOwned);
+    lgPossRow.querySelector('.lg-check').textContent = focusOwned ? '◆' : '◇';
+    document.getElementById('possessionsChip').classList.toggle('on', focusOwned); // retired chip mirrors
+    applyPossessions();
+    toast(focusOwned
+      ? (owned.size ? `Showing what you can reach from ${owned.size} owned items` : 'Mark items as owned in their panel first')
+      : 'Showing everything');
+  },
+});
+lgPossRow.querySelector('.lg-check').textContent = focusOwned ? '◆' : '◇';
+const lgCount = document.createElement('span');
+lgCount.className = 'lg-badge';
+lgCount.id = 'ownedCount'; // same id the panel code updates — now lives in the legend
+lgCount.title = 'Items marked as owned';
+lgCount.textContent = '0';
+lgPossRow.appendChild(lgCount);
+
 // links — colored differently so recipe vs skill-gate reads at a glance
 const lgSec = document.createElement('div');
 lgSec.className = 'lg-title lg-sec';
@@ -969,33 +1068,13 @@ const lgRegionRow = lgMakeRow({
     applyEdgeVisibility();
   },
 });
-// master switch — everything back on in one click (was impossible before:
-// with every item row off there was no way to recover short of a reload)
-lgMakeRow({
+// ↺ All lives here now (was a header chip) — resets to the calm first-load view
+lgAllRow = lgMakeRow({
   cls: 'lg-action',
-  swatch: '<span class="lg-swatch" style="background:var(--gold-bright)"></span>',
-  label: 'Show everything',
+  swatch: '<span class="lg-swatch" style="background:var(--faint)"></span>',
+  label: '↺ All — reset view',
   on: true,
-  onclick: () => {
-    for (const k of Object.keys(kindColor)) activeCats.add(k);
-    for (const k of Object.keys(lgRows)) lgSyncKind(k);
-    showOrphans = true;
-    document.getElementById('orphansChip').classList.add('on');
-    edgePrefs.materials = true;
-    localStorage.setItem('dw.showMatEdges', '1');
-    lgMatRow.classList.remove('off');
-    document.getElementById('edgeMatChip').classList.add('on');
-    edgePrefs.skills = true;
-    localStorage.setItem('dw.showSkillEdges', '1');
-    lgSkillRow.classList.remove('off');
-    document.getElementById('edgeSkillChip').classList.add('on');
-    edgePrefs.regions = true;
-    localStorage.setItem('dw.showRegionEdges', '1');
-    lgRegionRow.classList.remove('off');
-    applyCategoryVisibility();
-    applyEdgeVisibility();
-    toast('Everything is showing — items, dead ends and all link kinds');
-  },
+  onclick: () => document.getElementById('resetFilters').click(), // single source of truth: the legacy handler
 });
 // required Jagex Fan Content Policy attribution (must stay verbatim)
 const legal = document.createElement('div');
@@ -1017,7 +1096,19 @@ document.querySelectorAll('.chip[data-cat]').forEach(chip => {
 document.getElementById('resetFilters').onclick = () => {
   for (const k of Object.keys(kindLabel)) activeCats.add(k);
   document.querySelectorAll('.chip[data-cat]').forEach(c => c.classList.add('on'));
-  // ↺ All resets filters to the calm first-load default: skill + region edges hidden too
+  // ↺ All resets to the calm first-load view: dead ends hidden too, and the
+  // Possessions focus dropped (owned marks themselves persist)
+  showOrphans = false;
+  lgDeadRow.classList.add('off');
+  lgDeadRow.querySelector('.lg-check').textContent = '◇';
+  document.getElementById('orphansChip').classList.remove('on');
+  if (focusOwned) {
+    focusOwned = false;
+    lgPossRow.classList.toggle('off', true);
+    lgPossRow.querySelector('.lg-check').textContent = '◇';
+    document.getElementById('possessionsChip').classList.remove('on');
+  }
+  // skill + region edges hidden too
   edgePrefs.skills = false;
   localStorage.setItem('dw.showSkillEdges', '0');
   document.getElementById('edgeSkillChip').classList.remove('on');
@@ -1083,6 +1174,49 @@ document.getElementById('zoomFit').onclick = () => cy.fit(undefined, 60);
 
 /* ── layout selector ─────────────────────────────────────────── */
 const layoutSelect = document.getElementById('layoutSelect');
+/* ── graph settings (header ⚙ dropdown) ─────────────────────── */
+// re-layout on graph change: when the shown graph changes (filters, isolation,
+// possessions, algorithm switches), re-run the layout so nothing clumps.
+// Persisted; off keeps node positions and lets the changed graph place itself.
+const autoRelayoutOn = () => { const t = document.getElementById('autoRelayout'); return !t || t.checked; };
+(function initSettings() {
+  const autoEl = document.getElementById('autoRelayout');
+  if (autoEl) {
+    autoEl.checked = localStorage.getItem('dw.autoRelayout') !== '0';
+    autoEl.onchange = () => {
+      const on = autoEl.checked;
+      localStorage.setItem('dw.autoRelayout', on ? '1' : '0');
+      if (on) runLayout(); // turning it on arranges the current view now
+      toast(on ? 'Graph changes re-run the layout' : 'Layouts stay put — nodes appear where they fit');
+    };
+  }
+  const btn = document.getElementById('settingsBtn');
+  const panel = document.getElementById('settingsPanel');
+  if (!btn || !panel) return;
+  const close = () => { panel.hidden = true; btn.setAttribute('aria-expanded', 'false'); };
+  let outsideCloser = null;
+  btn.onclick = e => {
+    e.stopPropagation();
+    const open = panel.hidden;
+    panel.hidden = !open;
+    btn.setAttribute('aria-expanded', String(open));
+    if (open) {
+      // one-shot listeners, re-registered per open — never accumulate
+      outsideCloser = ev => { if (!panel.contains(ev.target) && ev.target !== btn) close(); };
+      document.addEventListener('click', outsideCloser);
+      document.addEventListener('keydown', escCloser, true);
+    } else {
+      detach();
+    }
+  };
+  const escCloser = e => { if (e.key === 'Escape' && !panel.hidden) { close(); detach(); e.stopPropagation(); } };
+  const detach = () => {
+    if (outsideCloser) { document.removeEventListener('click', outsideCloser); outsideCloser = null; }
+    document.removeEventListener('keydown', escCloser);
+  };
+  panel.addEventListener('click', e => e.stopPropagation());
+})();
+
 const forceToggleWrap = document.getElementById('forceToggleWrap');
 const forceToggle = document.getElementById('forceToggle');
 function syncForceToggleUI() {
@@ -1092,13 +1226,13 @@ function syncForceToggleUI() {
 }
 if (layoutSelect) {
   layoutSelect.value = currentLayout;
-  layoutSelect.onchange = () => { currentLayout = layoutSelect.value; localStorage.setItem('dw.layout', currentLayout); syncForceToggleUI(); updateReadout(); runLayout(); };
+  layoutSelect.onchange = () => { currentLayout = layoutSelect.value; localStorage.setItem('dw.layout', currentLayout); syncForceToggleUI(); updateReadout(); runLayout(currentLayout, { reflow: false }); };
 }
 if (forceToggle) {
   forceToggle.onchange = () => {
     forceDir = forceToggle.checked;
     updateReadout();
-    if (FORCE_LAYOUTS.has(currentLayout)) runLayout();
+    if (FORCE_LAYOUTS.has(currentLayout)) runLayout(currentLayout, { reflow: false });
   };
 }
 // chip visuals must match persisted edge prefs (skill links default OFF, P3-1)
@@ -1110,7 +1244,7 @@ if (animToggle) {
   animToggle.onchange = () => {
     animateOn = animToggle.checked;
     localStorage.setItem('dw.animate', animateOn ? '1' : '0');
-    runLayout();
+    runLayout(currentLayout, { reflow: false });
   };
 }
 const savedToggle = document.getElementById('savedToggle');
@@ -1118,7 +1252,7 @@ if (savedToggle) {
   savedToggle.checked = localStorage.getItem('dw.savedLayouts') !== '0';
   savedToggle.onchange = () => {
     localStorage.setItem('dw.savedLayouts', savedToggle.checked ? '1' : '0');
-    runLayout();
+    runLayout(currentLayout, { reflow: false });
   };
 }
 const densSlider = document.getElementById('densSlider');
@@ -1136,7 +1270,7 @@ if (densSlider) {
     // full elk pass. The worker makes each pass cheap to SUPERSEDE (previous job
     // is cancelled), and 450ms coalesces a storm into 1–2 runs.
     clearTimeout(densTimer);
-    densTimer = setTimeout(() => { if (isElkDenseable(currentLayout)) runLayout(currentLayout, { skipSaved: true }); }, 450);
+    densTimer = setTimeout(() => { if (isElkDenseable(currentLayout)) runLayout(currentLayout, { skipSaved: true, reflow: false }); }, 450);
   };
 }
 syncForceToggleUI();
@@ -1192,6 +1326,7 @@ function applyPossessions() {
       applyCategoryVisibility();
     });
     updateReadout();
+    scheduleReflow();
     if (!isolatedRoot) fitSoon();
     return;
   }
@@ -1213,6 +1348,7 @@ function applyPossessions() {
     applyCategoryVisibility();
   });
   updateReadout();
+  scheduleReflow();
 }
 
 /* ── selection / isolation / panel ──────────────────────────── */

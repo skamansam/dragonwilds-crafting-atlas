@@ -131,11 +131,14 @@ Everything below is also available **in the app** — press the **?** button in 
   The **depth input** beside it limits how many recipe steps to walk (default 3; empty = the
   whole tree to the leaves).
 - **Search**: fuzzy matching across all 1,900+ nodes with icon suggestions; **/** focuses it.
-- **Legend = the filter surface**: every item kind *and* both link kinds toggle from the
-  top-left legend (**Recipe links** in cool blue vs gold **Skill gates** — skill links start
-  hidden on a fresh browser; the choices persist). **Show everything** turns all items, dead
-  ends and both link kinds back on in one click. **Dead ends** and **↺ All** stay in the
-  header; the old kind/link chips are retired (hidden, still scriptable).
+- **Legend = the control surface**: everything that shapes what the map shows toggles from
+  the top-left legend. **Crafts** — every item kind; **View** — **Dead ends** (items nothing
+  crafts), **Show everything** (all items + all link kinds back on in one click) and
+  **Possessions** with a live owned-item count badge (flip to see only what you can reach
+  from what you own); **Links** — **Recipe links** (cool blue) vs gold **Skill gates** (start
+  hidden on a fresh browser; choices persist) and **Region links**; then **↺ All — reset
+  view** back to the calm first-load state. The old header kind/link chips are retired
+  (hidden, still scriptable).
 
 ### Layouts
 
@@ -174,6 +177,11 @@ Everything below is also available **in the app** — press the **?** button in 
   (`scripts/merge-snapshots.mjs` checks the bounding box, coordinates and node ids), it
   ships in `site/layouts/curated.js` — every visitor gets the arrangement instantly,
   marked **· curated**. Precedence: your own 💾 snapshot → curated → bundled manifest.
+- **Graph settings** (the ⚙ dropdown in the header): holds the map-wide layout options —
+  **re-layout on graph change** (on: any change to what's shown — filters, isolation,
+  possessions, algorithm switches — re-runs the layout so nothing clumps; off: node positions
+  stay put and the changed graph places itself where it fits; persisted) and **worker
+  layout** (below).
 - **Worker layout** (P1-2, on by default): the **worker layout** checkbox runs heavy layouts
   in a background Web Worker (`site/layout-worker.js` — headless cytoscape with every vendor
   extension loaded) so the page keeps responding while physics computes. Positions come back

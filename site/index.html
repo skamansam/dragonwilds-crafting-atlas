@@ -47,12 +47,12 @@
       <div class="chip retired" data-cat="spell" title="Show spells"><span class="dot"></span>Spells</div>
       <div class="chip retired" data-cat="skill" title="Show skills"><span class="dot"></span>Skills</div>
       <div class="chip retired" data-cat="other" title="Show everything else"><span class="dot"></span>Other</div>
-      <div class="chip" id="orphansChip" title="Show items with no crafting recipes (drops, quest items, resource nodes)"><span class="dot"></span>Dead ends</div>
-      <div class="chip retired on" id="edgeMatChip" title="Show material (recipe) edges"><span class="dot"></span>Links</div>
-      <div class="chip retired" id="edgeSkillChip" title="Show skill-gate edges (gold) — hidden by default to keep the map readable; click to reveal"><span class="dot"></span>Skill links</div>
-      <div class="chip" id="possessionsChip" title="Mark what you own and only show what you can reach"><span class="dot"></span>🎒 Possessions</div>
-      <span id="ownedCount" title="Items marked as owned">0</span>
-      <div class="chip" id="resetFilters" title="Show all categories">↺ All</div>
+      <div class="chip retired" id="orphansChip" title="Show items with no crafting recipes (drops, quest items, resource nodes) — now a legend row"><span class="dot"></span>Dead ends</div>
+      <div class="chip retired on" id="edgeMatChip" title="Show material (recipe) edges — now a legend row"><span class="dot"></span>Links</div>
+      <div class="chip retired" id="edgeSkillChip" title="Show skill-gate edges (gold) — hidden by default to keep the map readable; click to reveal — now a legend row"><span class="dot"></span>Skill links</div>
+      <div class="chip retired" id="possessionsChip" title="Mark what you own and only show what you can reach — now a legend row"><span class="dot"></span>🎒 Possessions</div>
+      <span class="retired" title="Items marked as owned">0</span>
+      <div class="chip retired" id="resetFilters" title="Show all categories — now a legend row">↺ All</div>
     </div>
 
     <div class="layout-wrap">
@@ -98,9 +98,6 @@
       <label id="savedToggleWrap" title="Use the precomputed layout positions bundled in site/layouts/ (instant); off always recomputes live">
         <input type="checkbox" id="savedToggle" checked> saved positions
       </label>
-      <label id="workerToggleWrap" title="P1-2 spike: run heavy layouts in a background worker thread so the page stays responsive. Falls back to the main thread automatically.">
-        <input type="checkbox" id="workerToggle"> worker layout
-      </label>
       <label id="densWrap" title="Spread for the elk layered layouts — 100% is the tuned default. Drag to re-run live; 💾 saves the current arrangement as your instant-boot snapshot, ✕ clears it.">
         <input type="range" id="densSlider" min="50" max="200" step="10" value="100" aria-label="Elk layout density"> density <span id="densVal">100%</span>
         <button id="densSave" title="Save the current arrangement as a custom snapshot for this layout + density — it will boot instantly">💾</button>
@@ -111,6 +108,20 @@
 
     <div class="layout-meta" id="layoutMeta"></div>
     <div id="layoutInd"><span class="spin"></span><span id="layoutIndText">Arranging…</span><div id="layoutIndBar"><div id="layoutIndBarFill"></div></div></div>
+
+    <div class="settings-wrap">
+      <button id="settingsBtn" aria-expanded="false" aria-controls="settingsPanel"
+              title="Graph settings — relayout &amp; worker options" aria-label="Graph settings">⚙</button>
+      <div id="settingsPanel" hidden>
+        <div class="s-title">Graph settings</div>
+        <label title="When the shown graph changes (filters, isolation, possessions, layout algorithm), re-run the layout so nothing clumps — off keeps positions and lets nodes appear where they fit">
+          <input type="checkbox" id="autoRelayout" checked> re-layout on graph change
+        </label>
+        <label title="Run heavy layouts in a background worker thread so the page stays responsive. Falls back to the main thread automatically.">
+          <input type="checkbox" id="workerToggle"> worker layout
+        </label>
+      </div>
+    </div>
 
     <button id="helpBtn" title="Help — what everything does (?)." aria-label="Help">?</button>
 
@@ -199,11 +210,13 @@
             the item enables; the full both-way walk can swallow most of the map for hub
             items). <b>Trace inputs</b> highlights every ingredient behind an item. <b>Depth</b>
             limits how far isolation walks (blank = all), and the <b>direction</b> select adds
-            <i>inputs only</i> or restores <i>up + down</i>. The <b>legend</b> (top left) tames the
-            map: every item kind <i>and</i> all link kinds toggle there — <b>Show everything</b>
-            restores it all at once. <b>Dead ends</b> shows items nothing crafts. <b>Found in</b>
-            rows in a panel jump to green <b>region hubs</b> (map aids from the wiki's location
-            prose — their links start hidden; enable Region links in the legend).</p>
+            <i>inputs only</i> or restores <i>up + down</i>. The <b>legend</b> (top left) is the
+            single control surface for what the map shows: every item kind, all link kinds,
+            <b>Dead ends</b> (items nothing crafts) and <b>Possessions</b> (with your owned-item
+            count) toggle there — <b>Show everything</b> and <b>↺ All — reset view</b> sit at the
+            bottom of the VIEW section. <b>Found in</b> rows in a panel jump to green
+            <b>region hubs</b> (map aids from the wiki's location prose — their links start
+            hidden; enable Region links in the legend).</p>
           </div>
           <div class="h-col">
             <h3>Layouts</h3>
@@ -217,7 +230,10 @@
             downloads that snapshot as a JSON file to share — merged ones ship with the atlas
             for every visitor (marked <b>· curated</b>). <b>worker layout</b> computes heavy
             layouts in a background thread so the page keeps responding; if a worker can't run
-            a layout it falls back to the main thread automatically. The gold
+            a layout it falls back to the main thread automatically — both live in the
+            <b>⚙ graph settings</b> dropdown in the header, next to <b>re-layout on graph
+            change</b> (on: any change to what's shown re-runs the layout so nothing clumps;
+            off: nodes appear where they fit without moving the rest). The gold
             <b>Arranging</b> pill spins and shows a <b>live progress bar</b> until the layout
             settles; algorithms that can't run here
             (rooted-tree ones on the full map) tell you so instead of failing silently.</p>
