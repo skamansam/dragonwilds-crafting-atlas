@@ -30,13 +30,15 @@ const md = fs.readFileSync(MD, 'utf8');
 const lines = md.split('\n');
 
 /* ── parse the markdown: sections → {title, header cells, rows, headerLine} ── */
+// Files with `## …` sections get one CSV row-set per section (Section column);
+// sectionless files (needs-locations.md) get Section = '' — the same code path.
 const sections = [];
-let cur = null;
+let cur = { title: '', header: null, headerLine: -1, rows: [] };
 for (let i = 0; i < lines.length; i++) {
   const line = lines[i];
   const h2 = line.match(/^## (.+)$/);
-  if (h2) { cur = { title: h2[1], header: null, headerLine: -1, rows: [] }; sections.push(cur); continue; }
-  if (!cur || !line.startsWith('|')) continue;
+  if (h2) { if (cur.header) sections.push(cur); cur = { title: h2[1], header: null, headerLine: -1, rows: [] }; continue; }
+  if (!line.startsWith('|')) continue;
   const cells = line.split('|').slice(1, -1).map(c => c.trim());
   if (cells.length < 4) continue;
   if (cells[0] === 'Item') { cur.header = cells; cur.headerLine = i; continue; }
@@ -44,12 +46,12 @@ for (let i = 0; i < lines.length; i++) {
   if (!cur.header) continue;
   cur.rows.push(cells);
 }
+if (cur.header) sections.push(cur);
 
 if (!sections.length || sections.some(s => !s.header)) {
   console.error('could not find section tables (expected "## …" then a "| Item | …" header)');
   process.exit(1);
-}
-const widths = new Set(sections.map(s => s.header.length));
+}const widths = new Set(sections.map(s => s.header.length));
 if (widths.size > 1) {
   console.error(`tables disagree on column count: ${[...widths].join(', ')} — refusing to guess`);
   process.exit(1);

@@ -164,12 +164,15 @@ async function secUndo() {
 
   await openSettings();
   await page.waitForTimeout(200);
-  ok('⚙ opens the settings panel', await page.$eval('#settingsPanel', el => !el.hidden));
+  // native popover (top layer) or legacy hidden-attr fallback — both must read "open"
+  ok('⚙ opens the settings panel', await page.$eval('#settingsPanel',
+    el => el.matches(':popover-open') || !el.hidden));
   ok('algorithm select lives in the panel', await page.$eval('#settingsPanel', el => !!el.querySelector('#layoutSelect')));
   ok('density row lives in the panel', await page.$eval('#settingsPanel', el => !!el.querySelector('#densWrap')));
-  await page.evaluate(() => document.body.click()); // outside click closes
+  await page.mouse.click(400, 500); // real pointer click outside — light dismiss closes it
   await page.waitForTimeout(200);
-  ok('outside click closes it', await page.$eval('#settingsPanel', el => el.hidden));
+  ok('outside click closes it', await page.$eval('#settingsPanel',
+    el => !el.matches(':popover-open'))); // UA hides popovers via display:none, not [hidden]
 
   // re-layout OFF → toast with Undo → Undo restores ON
   await openSettings();
@@ -250,18 +253,19 @@ async function secLayouts() {
     [...document.querySelectorAll('#legend .lg-row')]
       .find(r => r.querySelector('span:last-child')?.textContent === 'Food').click();
   });
-  await page.waitForTimeout(4000); // settle the restore recompute
-
-  // live-physics layouts on the FULL map can blow up on loaded machines
-  // (documented probe battery failure: bounds ~46449×47122), so exercise the
-  // algorithm switch on an isolated subtree where physics is well-behaved
-  await page.evaluate(() => window.isolateTree('Iron Bar', null));
-  await page.waitForTimeout(1200);
+  await page.waitForTimeout(4000); // settle the restore recompute  // dagre bounds are asserted on the FULL map: the bundled/curated dagre
+  // snapshot and a fresh live dagre agree there (h > w, deterministic), while
+  // an isolated subtree fans out wide and low — h > w simply doesn't hold for
+  // 89 nodes in few layers, and racing reflows made the old assertion flaky
+  await closeSettings(); // Esc must not hit the open panel
+  await page.keyboard.press('Escape'); // clear isolation
+  await page.waitForTimeout(6500); // let the isolation-exit reflow settle
 
   await openSettings();
   // animate OFF: jump straight to final positions — animated layouts can
   // still be mid-flight when we measure on a loaded machine
   await page.evaluate(() => { document.getElementById('animToggle').checked = false; document.getElementById('animToggle').onchange(); });
+
   await page.waitForTimeout(2500);
   await page.evaluate(() => {
     const sel = document.getElementById('layoutSelect');
@@ -271,15 +275,13 @@ async function secLayouts() {
   await page.waitForTimeout(3000);
   const dagre = await page.evaluate(() => {
     const bb = window.__cy.nodes(':visible').boundingBox({});
-    return { w: Math.round(bb.w), h: Math.round(bb.h), algo: document.getElementById('layoutMeta').textContent };
+    return { w: Math.round(bb.w), h: Math.round(bb.h), n: window.__cy.nodes(':visible').length, algo: document.getElementById('layoutMeta').textContent };
   });
-  ok('dagre TB applied (layered bounds)', dagre.h > dagre.w && dagre.w > 0, `w=${dagre.w} h=${dagre.h}`);
+  ok('dagre TB applied (layered bounds)', dagre.h > dagre.w && dagre.w > 0, `w=${dagre.w} h=${dagre.h} n=${dagre.n}`);
   ok('readout shows dagre', /dagre/.test(dagre.algo));
   await page.screenshot({ path: 'cache/shots-ui/layout-dagre.png' });
 
   await page.evaluate(() => { document.getElementById('animToggle').checked = true; document.getElementById('animToggle').onchange(); }); // restore
-  await page.keyboard.press('Escape'); // clear isolation
-  await page.waitForTimeout(800);
 
   // saved positions toggle re-runs without a full physics pass
   await page.evaluate(() => { document.getElementById('savedToggle').checked = false; document.getElementById('savedToggle').onchange(); });

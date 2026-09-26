@@ -53,6 +53,14 @@ function nodeColor(n) { return kindColor[n.kind] || kindColor.other; }
 /* ── category filter state ───────────────────────────────────── */
 const activeCats = new Set(Object.keys(kindLabel));
 let showOrphans = false; // degree-0 items (drop-only, no recipes) hidden by default
+try {
+  const storedKinds = JSON.parse(localStorage.getItem('dw.legendKinds') || 'null');
+  if (Array.isArray(storedKinds)) {
+    activeCats.clear();
+    for (const k of storedKinds) if (k in kindLabel) activeCats.add(k); // drop stale kinds
+  }
+  showOrphans = localStorage.getItem('dw.showOrphans') === '1';
+} catch { /* corrupt storage → calm defaults */ }
 let selectedId = null;
 let isolatedRoot = null;
 let tracedId = null;
@@ -229,7 +237,20 @@ for (const e of D.edges) {
 // walk (plans, paths, traces, isolation, possessions) stay recipe-only.
 const REGION_EDGE_COLOR = 'rgba(140,200,170,0.30)'; // soft green — geography, not crafting
 const REGION_EDGE_SWATCH = '#8cc8aa';
-const CANON_REGIONS = ['Temple Woods', 'Bramblemead Valley', 'Fractured Plains', 'Bloodblight Swamp', 'Whispering Swamp', 'Ghornfell', 'Bleakfields Valley'];
+// Full Ashenfall location list (wiki page order — same list as
+// scripts/build-exports.mjs and the hand-annotation checklists). Hubs only
+// materialize for regions that found-in data actually names, so this can grow
+// ahead of the data without adding empty nodes.
+const CANON_REGIONS = [
+  'Temple Woods', 'Bramblemead Valley', 'Whispering Swamp', 'Ghornfell',
+  'Fractured Plains', 'Bloodblight Swamp', 'Stormtouched Highlands',
+  'Fellhollow', 'Bleakfields Valley', 'Forgotten Temple', "Dragon's Run",
+  'Emberwood', 'Witchwillow Range', "Hope's Fall", 'Lake of Lost Souls',
+  'Silverthorn Keep', 'Coalridge Pass', 'Dowdun Reach', 'The Approach',
+  'The Courtyard', 'The Nexus', 'The Library', 'The Grand Hall', 'The Garrison',
+  'The Pastures', 'The Menagerie', 'The Bastion', 'Umbral Sands',
+  'Alcarrid Oasis', 'Dunes of Uzzer', 'Manafem Plains', 'The Burning Spire',
+];
 const regionMembers = new Map(); // region → Map(item → Set(method))
 if (foundIn.size) {
   for (const [itemId, list] of foundIn) {
@@ -429,7 +450,8 @@ let progressPredictedMs = 0;
 function setProgress(pct) {
   const fill = document.getElementById('layoutIndBarFill');
   if (!fill) return;
-  fill.style.width = Math.min(100, Math.max(0, pct)).toFixed(1) + '%';
+  // scaleX instead of width — animating width thrashes layout; transform doesn't
+  fill.style.transform = `scaleX(${(Math.min(100, Math.max(0, pct)) / 100).toFixed(4)})`;
 }
 function startProgressBar(preset) {
   const bar = document.getElementById('layoutIndBar');
@@ -684,6 +706,27 @@ function runLayout(preset = currentLayout, { skipSaved = false, forceMain = fals
   // anchor the physics, or filtering would never re-tighten the view. The
   // explicit `eles` overrides any preset default.
   if (visibleOnly) opts.eles = cy.elements(':visible');
+  // small visible subgraphs: the preset gaps are tuned for the ~1,900-node map,
+  // so a 12-node solo view would lay out at map scale and zoom-to-fit renders
+  // specks. Compress the spacing proportionally (floored) below 80 nodes.
+  if (visibleOnly && opts.eles) {
+    const vn = opts.eles.nodes().length;
+    if (vn && vn < 80) {
+      const f = Math.max(0.22, Math.pow(vn / 80, 0.65));
+      const sc = v => v * f;
+      if (opts.nodeSeparation) opts.nodeSeparation = sc(opts.nodeSeparation);
+      if (opts.idealEdgeLength) opts.idealEdgeLength = sc(opts.idealEdgeLength);
+      if (opts.nodeRepulsion) opts.nodeRepulsion *= f * f; // repulsion is quadratic
+      if (opts.nodeSep) opts.nodeSep = sc(opts.nodeSep);
+      if (opts.rankSep) opts.rankSep = sc(opts.rankSep);
+      if (opts.edgeSep) opts.edgeSep = sc(opts.edgeSep);
+      if (typeof opts.spacing === 'number') opts.spacing = sc(opts.spacing);
+      if (typeof opts.inLayerSpacingFactor === 'number') opts.inLayerSpacingFactor = Math.max(1, opts.inLayerSpacingFactor * f);
+      if (opts.spacingFactor) opts.spacingFactor = Math.max(0.4, opts.spacingFactor * f);
+      if (opts.elk) for (const k of Object.keys(opts.elk))
+        if (/spacing/i.test(k) && typeof opts.elk[k] === 'number') opts.elk[k] = sc(opts.elk[k]);
+    }
+  }
   // current spacing — captured for 💾 custom snapshots (P3-1b)
   const curSpacing = opts.elk ? { between: opts.elk['elk.layered.spacing.nodeNodeBetweenLayers'], in: opts.elk['elk.spacing.nodeNode'] } : null;
   lastSpacing = curSpacing || lastSpacing;
@@ -994,10 +1037,12 @@ function lgSyncKind(k) {
   if (lgRows[k]) lgRows[k].classList.toggle('off', !activeCats.has(k));
   const chip = document.querySelector(`.chip[data-cat="${k}"]`); // hidden legacy chip mirrors
   if (chip) chip.classList.toggle('on', activeCats.has(k));
+  localStorage.setItem('dw.legendKinds', JSON.stringify([...activeCats])); // kinds survive reloads
 }
 for (const k of Object.keys(kindColor)) {
   lgRows[k] = lgMakeRow({
-    swatch: `<span class="lg-swatch" style="background:${kindColor[k]}"></span>`,
+    swatch: `<span class="lg-swatch" style="background:${kindColor[k]}"></span>` +
+      `<span class="lg-only" title="show ONLY ${kindLabel[k]} — click again to bring every kind back">only</span>`,
     label: kindLabel[k],
     on: activeCats.has(k),
     onclick: () => {
@@ -1006,6 +1051,26 @@ for (const k of Object.keys(kindColor)) {
       applyCategoryVisibility();
     },
   });
+  // "only" = solo filter: hide every other kind in one click; click again to restore
+  lgRows[k].querySelector('.lg-only').onclick = e => {
+    e.stopPropagation();
+    const solo = activeCats.size === 1 && activeCats.has(k);
+    for (const kk of Object.keys(kindLabel)) activeCats[solo ? 'add' : 'delete'](kk);
+    if (!solo) showOrphans = false; // a solo view means exactly one kind, no dead ends
+    for (const kk of Object.keys(lgRows)) lgSyncKind(kk);
+    lgDeadRow.classList.toggle('off', !showOrphans);
+    lgDeadRow.querySelector('.lg-check').textContent = showOrphans ? '◆' : '◇';
+    const oc = document.getElementById('orphansChip');
+    if (oc) oc.classList.toggle('on', showOrphans);
+    applyCategoryVisibility();
+    // a solo click must re-arrange regardless of the re-layout setting — keeping
+    // full-map positions would scatter the handful of shown nodes into specks.
+    // Restoring keeps the pre-solo positions unless auto-reflow is off (the solo
+    // run overwrote them with a tight cluster).
+    if (!solo || !autoRelayoutOn()) runLayout(currentLayout, { skipSaved: true, visibleOnly: true, reflow: false });
+    toast(solo ? 'Every kind is showing again'
+               : `Showing only ${kindLabel[k].toLowerCase()} — click “only” again to bring the rest back`);
+  };
 }
 // ── VIEW section: map-wide toggles that used to live in the header ──
 // (dead ends, possessions + count, show-all). The header keeps retired,
@@ -1021,6 +1086,7 @@ const lgDeadRow = lgMakeRow({
   on: showOrphans,
   onclick: () => {
     showOrphans = !showOrphans;
+    localStorage.setItem('dw.showOrphans', showOrphans ? '1' : '0');
     lgDeadRow.classList.toggle('off', !showOrphans);
     lgDeadRow.querySelector('.lg-check').textContent = showOrphans ? '◆' : '◇';
     const oc = document.getElementById('orphansChip');
@@ -1036,6 +1102,7 @@ function showEverything() {
   for (const k of Object.keys(kindColor)) activeCats.add(k);
   for (const k of Object.keys(lgRows)) lgSyncKind(k);
   showOrphans = true;
+  localStorage.setItem('dw.showOrphans', '1');
   document.getElementById('orphansChip').classList.add('on');
   lgDeadRow.classList.remove('off');
   lgDeadRow.querySelector('.lg-check').textContent = '◆';
@@ -1164,6 +1231,7 @@ document.querySelectorAll('.chip[data-cat]').forEach(chip => {
 document.getElementById('resetFilters').onclick = () => {
   for (const k of Object.keys(kindLabel)) activeCats.add(k);
   document.querySelectorAll('.chip[data-cat]').forEach(c => c.classList.add('on'));
+  localStorage.setItem('dw.legendKinds', JSON.stringify([...activeCats]));
   // ↺ All resets to the calm first-load view: dead ends hidden too, and the
   // Possessions focus dropped (owned marks themselves persist)
   showOrphans = false;
@@ -1267,6 +1335,31 @@ const autoRelayoutOn = () => { const t = document.getElementById('autoRelayout')
   const btn = document.getElementById('settingsBtn');
   const panel = document.getElementById('settingsPanel');
   if (!btn || !panel) return;
+  panel.addEventListener('click', e => e.stopPropagation());
+  if ('showPopover' in panel) {
+    // native popover: top layer (always above the node panel), light dismiss
+    // and Esc come free; the fixed coords below are only a fallback — where the
+    // CSS anchor positioning is supported it takes over placement
+    panel.addEventListener('beforetoggle', e => {
+      const open = e.newState === 'open';
+      btn.setAttribute('aria-expanded', String(open));
+      localStorage.setItem('dw.settingsOpen', open ? '1' : '0'); // reopen where the visitor left it
+    });
+    btn.onclick = e => {
+      e.stopPropagation();
+      if (panel.matches(':popover-open')) panel.hidePopover();
+      else {
+        if (!('anchorName' in document.documentElement.style)) {
+          const r = btn.getBoundingClientRect(); // top layer escapes the header — place manually
+          panel.style.top = Math.round(r.bottom + 8) + 'px';
+          panel.style.right = Math.max(8, Math.round(window.innerWidth - r.right)) + 'px';
+        }
+        panel.showPopover();
+      }
+    };
+    if (localStorage.getItem('dw.settingsOpen') === '1') btn.onclick({ stopPropagation() {} }); // restore across visits
+    return;
+  }
   let outsideCloser = null;
   const detach = () => {
     if (outsideCloser) { document.removeEventListener('click', outsideCloser); outsideCloser = null; }
@@ -1287,7 +1380,6 @@ const autoRelayoutOn = () => { const t = document.getElementById('autoRelayout')
     }
   };
   btn.onclick = e => { e.stopPropagation(); setOpen(panel.hidden); };
-  panel.addEventListener('click', e => e.stopPropagation());
   if (localStorage.getItem('dw.settingsOpen') === '1') setOpen(true); // restore across visits
 })();
 
@@ -1329,6 +1421,13 @@ if (savedToggle) {
     runLayout(currentLayout, { reflow: false });
   };
 }
+// ⟳ recompute the current arrangement from scratch — the explicit way to see the
+// current algorithm run live even when saved positions would otherwise apply
+const recalcBtn = document.getElementById('recalcBtn');
+if (recalcBtn) recalcBtn.onclick = () => {
+  runLayout(currentLayout, { skipSaved: true, reflow: false });
+  toast(`Recomputing the ${currentLayout} arrangement…`);
+};
 const densSlider = document.getElementById('densSlider');
 if (densSlider) {
   densSlider.value = densPct;

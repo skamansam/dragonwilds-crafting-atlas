@@ -146,7 +146,22 @@ for (const n of nodes) {
 // Canonical Ashenfall regions become kind=region hubs with interaction=region
 // spokes to member items. Deterministic order: canonical region list, then
 // member items sorted. Hubs sit at the centroid of their laid-out members.
-const CANON_REGIONS = ['Temple Woods', 'Bramblemead Valley', 'Fractured Plains', 'Bloodblight Swamp', 'Whispering Swamp', 'Ghornfell', 'Bleakfields Valley'];
+// Full Ashenfall location list (dragonwilds wiki page order — the same list the
+// hand-annotation checklists use). Exports only emit hubs for regions that
+// actually appear in found-in data, so new locations light up as they're
+// annotated; the app (site/app.js) keeps its own identical copy.
+const CANON_REGIONS = [
+  // divisions (never found-in values, kept out): Brynmoor, the north, the far
+  // north, the mountainous reach, the far south-east
+  'Temple Woods', 'Bramblemead Valley', 'Whispering Swamp', 'Ghornfell',
+  'Fractured Plains', 'Bloodblight Swamp', 'Stormtouched Highlands',
+  'Fellhollow', 'Bleakfields Valley', 'Forgotten Temple', "Dragon's Run",
+  'Emberwood', 'Witchwillow Range', "Hope's Fall", 'Lake of Lost Souls',
+  'Silverthorn Keep', 'Coalridge Pass', 'Dowdun Reach', 'The Approach',
+  'The Courtyard', 'The Nexus', 'The Library', 'The Grand Hall', 'The Garrison',
+  'The Pastures', 'The Menagerie', 'The Bastion', 'Umbral Sands',
+  'Alcarrid Oasis', 'Dunes of Uzzer', 'Manafem Plains', 'The Burning Spire',
+];
 const METHOD_LABEL = {
   mined: 'mined', chopped: 'chopped', picked: 'picked', farmed: 'farmed',
   caught: 'fished', drops: 'drops', chest: 'in chests', dungeon: 'in dungeons', other: 'found',
