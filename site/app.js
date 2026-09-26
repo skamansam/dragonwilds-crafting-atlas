@@ -1349,7 +1349,7 @@ const autoRelayoutOn = () => { const t = document.getElementById('autoRelayout')
       e.stopPropagation();
       if (panel.matches(':popover-open')) panel.hidePopover();
       else {
-        if (!('anchorName' in document.documentElement.style)) {
+        if (!CSS.supports('anchor-name: --a')) { // same predicate as the stylesheet's @supports
           const r = btn.getBoundingClientRect(); // top layer escapes the header — place manually
           panel.style.top = Math.round(r.bottom + 8) + 'px';
           panel.style.right = Math.max(8, Math.round(window.innerWidth - r.right)) + 'px';
