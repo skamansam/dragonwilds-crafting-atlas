@@ -521,13 +521,15 @@ function workerSupports(preset) {
 }
 // pre-warm the worker (and its capability probe) when the toggle is on
 if (workerOn()) getLayoutWorker().postMessage({ type: 'ping' });
-async function runWorkerLayout(preset, opts, timeoutMs = 120000) {
+async function runWorkerLayout(preset, opts, timeoutMs = 120000, eles = null) {
   const w = getLayoutWorker();
   if (!w) return { type: 'error', message: 'worker unavailable' };
   const jobId = ++workerJobId;
   workerActiveJobId = jobId; // the job a future supersede should cancel
-  const nodes = cy.nodes().map(n => ({ data: { id: n.id() }, position: { x: n.position().x, y: n.position().y } }));
-  const edges = cy.edges().map(e => ({ data: { source: e.source().id(), target: e.target().id() } }));
+  // eles: optional visible-only subset (graph-change reflows) — hidden nodes
+  // must not anchor the physics
+  const nodes = (eles ? eles.nodes() : cy.nodes()).map(n => ({ data: { id: n.id() }, position: { x: n.position().x, y: n.position().y } }));
+  const edges = (eles ? eles.edges() : cy.edges()).map(e => ({ data: { source: e.source().id(), target: e.target().id() } }));
   // functions (d3-force's linkId accessor) can't cross postMessage — strip them;
   // the worker re-injects the standard accessor for d3-force
   let safeOpts;
@@ -657,10 +659,13 @@ function upgradeToastWithUndo() {
     t.append(span, btn);
   }, 0);
 }
-function runLayout(preset = currentLayout, { skipSaved = false, forceMain = false, reflow = true } = {}) {
+function runLayout(preset = currentLayout, { skipSaved = false, forceMain = false, reflow = true, visibleOnly = false } = {}) {
   // auto-relayout off: skip live recomputes on graph/option changes, except
   // explicit user layout requests (algorithm select, density ✕, saved toggle)
   if (!reflow && !autoRelayoutOn()) return;
+  // graph-change reflows with nothing shown have nothing to arrange (class-
+  // based check: :visible lags the style pass)
+  if (visibleOnly && cy.nodes('.hidden').length === cy.nodes().length) return;
   // stop any in-flight layout so a new selection always wins — and kill its
   // progress bar: a superseded layout's layoutstop early-returns, so the bar
   // must not depend on that handler for cleanup
@@ -675,6 +680,10 @@ function runLayout(preset = currentLayout, { skipSaved = false, forceMain = fals
   // P1.5-2: per-preset simulation caps
   const cap = CAPS[preset];
   if (cap) Object.assign(opts, cap);
+  // graph-change reflows arrange only what is shown — hidden nodes must not
+  // anchor the physics, or filtering would never re-tighten the view. The
+  // explicit `eles` overrides any preset default.
+  if (visibleOnly) opts.eles = cy.elements(':visible');
   // current spacing — captured for 💾 custom snapshots (P3-1b)
   const curSpacing = opts.elk ? { between: opts.elk['elk.layered.spacing.nodeNodeBetweenLayers'], in: opts.elk['elk.spacing.nodeNode'] } : null;
   lastSpacing = curSpacing || lastSpacing;
@@ -688,6 +697,8 @@ function runLayout(preset = currentLayout, { skipSaved = false, forceMain = fals
   if (densWrap) densWrap.classList.toggle('off', !densRelevant);
   if (saveBtn) saveBtn.style.display = densRelevant ? '' : 'none';
   if (clearBtn) clearBtn.style.display = hasCustom ? '' : 'none';
+  const saveRow = document.querySelector('.s-save'); // hide the row when every button on it is hidden
+  if (saveRow) saveRow.style.display = (densRelevant || hasCustom) ? '' : 'none';
   if (saveBtn) saveBtn.onclick = () => {
     if (!curSpacing) { toast('Open an elk layered layout first — snapshots save its arrangement'); return; }
     pendingSave = { preset, dens: densPct };
@@ -734,10 +745,14 @@ function runLayout(preset = currentLayout, { skipSaved = false, forceMain = fals
   usingSavedPositions = false;
   usingCustomPositions = false;
   usingCuratedPositions = false;
-  if (savedMap) {
+  savedRunHidden = null; // live path: any pending reflow is meaningful again
+  const snapNote = document.getElementById('snapshotNote'); // ⚙ status line
+  if (savedMap && !visibleOnly) {
+    savedRunHidden = cy.nodes('.hidden').length; // reflows before any change must not supersede this run
     usingSavedPositions = true;
     usingCustomPositions = !!customMap && savedMap === customMap;
     usingCuratedPositions = !!curatedMap && savedMap === curatedMap;
+    if (snapNote) snapNote.textContent = 'arrangement: ' + (usingCustomPositions ? 'your saved view (💾)' : usingCuratedPositions ? 'shared curated view' : 'bundled snapshot');
     cy.batch(() => {
       for (const n of cy.nodes()) {
         const p = savedMap[n.id()];
@@ -764,6 +779,7 @@ function runLayout(preset = currentLayout, { skipSaved = false, forceMain = fals
     updateReadout();
     return;
   }
+  if (snapNote) snapNote.textContent = 'live-computed (no snapshot applied)';
   // P1-2 worker spike: compute off-thread, apply positions in one batch. The
   // page keeps animating/panning while physics chews in the background.
   // Supersede: a newer runLayout bumps the token; a stale worker result is
@@ -779,12 +795,13 @@ function runLayout(preset = currentLayout, { skipSaved = false, forceMain = fals
       try { getLayoutWorker().postMessage({ type: 'cancel', jobId: workerActiveJobId }); } catch {}
       workerActiveJobId = null;
     }
-    runWorkerLayout(preset, wOpts).then(res => {
+    runWorkerLayout(preset, wOpts, 120000, visibleOnly ? cy.elements(':visible') : null).then(res => {
       if (jobToken !== workerRunSeq) return; // superseded — drop the stale result
       if (res && res.type === 'done' && isSaneSnapshot(res.positions)) {
         usingSavedPositions = false; usingCustomPositions = false; usingCuratedPositions = false;
+        const placed = visibleOnly ? cy.nodes(':visible') : cy.nodes();
         cy.batch(() => {
-          for (const n of cy.nodes()) {
+          for (const n of placed) {
             const p = res.positions[n.id()];
             if (p) n.position({ x: p.x, y: p.y });
           }
@@ -906,11 +923,27 @@ function applyCategoryVisibility() {
 // isolation re-assertions settle once, not per batch.
 let reflowTimer = null;
 let bootPopulating = false; // the boot populate already runs the layout itself
+// state at the moment the last saved/curated run STARTED (hidden-node count);
+// a reflow that arrives before anything has actually changed (the boot-time
+// applyPossessions() call does this) must not cancel that run and force a
+// needless multi-second live recompute. Counts .hidden CLASSES (synchronous),
+// not ':visible' — the style engine applies display:none a beat later, so
+// :visible reads stale inside the same tick.
+let savedRunHidden = null;
 function scheduleReflow() {
   if (bootPopulating) return;
   if (!autoRelayoutOn()) return;
   clearTimeout(reflowTimer);
-  reflowTimer = setTimeout(() => runLayout(currentLayout), 180);
+  reflowTimer = setTimeout(() => {
+    // a saved/curated run is in flight and nothing has actually changed since
+    // it started → it already arranges exactly this graph; don't supersede it
+    if (savedRunHidden !== null && cy.nodes('.hidden').length === savedRunHidden) return;
+    // skipSaved + visibleOnly: a graph change must RECOMPUTE on what's shown —
+    // re-applying the bundled/curated snapshot would hold the full-graph
+    // positions (nothing moves), and a live compute that still anchors on the
+    // hidden nodes wouldn't re-tighten the remaining ones either
+    runLayout(currentLayout, { skipSaved: true, visibleOnly: true });
+  }, 180);
 }
 
 let fitTimer = null;

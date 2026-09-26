@@ -169,7 +169,10 @@ Everything below is also available **in the app** — press the **?** button in 
   superseded background job is cancelled outright, never queued behind your drag).
   **💾 saves the current arrangement as a custom
   snapshot** for that layout + density — it boots instantly from then on, shown as **·
-  custom** (a 💾 snapshot outranks the bundled one). **✕ clears it.** Snapshots that look
+  custom** (a 💾 snapshot outranks the bundled one). **✕ clears it.** In the ⚙ panel the
+  **💾 Save view / ⤓ Export / ✕ Clear** buttons sit under the density slider with a live
+  status line ("arrangement: your saved view (💾) / shared curated view / bundled snapshot /
+  live-computed"). Snapshots that look
   degenerate (captured mid-flight or corrupted) are detected and dropped rather than
   collapsing the map.
 - **Share & curate snapshots**: **⤓** downloads the saved 💾 snapshot as a self-describing

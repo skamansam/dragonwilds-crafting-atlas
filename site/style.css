@@ -421,6 +421,21 @@ header {
 #settingsPanel input[type="checkbox"] { margin-top: 2px; accent-color: var(--gold); flex: none; }
 #settingsPanel #densWrap { margin: 2px 0 4px; font-size: 12.5px; color: var(--muted); cursor: default; }
 #settingsPanel #densSlider { width: 78px; }
+#settingsPanel .s-note {
+  font-size: 10.5px; letter-spacing: 0.05em; color: var(--faint);
+  margin: 4px 0 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+#settingsPanel .s-save { display: flex; gap: 6px; margin: 2px 0 4px; }
+#settingsPanel .s-btn {
+  flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+  background: var(--bg1); border: 1px solid var(--line); border-radius: 8px;
+  color: var(--muted); font-family: var(--font-body); font-size: 12px; font-weight: 700;
+  padding: 6px 8px; cursor: pointer; transition: all 0.15s; white-space: nowrap;
+}
+#settingsPanel .s-btn:hover { border-color: var(--gold-dim); color: var(--ink); }
+#settingsPanel .s-btn.gold { color: var(--gold-bright); border-color: var(--gold-dim); }
+#settingsPanel .s-btn.gold:hover { background: rgba(226, 185, 92, 0.12); border-color: var(--gold); }
+#settingsPanel .s-btn.danger:hover { color: #e88; border-color: rgba(200, 90, 90, 0.4); }
 
 /* Undo affordance on settings toasts — the toast itself is pointer-events:none,
    only the button re-enables pointer events */

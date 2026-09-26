@@ -113,12 +113,15 @@
         <label id="savedToggleWrap" title="Use the precomputed layout positions bundled in site/layouts/ (instant); off always recomputes live">
           <input type="checkbox" id="savedToggle" checked> saved positions
         </label>
-        <label id="densWrap" title="Spread for the elk layered layouts — 100% is the tuned default. Drag to re-run live; 💾 saves the current arrangement as your instant-boot snapshot, ✕ clears it.">
+        <label id="densWrap" title="Spread for the elk layered layouts — 100% is the tuned default. Drag to re-run live.">
           <input type="range" id="densSlider" min="50" max="200" step="10" value="100" aria-label="Elk layout density"> density <span id="densVal">100%</span>
-          <button id="densSave" title="Save the current arrangement as a custom snapshot for this layout + density — it will boot instantly">💾</button>
-          <button id="densShare" title="Download the saved snapshot for this layout as a JSON file to share (merged into the atlas with scripts/merge-snapshots.mjs)">⤓</button>
-          <button id="densClear" title="Clear the saved custom snapshot for this layout">✕</button>
         </label>
+        <div class="s-note" id="snapshotNote">arrangement: bundled snapshot</div>
+        <div class="s-save">
+          <button id="densSave" class="s-btn gold" title="Save the current arrangement as your snapshot for this layout + density — it boots instantly from then on">💾 Save view</button>
+          <button id="densShare" class="s-btn" title="Download the saved snapshot for this layout as a JSON file to share (merged into the atlas with scripts/merge-snapshots.mjs)">⤓ Export</button>
+          <button id="densClear" class="s-btn danger" title="Clear your saved snapshot for this layout — the bundled/shared one applies again">✕ Clear</button>
+        </div>
         <div class="s-sep"></div>
         <div class="s-group">Behaviour</div>
         <label title="When the shown graph changes (filters, isolation, possessions), re-run the layout so nothing clumps — off keeps positions and lets nodes appear where they fit">

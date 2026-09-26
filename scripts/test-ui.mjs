@@ -209,7 +209,48 @@ async function secUndo() {
 /* ── layouts ───────────────────────────────────────────────────────────── */
 async function secLayouts() {
   console.log('layouts:');
+  await clearStorage(['dw.customLayouts']);
   await boot();
+
+  await openSettings();
+  ok('arrangement status line shows', /arrangement:/.test(await page.$eval('#snapshotNote', el => el.textContent)),
+    await page.$eval('#snapshotNote', el => el.textContent));
+
+  // 💾 Save view → reload (instant boot from it) → ✕ Clear
+  await page.evaluate(() => document.getElementById('densSave').click());
+  await page.waitForTimeout(700);
+  ok('💾 Save stores a custom snapshot', await page.evaluate(() =>
+    !!JSON.parse(localStorage.getItem('dw.customLayouts') || '{}')['elk-layered-wide@100']));
+  ok('status line shows your saved view', /your saved view/.test(await page.$eval('#snapshotNote', el => el.textContent)));
+  await boot();
+  ok('saved view survives reload', /your saved view/.test(await page.$eval('#snapshotNote', el => el.textContent)));
+  await page.evaluate(() => document.getElementById('densClear').click());
+  await page.waitForTimeout(1800);
+  ok('✕ Clear removes it', await page.evaluate(() =>
+    !JSON.parse(localStorage.getItem('dw.customLayouts') || '{}')['elk-layered-wide@100']));
+  ok('status back to bundled snapshot', /bundled snapshot/.test(await page.$eval('#snapshotNote', el => el.textContent)));
+
+  // graph-change reflow must RECOMPUTE — the old bug re-applied the static
+  // snapshot on every legend toggle, so nothing ever moved
+  const furnBefore = await page.evaluate(() => {
+    const p = window.__cy.getElementById('Furnace').position(); return { x: p.x, y: p.y };
+  });
+  await page.evaluate(() => {
+    [...document.querySelectorAll('#legend .lg-row')]
+      .find(r => r.querySelector('span:last-child')?.textContent === 'Food').click();
+  });
+  let reflowed = true;
+  await page.waitForFunction(prev => {
+    const p = window.__cy.getElementById('Furnace').position();
+    return Math.abs(p.x - prev.x) + Math.abs(p.y - prev.y) > 5;
+  }, furnBefore, { timeout: 25000, polling: 400 }).catch(() => { reflowed = false; });
+  ok('legend toggle recomputes layout', reflowed,
+    reflowed ? 'Furnace moved' : `Furnace stayed at ${JSON.stringify(furnBefore)}`);
+  await page.evaluate(() => {
+    [...document.querySelectorAll('#legend .lg-row')]
+      .find(r => r.querySelector('span:last-child')?.textContent === 'Food').click();
+  });
+  await page.waitForTimeout(4000); // settle the restore recompute
 
   // live-physics layouts on the FULL map can blow up on loaded machines
   // (documented probe battery failure: bounds ~46449×47122), so exercise the
