@@ -26,7 +26,7 @@
     </div>
     <div class="divider-v"></div>
 
-    <!-- centered column: search + shown-counts/algorithm info + arranging pill -->
+    <!-- centered row: search + shown-counts/algorithm info side by side -->
     <div class="header-center">
       <div class="search-wrap">
       <span class="search-icon">⌕</span>
@@ -61,7 +61,6 @@
          the ⚙ settings panel below -->
 
     <div class="layout-meta" id="layoutMeta"></div>
-    <div id="layoutInd"><span class="spin"></span><span id="layoutIndText">Arranging…</span><div id="layoutIndBar"><div id="layoutIndBarFill"></div></div></div>
     </div><!-- /header-center -->
 
     <div class="header-right">
@@ -141,6 +140,9 @@
 
   <div id="stage">
     <div id="cy"></div>
+
+    <!-- arranging pill: overlaid top-center on the graph so it stays visible -->
+    <div id="layoutInd"><span class="spin"></span><span id="layoutIndText">Arranging…</span><div id="layoutIndBar"><div id="layoutIndBarFill"></div></div></div>
 
     <div class="legend" id="legend">
       <div class="lg-title">CRAFTS</div>

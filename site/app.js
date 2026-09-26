@@ -406,7 +406,7 @@ function setLayoutIndicator(on, label) {
   const ind = document.getElementById('layoutInd');
   if (!ind) return;
   ind.classList.toggle('on', !!on);
-  if (label) document.getElementById('layoutIndText').textContent = label;
+  if (label) document.getElementById('layoutIndText').textContent = label.replace(/ Arranging\.\.\.$/, '');
   clearTimeout(layoutIndTimer);
   if (on) layoutIndTimer = setTimeout(() => ind.classList.remove('on'), animateOn ? 90000 : 25000); // safety net (spread/avsdf take 40-70s)
 }

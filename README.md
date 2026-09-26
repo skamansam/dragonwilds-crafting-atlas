@@ -194,7 +194,7 @@ Everything below is also available **in the app** — press the **?** button in 
   all 18 layout families, and any worker failure/timeout falls back to the main thread
   automatically. Measured on the full map: without the worker, a live density re-run freezes
   the UI for ~7.4s; with it, the worst frame is 16.8ms. Uncheck the box to opt out.
-- **Arranging indicator**: the gold pill in the header shows which algorithm is running and
+- **Arranging indicator**: the gold pill overlaid at the top of the graph shows which algorithm is running and
   spins — with a **live progress bar** — until it settles (up to 90s for the heavy ones).
   Deterministic layouts can't report their own progress, so the bar is time-calibrated: a
   per-preset seed table (measured on the full map) refined by an exponential moving average
