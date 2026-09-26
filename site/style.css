@@ -395,11 +395,12 @@ header {
   border-color: var(--gold-dim); color: var(--gold-bright); box-shadow: 0 0 12px rgba(226,185,92,0.18);
 }
 /* ⚙ panel is a native popover: top layer (always above the node panel), light
-   dismiss + Esc free. Two-tier placement: fallback = fixed coords set in JS;
-   where CSS anchor positioning is supported it overrides them. (z-index does
-   nothing in the top layer — dropped.) */
+   dismiss + Esc free. Two-tier placement: JS fallback sets fixed coords right
+   under the button; where CSS anchor positioning is supported, anchor() insets
+   take over via position-anchor. (z-index does nothing in the top layer.) */
 #settingsPanel {
   position: fixed; inset: auto; margin: 0;
+  position-anchor: --settings-btn; /* tie the panel to the ⚙ button */
   min-width: 295px; max-width: min(330px, calc(100vw - 32px));
   background: var(--panel); border: 1px solid var(--gold-dim); border-radius: var(--radius);
   box-shadow: var(--shadow); padding: 12px 14px; backdrop-filter: blur(6px);
@@ -407,7 +408,7 @@ header {
 #settingsBtn { anchor-name: --settings-btn; }
 @supports (anchor-name: --a) {
   #settingsPanel {
-    /* below the ⚙, spilling toward the viewport edge; flips at the bottom */
+    /* below the button, spilling toward the viewport edge; flips at edges */
     position-area: block-end span-inline-end;
     margin-top: 8px;
     position-try-fallbacks: flip-block, flip-inline;
@@ -824,13 +825,25 @@ body.path-arming #panelBody { pointer-events: none; }
 }
 #welcome .w-stats { display: flex; gap: 22px; justify-content: center; margin-top: 16px; font-size: 12px; color: var(--faint); }
 #welcome .w-stats b { color: var(--gold); font-family: var(--font-display); font-size: 15px; display: block; }
+/* contribute CTA — solid gold so the help-wanted ask is unmissable
+   (same gold-block language as the owned-count badge; dark-on-gold ≈ 10:1) */
 #welcome .w-contribute {
-  margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line);
-  font-size: 12px; color: var(--muted); line-height: 1.5;
+  margin-top: 16px; padding: 10px 16px 11px;
+  background: var(--gold);
+  border: 1px solid var(--gold-bright); border-radius: 8px;
+  box-shadow: 0 0 20px rgba(226, 185, 92, 0.28);
+  font-size: 12.5px; color: var(--bg0); line-height: 1.5;
 }
-#welcome .w-contribute b { color: var(--gold); }
-#welcome .w-contribute a { color: var(--gold); font-weight: 700; text-decoration: none; }
-#welcome .w-contribute a:hover { color: var(--gold-bright); text-decoration: underline; }
+#welcome .w-contribute .w-cta-label {
+  font-family: var(--font-display); font-size: 10.5px; font-weight: 700;
+  letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 2px;
+}
+#welcome .w-contribute b { color: var(--bg0); }
+#welcome .w-contribute a {
+  color: var(--bg0); font-weight: 700;
+  text-decoration: underline; text-underline-offset: 2px;
+}
+#welcome .w-contribute a:hover { text-decoration-thickness: 2px; }
 
 /* ── toast ──────────────────────────────────────────────────── */
 #toast {
