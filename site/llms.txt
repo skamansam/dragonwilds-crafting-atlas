@@ -1,0 +1,59 @@
+# Dragonwilds Crafting Atlas
+
+> An interactive crafting-dependency map of every item in RuneScape: Dragonwilds —
+> 1,963 nodes and 4,912 edges of recipes, stations, materials, skills and spells,
+> scraped from the Dragonwilds Wiki and rendered as one navigable graph. Static site,
+> no backend, no build step.
+
+## Overview
+
+The Atlas answers one question: *"What do I need to do to craft this thing from what I
+have now?"* Pick any item and the graph walks dependencies backwards to raw materials,
+the stations you must build, and the skills you must train.
+
+The page itself (`index.html` + `app.js`) is a client-side application built on
+Cytoscape.js; there is no server and no API — everything an agent or scraper could want
+lives in the static data files linked below. The dataset is regenerated from
+[dragonwilds.runescape.wiki](https://dragonwilds.runescape.wiki) by scripts in the
+repository, so the site is fully reproducible from source.
+
+Interactions worth knowing about: click a node to isolate its subtree, Shift+Click to
+add, type to search; the ⚙ panel offers force-directed / dagre / ELK layouts with
+snapshot save/restore. All data is non-commercial fan content used under the
+[RuneScape Fan Content Policy](https://www.jagex.com/en-GB/legal/fan-content).
+
+## Data
+
+The machine-readable core of the site. `data.json` is authoritative; the graphml and
+cyjs files are exports of it for desktop graph tools.
+
+- [data.json](https://rudeboy.dev/dragonwilds-crafting-atlas/data.json): the full dependency graph (~3 MB). `nodes[]` carry `id`, `name`, `kind` (material, station, tool, weapon, armour, food, drink, potion, spell, skill, trinket, ammo, resource, implicit, other) and a `wiki` URL; `edges[]` carry `source`/`target` and an `interaction` type — `craft` (recipe input), `spell` (cast cost), `skill-gate` (unlock ladder), `region` (found-here spoke).
+- [found-in.js](https://rudeboy.dev/dragonwilds-crafting-atlas/found-in.js): per-region gather annotations for Ashenfall's six populated regions — which items are found where and how they are gathered.
+- [data.graphml](https://rudeboy.dev/dragonwilds-crafting-atlas/data.graphml): the same graph as typed GraphML, importable into yEd, Gephi, NetworkX, igraph or Cytoscape.
+- [data.cyjs](https://rudeboy.dev/dragonwilds-crafting-atlas/data.cyjs): Cytoscape.js JSON export with a baked-in layered seed layout.
+
+## Documentation
+
+Repository documentation, served raw from GitHub:
+
+- [README](https://raw.githubusercontent.com/skamansam/dragonwilds-crafting-atlas/main/README.md): what the Atlas is for, how to run it locally, and the Cytoscape export workflow.
+- [PLAN.md](https://raw.githubusercontent.com/skamansam/dragonwilds-crafting-atlas/main/PLAN.md): the change log — every shipped increment and what is planned next.
+- [DESIGN.md](https://raw.githubusercontent.com/skamansam/dragonwilds-crafting-atlas/main/DESIGN.md): the design system — colour tokens, the Cinzel/Alegreya type pairing, spacing, component reference.
+- [PRODUCT.md](https://raw.githubusercontent.com/skamansam/dragonwilds-crafting-atlas/main/PRODUCT.md): product intent — audience, success criteria, non-goals, performance budget, legal constraints.
+
+## Contributing
+
+The dataset has known gaps, tracked as hand-editable checklists that keep human
+knowledge outside the generated pipeline:
+
+- [needs-locations.md](https://raw.githubusercontent.com/skamansam/dragonwilds-crafting-atlas/main/docs/checklists/needs-locations.md): 233 items with no found-in region on the wiki — each row wants a location.
+- [unknown-source.md](https://raw.githubusercontent.com/skamansam/dragonwilds-crafting-atlas/main/docs/checklists/unknown-source.md): 435 rows whose source is described only vaguely (e.g. "looted from metal salvage hotspots") — each wants a concrete region.
+
+A round-trip script (`scripts/checklist-csv.mjs`) converts these to CSV and merges
+edits back; the merge is idempotent and self-heals wiki links against `data.json`.
+
+## Optional
+
+- [atlas-style.xml](https://rudeboy.dev/dragonwilds-crafting-atlas/atlas-style.xml): Cytoscape Desktop vizmap style mirroring the web Atlas' node colours and shapes.
+- [layout-worker.js](https://rudeboy.dev/dragonwilds-crafting-atlas/layout-worker.js): the Web Worker that runs heavy layout computations off the main thread.
+- [RuneScape: Dragonwilds Wiki](https://dragonwilds.runescape.wiki): the upstream source of every fact in the dataset.
