@@ -237,6 +237,8 @@ header {
 }
 .layout-meta b { color: var(--muted); font-weight: 700; }
 .layout-meta .algo { color: var(--gold); letter-spacing: 0.04em; }
+/* ⏱ last-layout timing readout (duration + node count + "4s ago") */
+.layout-meta .ago { opacity: 0.7; }
 .layout-meta label { display: inline-flex; align-items: center; gap: 5px; cursor: pointer; user-select: none; }
 .layout-meta label.off { opacity: 0.4; cursor: default; }
 

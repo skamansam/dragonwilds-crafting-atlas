@@ -215,6 +215,15 @@ async function secLayouts() {
   await clearStorage(['dw.customLayouts']);
   await boot();
 
+  // ⏱ last-layout readout: header shows duration + node count of the last layout
+  await page.waitForFunction(() => !document.getElementById('layoutInd')?.classList.contains('on'), null, { timeout: 60000, polling: 250 });
+  await page.waitForTimeout(300);
+  ok('last-layout readout appears after boot layout', await page.evaluate(() => {
+    const el = document.getElementById('lastLayout');
+    return !!el && /last layout: [\d.]+s · [\d,]+ nodes/.test(el.textContent);
+  }), await page.$eval('#lastLayout', el => el.textContent).catch(() => '(absent)'));
+  const lastLayoutText1 = await page.$eval('#lastLayout', el => el.textContent).catch(() => '');
+
   await openSettings();
   ok('arrangement status line shows', /arrangement:/.test(await page.$eval('#snapshotNote', el => el.textContent)),
     await page.$eval('#snapshotNote', el => el.textContent));
@@ -253,7 +262,12 @@ async function secLayouts() {
     [...document.querySelectorAll('#legend .lg-row')]
       .find(r => r.querySelector('span:last-child')?.textContent === 'Food').click();
   });
-  await page.waitForTimeout(4000); // settle the restore recompute  // dagre bounds are asserted on the FULL map: the bundled/curated dagre
+  await page.waitForTimeout(4000); // settle the restore recompute
+  ok('last-layout readout refreshes after a recompute', await page.evaluate(t1 => {
+    const el = document.getElementById('lastLayout');
+    return !!el && el.textContent !== t1;
+  }, lastLayoutText1), await page.$eval('#lastLayout', el => el.textContent).catch(() => '(absent)'));
+  // dagre bounds are asserted on the FULL map: the bundled/curated dagre
   // snapshot and a fresh live dagre agree there (h > w, deterministic), while
   // an isolated subtree fans out wide and low — h > w simply doesn't hold for
   // 89 nodes in few layers, and racing reflows made the old assertion flaky

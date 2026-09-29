@@ -444,6 +444,7 @@ const PROGRESS_MS = {
   tidytree: 4000, 'tidytree-lr': 4000, klay: 15000,
 };
 const runTimes = {}; // preset -> EMA of observed durations (ms)
+let layoutT0 = 0;   // ⏱ start of the in-flight layout — feeds the last-layout readout
 let progressTimer = null;
 let progressT0 = 0;
 let progressPredictedMs = 0;
@@ -480,6 +481,61 @@ function stopProgressBar(preset, finished) {
     if (ms > 250 && ms < 120000) runTimes[preset] = runTimes[preset] ? runTimes[preset] * 0.6 + ms * 0.4 : ms;
   }
 }
+
+/* ── P: last-layout timer ────────────────────────────────────── */
+// Every completed layout records its wall-clock duration and the node count it
+// arranged; the header (next to the algorithm name) shows "last layout: 11.8s ·
+// 1,414 nodes". Reused for the live elapsed counter in the Arranging pill.
+let lastLayoutMs = 0;      // ms the last completed layout took (wall clock)
+let lastLayoutNodes = 0;   // node count it arranged
+let lastLayoutAt = 0;      // epoch ms when it finished (for a "· 4s ago" suffix)
+let layoutPillTimer = null; // live elapsed ticker inside the Arranging pill
+function fmtLayoutDur(ms) {
+  return (ms / 1000).toFixed(ms < 10000 ? 2 : 1) + 's';
+}
+function startLayoutPill() {
+  // tick the Arranging pill so slow layouts show elapsed time as they run,
+  // keeping the algorithm name: "Arranging · elk (worker) · 3.4s"
+  const t0 = performance.now();
+  stopLayoutPill();
+  const el = document.getElementById('layoutIndText');
+  const base = el && el.textContent ? el.textContent.replace(/…$/, '').trim() : 'Arranging';
+  layoutPillTimer = setInterval(() => {
+    if (!el) { stopLayoutPill(); return; }
+    const ms = performance.now() - t0;
+    if (ms > 120000) { stopLayoutPill(); return; } // safety net ran long ago — stop ticking
+    el.textContent = `${base} · ${fmtLayoutDur(ms)}`;
+  }, 250);
+}
+function stopLayoutPill() {
+  clearInterval(layoutPillTimer);
+  layoutPillTimer = null;
+}
+function recordLayoutDone(ms, nodeCount) {
+  // superseded in-flight runs must not overwrite a real completion's timing
+  if (ms > 0) { lastLayoutMs = ms; lastLayoutNodes = nodeCount; lastLayoutAt = Date.now(); }
+  stopLayoutPill();
+  updateReadout();
+}
+function setLayoutMetaDuration() {
+  // append/refresh the "last layout: 11.8s · 1,414 nodes · 4s ago" span
+  const meta = document.getElementById('layoutMeta');
+  if (!meta || lastLayoutMs <= 0) return;
+  const ago = lastLayoutAt ? Math.round((Date.now() - lastLayoutAt) / 1000) : 0;
+  const n = lastLayoutNodes > 0 ? ` · ${lastLayoutNodes.toLocaleString()} nodes` : '';
+  let el = document.getElementById('lastLayout');
+  if (!el) {
+    el = document.createElement('span');
+    el.id = 'lastLayout';
+    meta.appendChild(el);
+  }
+  el.innerHTML = `last layout: <b>${fmtLayoutDur(lastLayoutMs)}</b>${n}` +
+    (ago >= 2 ? ` · <span class="ago">${ago < 60 ? ago + 's ago' : Math.round(ago / 60) + 'm ago'}</span>` : '');
+}
+// refresh the "…s ago" suffix without re-rendering everything else
+setInterval(() => {
+  if (lastLayoutAt && !layoutRunning && document.getElementById('lastLayout')) setLayoutMetaDuration();
+}, 5000);
 
 let activeLayout = null;
 let savedLayouts = null;      // algo -> { x, y } map from site/layouts/manifest.js (P1.5-3)
@@ -693,6 +749,7 @@ function runLayout(preset = currentLayout, { skipSaved = false, forceMain = fals
   // must not depend on that handler for cleanup
   if (activeLayout) { try { activeLayout.stop(); } catch {} activeLayout = null; }
   stopProgressBar(null, false);
+  stopLayoutPill(); // a superseding run owns the Arranging pill from here on
   layoutRunning = true;
   upgradeToastWithUndo(); // a settings flip started this run — give its toast an Undo button
   const make = LAYOUTS[preset] || LAYOUTS['elk-layered-wide'];
@@ -815,6 +872,7 @@ function runLayout(preset = currentLayout, { skipSaved = false, forceMain = fals
     });
     layoutRunning = false;
     stopProgressBar(null, false); // saved path never fires layoutstop — stop the bar here
+    recordLayoutDone(performance.now() - layoutT0, cy.nodes(':visible').length); // ⏱ counts too
     setLayoutIndicator(false, `${usingCustomPositions ? 'custom' : usingCuratedPositions ? 'curated' : 'saved'} · ${preset}`); // brief flash
     setTimeout(() => { if (!layoutRunning) setLayoutIndicator(false); }, 1200);
     hideVeil();
@@ -832,6 +890,8 @@ function runLayout(preset = currentLayout, { skipSaved = false, forceMain = fals
     delete wOpts.animationDuration; delete wOpts.animationEasing;
     setLayoutIndicator(true, `Arranging · ${opts.name} (worker)…`);
     startProgressBar(preset);
+    layoutT0 = performance.now(); // ⏱ last-layout readout
+    startLayoutPill(); // live elapsed in the pill
     const jobToken = ++workerRunSeq;
     // cancel the job of any run this one supersedes — frees the single worker thread
     if (workerActiveJobId !== null) {
@@ -853,6 +913,7 @@ function runLayout(preset = currentLayout, { skipSaved = false, forceMain = fals
         layoutRunning = false;
         setLayoutIndicator(false);
         stopProgressBar(preset, true); // worker durations feed the same EMA
+        recordLayoutDone(performance.now() - layoutT0, (visibleOnly ? cy.nodes(':visible') : cy.nodes()).length); // ⏱ header readout
         hideVeil();
         if (!isolatedRoot) cy.fit(undefined, 60);
         updateReadout();
@@ -870,6 +931,8 @@ function runLayout(preset = currentLayout, { skipSaved = false, forceMain = fals
   }
   setLayoutIndicator(true, `Arranging · ${opts.name}${FORCE_LAYOUTS.has(preset) ? (forceDir ? ' · force' : ' · spread') : ''}…`);
   startProgressBar(preset); // live progress in the Arranging pill (time-calibrated)
+  layoutT0 = performance.now(); // ⏱ last-layout readout — starts at the same point
+  startLayoutPill(); // live elapsed in the pill
   // snapshot positions so we can detect algorithms that silently no-op
   // (e.g. elk-radial needs a rooted/tree graph — degenerate on the full DAG)
   const before = new Map(cy.nodes().map(n => [n.id(), n.position()]));
@@ -882,6 +945,7 @@ function runLayout(preset = currentLayout, { skipSaved = false, forceMain = fals
     usingSavedPositions = false;
     setLayoutIndicator(false);
     stopProgressBar(preset, true); // record duration → EMA refines the bar each run
+    recordLayoutDone(performance.now() - layoutT0, cy.nodes(':visible').length); // ⏱ header readout
     hideVeil();
     if (!isolatedRoot) cy.fit(undefined, 60);
     updateReadout();
@@ -1297,9 +1361,16 @@ function updateReadout() {
   const meta = document.getElementById('layoutMeta');
   if (meta) {
     const algo = (LAYOUTS[currentLayout] || LAYOUTS['elk-layered-wide'])().name;
+    // P: last-layout duration + the node count it arranged — the header-level
+    // answer to "why is relayout slow" (the count shows a plain reflow still
+    // arranges ~1,400 nodes with default filters, not just the selection)
+    const dur = lastLayoutMs > 0
+      ? `<span id="lastLayout">last layout: <b>${fmtLayoutDur(lastLayoutMs)}</b>${lastLayoutNodes > 0 ? ` · ${lastLayoutNodes.toLocaleString()} nodes` : ''}</span>`
+      : '';
     meta.innerHTML =
       `<span><b>${visible.toLocaleString()}</b> nodes shown · <b>${shownLinks.toLocaleString()}</b> links shown</span>` +
-      `<span>algorithm: <span class="algo">${esc(algo)}</span>${FORCE_LAYOUTS.has(currentLayout) ? (forceDir ? ' · force' : ' · spread') : ''}${usingCustomPositions ? ' · custom' : usingCuratedPositions ? ' · curated' : usingSavedPositions ? ' · saved' : ''}</span>`;
+      `<span>algorithm: <span class="algo">${esc(algo)}</span>${FORCE_LAYOUTS.has(currentLayout) ? (forceDir ? ' · force' : ' · spread') : ''}${usingCustomPositions ? ' · custom' : usingCuratedPositions ? ' · curated' : usingSavedPositions ? ' · saved' : ''}</span>` +
+      dur;
   }
 }
 
