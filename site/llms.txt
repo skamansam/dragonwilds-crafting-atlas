@@ -27,7 +27,7 @@ snapshot save/restore. All data is non-commercial fan content used under the
 The machine-readable core of the site. `data.json` is authoritative; the graphml and
 cyjs files are exports of it for desktop graph tools.
 
-- [data.json](https://rudeboy.dev/dragonwilds-crafting-atlas/data.json): the full dependency graph (~3 MB). `nodes[]` carry `id`, `name`, `kind` (material, station, tool, weapon, armour, food, drink, potion, spell, skill, trinket, ammo, resource, implicit, other) and a `wiki` URL; `edges[]` carry `source`/`target` and an `interaction` type — `craft` (recipe input), `spell` (cast cost), `skill-gate` (unlock ladder), `region` (found-here spoke).
+- [data.json](https://rudeboy.dev/dragonwilds-crafting-atlas/data.json): the full dependency graph (~3 MB). `nodes[]` carry `id`, `name`, `kind` (material, station, tool, weapon, armour, food, drink, potion, spell, skill, trinket, ammo, resource, implicit, other) and a `wiki` URL; `edges[]` run `from` (ingredient) → `to` (product) with `qty`, `facility`, `skill` and `xp` fields. The graph is a DAG except for three deliberate metal-recycling loops (Bronze/Silver/Gold Bar ⇄ Leaf); a cycle audit lives at `scripts/audit-cycles.mjs`.
 - [found-in.js](https://rudeboy.dev/dragonwilds-crafting-atlas/found-in.js): per-region gather annotations for Ashenfall's six populated regions — which items are found where and how they are gathered.
 - [data.graphml](https://rudeboy.dev/dragonwilds-crafting-atlas/data.graphml): the same graph as typed GraphML, importable into yEd, Gephi, NetworkX, igraph or Cytoscape.
 - [data.cyjs](https://rudeboy.dev/dragonwilds-crafting-atlas/data.cyjs): Cytoscape.js JSON export with a baked-in layered seed layout.
