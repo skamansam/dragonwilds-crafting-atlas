@@ -36,6 +36,7 @@ Current as of **2026-09-24**, after the found-in annotations + trace-makes commi
 | 17 | **Precomputed/preset layouts** (store positions per algorithm; Cytoscape desktop to author) *(added later)* | ✅ done | `scripts/gen-layouts.mjs` → `site/layouts/manifest.js` (elk-layered + cose-bilkent snapshots); **saved positions** toggle applies instantly, **· saved** badge; Desktop-authored configs drop into the manifest · `01faff1` |
 | 18 | **Path-to: top search panel** for picking the link target *(added later)* | ✅ done | Dedicated **Path-to bar** at the top of the map: pulsing gold while armed (source + instructions), calm summary with step count once resolved, ✕ cancel + Esc · (this commit); search-pick and map-tap targeting unchanged · `543d983` |
 | 19 | **Research: offload layouts to a service worker / worker thread** *(added later)* | ✅ done | Answered: dedicated Worker (not service worker); see row 10b + plan §3 P1-2 for the numbers and verdict. |
+| 20 | **Guided tour of the app** (driver.js or similar) — help-window link to it, plus a short list of scripted mini-tours that each answer one real question (e.g. search *Dark Mage Robes* → isolate the tree → read the from-nothing checklist) *(added later)* | ❌ todo | Plan §3 P5 — one tour engine drives the main tour and the mini-tours; library vendored (no CDN, no build step) |
 
 ---
 
@@ -219,6 +220,32 @@ this thing from what I have now?"** first; browsing second. Three deliverables:
   Implementation note: the panel's DOM persists after close (only hidden), so the
   select is the effective source of truth while it exists — isolateTree seeds it from
   storage at render time, and the no-panel fallback path reads storage directly.
+
+### P5 — guided tours (TODO #20, added 2026-09-29) — ❌ todo
+
+- **Library:** driver.js preferred — ~5 kB gzip, zero dependencies, MIT, popover-style
+  step highlights that fit the Atlas' dark-and-gold look. Vendor into `site/vendor/`
+  (PRODUCT.md constraints: static forever, no CDN at runtime, no build step).
+  Fallbacks if driver.js fights the app: shepherd.js (heavier, popper-based) or
+  intro.js (license is not MIT — check before use).
+- **Main tour** ("▶ Start the tour" link in the ? help window): search → click a node →
+  the codex panel → Shift+Click isolate (outputs only) → the Gather checklist → legend
+  kinds + "only" buttons → ⚙ layouts & snapshots → the path-to bar. ~8–10 steps,
+  skippable, each anchored to the real element it describes.
+- **Mini-tours** (listed beneath the main-tour link): scripted scenarios replayed by the
+  same engine — each is a small data object (search term → pick result → action), so new
+  tours are one object each. Candidates:
+  - **"What do I need to build Dark Mage Robes?"** — search "mage robes", select, isolate
+    tree (outputs only), read the from-nothing checklist. (There is no item literally
+    named "wizard robe" — the wiki's mage robes are *Dark Mage Robes*; the tour copy
+    should acknowledge the rename.)
+  - **"Where do I find iron?"** — search Iron Ore, open its region hub / found-in rows.
+  - **"What can I make with Ash Logs?"** — outputs-only isolate on a raw material.
+  - **"Plan a Blast Furnace"** — inputs-only isolate on a station.
+  - Consider `?tour=<name>` deep links for sharing.
+- **Acceptance:** runs clean on the deployed site (no new runtime deps), respects
+  evergreen-browser + no-build constraints, help window links the main tour and the
+  mini-tour list, and each step survives the responsive breakpoint (or is skipped there).
 
 ---
 
