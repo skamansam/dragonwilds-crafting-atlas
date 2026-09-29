@@ -2343,7 +2343,7 @@ function recipeCard(r) {
     <div class="recipe-head">
       ${facHTML}
       ${variant ? `<span class="recipe-variant">${esc(variant)}</span>` : ''}
-      ${r.skill ? `<span class="recipe-skill" ${SKILL_NAMES.has(r.skill) ? `data-goto="${esc(r.skill)}" style="cursor:pointer"` : ''}>${skillIcon(r.skill)}${esc(r.skill)}${r.xp ? ' +' + r.xp + 'xp' : ''}</span>` : ''}
+      ${r.skill ? `<span class="recipe-skill" ${SKILL_NAMES.has(r.skill) ? `data-goto="${esc(r.skill)}" style="cursor:pointer"` : ''}>${skillIcon(r.skill)}${esc(r.skill)}${r.xp === 0 ? ' <span class="xp-zero" title="No XP reward">+0xp</span>' : (r.xp ? ' +' + r.xp + 'xp' : '')}</span>` : ''}
     </div>
     <div class="recipe-mats">${r.inputs.map(i =>
       `<span class="mat" data-goto="${esc(i.name)}">${iconImg(i.name)}<span class="q">${i.qty}×</span><span class="mn">${esc(i.name)}</span></span>`

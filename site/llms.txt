@@ -17,9 +17,12 @@ lives in the static data files linked below. The dataset is regenerated from
 [dragonwilds.runescape.wiki](https://dragonwilds.runescape.wiki) by scripts in the
 repository, so the site is fully reproducible from source.
 
-Interactions worth knowing about: click a node to isolate its subtree, Shift+Click to
-add, type to search; the ⚙ panel offers force-directed / dagre / ELK layouts with
-snapshot save/restore. All data is non-commercial fan content used under the
+Interactions worth knowing about: click a node to open its codex panel (recipes,
+facilities, skills, a from-nothing Gather/Build/Train plan), Shift+Click to isolate its
+crafting tree, type to search; the ⚙ panel offers force-directed / dagre / ELK layouts
+with snapshot save/restore; scripted guided tours live in `site/tours.js`
+(deep-link `?tour=robes`, `?tour=outputs`, `?tour=inputs`). All data is non-commercial
+fan content used under the
 [RuneScape Fan Content Policy](https://www.jagex.com/en-GB/legal/fan-content).
 
 ## Data

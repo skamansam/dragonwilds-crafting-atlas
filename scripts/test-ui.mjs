@@ -3,7 +3,7 @@
 // pass/fail summary, and exits non-zero on any failure.
 //
 //   node scripts/test-ui.mjs              # full suite
-//   node scripts/test-ui.mjs smoke        # one section (smoke|panel|undo|layouts)
+//   node scripts/test-ui.mjs smoke        # one section (smoke|panel|undo|layouts|tours)
 //   node scripts/test-ui.mjs --url=...    # run against a deployed site instead
 //
 // Sections:
@@ -42,7 +42,7 @@ if (!urlArg) {
 }
 
 const only = process.argv.slice(2).filter(a => !a.startsWith('--'))[0] || null;
-const sections = ['smoke', 'panel', 'undo', 'layouts'].filter(s => !only || s === only);
+const sections = ['smoke', 'panel', 'undo', 'layouts', 'tours'].filter(s => !only || s === only);
 
 const results = [];
 let page, browser;
@@ -307,6 +307,64 @@ async function secLayouts() {
   await closeSettings();
 }
 
+/* ── tours ─────────────────────────────────────────────────────────────── */
+async function secTours() {
+  console.log('tours:');
+  await boot();
+
+  await page.click('#helpBtn');
+  await page.waitForTimeout(200);
+  ok('help window lists the guided tours', (await page.$$('.h-tour')).length === 4);
+
+  await page.click('.h-tour.gold');
+  await page.waitForSelector('.driver-popover', { timeout: 10000 });
+  ok('main tour starts from the help window',
+    (await page.$eval('.driver-popover-title', el => el.textContent)).includes('Welcome'));
+
+  const next = async () => { await page.click('.driver-popover-next-btn'); await page.waitForTimeout(450); };
+  await next(); await next(); // → the map step, whose action opens Iron Bar
+  await page.waitForTimeout(500);
+  ok('tour actions drive the app (codex opens)',
+    (await page.$eval('#panelTitle', el => el.textContent)) === 'Iron Bar');
+
+  await next(); await next(); // → isolate step
+  await page.waitForTimeout(900);
+  const iso = await page.evaluate(() => ({ shown: window.__cy.nodes(':visible').length, total: window.__cy.nodes().length }));
+  ok('isolate step collapses to the subtree', iso.shown < 200 && iso.shown > 10, `${iso.shown}/${iso.total}`);
+
+  let guard = 0;
+  while (await page.$('.driver-popover') && guard++ < 14) await next();
+  await page.waitForTimeout(800);
+  const after = await page.evaluate(() => ({
+    shown: window.__cy.nodes(':visible').length,
+    total: window.__cy.nodes().length,
+    search: document.getElementById('search').value,
+    gone: !document.querySelector('.driver-popover'),
+  }));
+  ok('closing the tour restores the full view', after.shown === after.total && after.search === '' && after.gone);
+
+  await page.evaluate(() => window.DW_TOURS.start('robes'));
+  await page.waitForSelector('.driver-popover', { timeout: 10000 });
+  await next(); // types "mage robes"
+  ok('robes tour types the search',
+    (await page.$eval('#search', el => el.value)) === 'mage robes'
+    && await page.$eval('#suggestions', el => el.classList.contains('open')));
+  await next(); // opens the codex
+  await page.waitForTimeout(500);
+  ok('robes tour opens the codex',
+    (await page.$eval('#panelTitle', el => el.textContent)) === 'Dark Mage Robes');
+  await page.click('.driver-popover-close-btn');
+  await page.waitForTimeout(700);
+  ok('mini-tour close cleans up', await page.evaluate(() =>
+    document.getElementById('search').value === '' && window.__cy.nodes(':visible').length === window.__cy.nodes().length));
+
+  await page.goto(`${BASE}/?tour=outputs`, { waitUntil: 'domcontentloaded' });
+  await page.waitForFunction(() => window.__cy && document.getElementById('veil').classList.contains('hidden'), null, { timeout: 120000, polling: 500 });
+  await page.waitForSelector('.driver-popover', { timeout: 15000 });
+  ok('?tour= deep link auto-starts',
+    (await page.$eval('.driver-popover-title', el => el.textContent)).includes('Ash Logs'));
+}
+
 try {
   browser = await chromium.launch();
   page = await browser.newPage({ viewport: { width: 1600, height: 950 } });
@@ -322,6 +380,7 @@ try {
     else if (s === 'panel') await secPanel();
     else if (s === 'undo') await secUndo();
     else if (s === 'layouts') await secLayouts();
+    else if (s === 'tours') await secTours();
   }
 } catch (e) {
   console.error('SUITE ERROR:', e.message);

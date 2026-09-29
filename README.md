@@ -66,7 +66,10 @@ Regenerate after a data refresh with `node scripts/build-exports.mjs`.
 ## Using the atlas
 
 Everything below is also available **in the app** — press the **?** button in the header
-(or the **?** key) for the built-in help.
+(or the **?** key) for the built-in help. The help window also lists the **guided tours**:
+a 10-step walkthrough of the whole atlas plus 30-second scripted mini-tours that each answer
+one real question (plan the *Dark Mage Robes*, see what *Ash Logs* make, price a *Blast
+Furnace*) — deep-linkable via `?tour=robes` and friends.
 
 ### The map
 

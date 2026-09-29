@@ -701,6 +701,9 @@ body.path-arming #panelBody { pointer-events: none; }
   display: inline-flex; align-items: center; gap: 4px;
 }
 .recipe-skill img { width: 14px; height: 14px; }
+/* honest zero: the wiki publishes 0 XP for some actions (potionMaking0 style rows);
+   show it explicitly, but quiet — distinct from "unknown" (absent) */
+.xp-zero { opacity: 0.55; font-size: 11px; }
 .recipe-mats { display: flex; flex-wrap: wrap; gap: 6px; }
 .mat {
   display: inline-flex; align-items: center; gap: 5px;
@@ -910,6 +913,85 @@ body.path-arming #panelBody { pointer-events: none; }
   margin-top: 18px; padding-top: 12px; border-top: 1px solid var(--line);
   text-align: center; color: var(--faint); font-size: 10.5px; line-height: 1.5;
 }
+
+/* ── guided tours (driver.js) ──────────────────────────────── */
+/* popover re-themed to the atlas' dark-and-gold tome look; driver.css loads
+   first, so these need no !important fights */
+.driver-popover {
+  background: var(--bg2);
+  color: var(--ink);
+  border: 1px solid var(--gold-dim);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  padding: 16px 18px;
+  max-width: 340px;
+  font-family: var(--font-body), sans-serif;
+}
+.driver-popover-title {
+  font-family: var(--font-display), serif;
+  font-size: 14.5px;
+  letter-spacing: 0.08em;
+  color: var(--gold-bright);
+  padding-right: 26px;
+}
+.driver-popover-description {
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--muted);
+}
+.driver-popover-description b, .driver-popover-description kbd {
+  color: var(--ink);
+  font-family: inherit;
+}
+.driver-popover-description kbd {
+  display: inline-block; padding: 0 6px; border: 1px solid var(--line);
+  border-bottom-width: 2px; border-radius: 6px; background: var(--bg3); font-size: 11.5px;
+}
+.driver-popover-close-btn { color: var(--faint); }
+.driver-popover-close-btn:hover, .driver-popover-close-btn:focus { color: var(--ink); }
+.driver-popover-progress-text { color: var(--faint); font-variant-numeric: tabular-nums; }
+.driver-popover-footer button {
+  background: var(--bg3);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 5px 12px;
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  text-shadow: none;
+}
+.driver-popover-footer button:hover, .driver-popover-footer button:focus { background: var(--bg2); border-color: var(--gold-dim); }
+.driver-popover-footer button:last-child {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: var(--bg0);
+  font-weight: 700;
+}
+.driver-popover-footer button:last-child:hover, .driver-popover-footer button:last-child:focus { background: var(--gold-bright); border-color: var(--gold-bright); }
+
+/* help window: the tours section */
+.h-tours {
+  margin-top: 20px; padding: 14px 16px;
+  border: 1px solid var(--gold-faint); border-radius: 12px;
+  background: var(--gold-faint);
+}
+.h-tour-title {
+  font-family: var(--font-display), serif; font-size: 11.5px; font-weight: 700;
+  letter-spacing: 0.2em; color: var(--gold); margin-bottom: 4px;
+}
+.h-tour-sub { margin: 0 0 10px; color: var(--muted); font-size: 12px; line-height: 1.5; }
+.h-tour-list { display: flex; flex-wrap: wrap; gap: 8px; }
+.h-tour {
+  padding: 6px 13px; border-radius: 8px; cursor: pointer;
+  border: 1px solid var(--line); background: var(--bg2); color: var(--ink);
+  font-family: inherit; font-size: 12.5px; font-weight: 600;
+}
+.h-tour:hover { border-color: var(--gold-dim); color: var(--gold-bright); }
+.h-tour.gold {
+  background: var(--gold); border-color: var(--gold); color: var(--bg0); font-weight: 700;
+}
+.h-tour.gold:hover { background: var(--gold-bright); border-color: var(--gold-bright); color: var(--bg0); }
 
 /* ── minimap ────────────────────────────────────────────────── */
 #minimap { position: absolute; right: 16px; bottom: 16px; z-index: 20; width: 170px; height: 120px; border: 1px solid var(--line); border-radius: 10px; background: rgba(10,12,17,0.7); backdrop-filter: blur(6px); }

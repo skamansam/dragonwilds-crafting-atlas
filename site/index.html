@@ -8,6 +8,7 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✦</text></svg>">
 <link rel="describedby" href="llms.txt">
 <link rel="stylesheet" href="fonts.css">
+<link rel="stylesheet" href="vendor/driver.css">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -269,6 +270,18 @@
             shows where you are — click it to jump.</p>
           </div>
         </div>
+
+        <div class="h-tours">
+          <div class="h-tour-title">✦ GUIDED TOURS</div>
+          <p class="h-tour-sub">Short scripted walkthroughs — each answers one real question. Your view is restored afterwards.</p>
+          <div class="h-tour-list">
+            <button class="h-tour gold" data-tour="main">▶ Start the tour</button>
+            <button class="h-tour" data-tour="robes">Plan Dark Mage Robes</button>
+            <button class="h-tour" data-tour="outputs">What can Ash Logs make?</button>
+            <button class="h-tour" data-tour="inputs">What does a Blast Furnace need?</button>
+          </div>
+        </div>
+
         <div class="h-legal">Created using intellectual property belonging to Jagex Limited under the terms of Jagex's Fan Content Policy. This content is not endorsed by or affiliated with Jagex.</div>
       </div>
     </div>
@@ -311,6 +324,8 @@
 <script src="layouts/manifest.js"></script>
 <script src="layouts/curated.js"></script>
 <script src="found-in.js"></script>
+<script src="vendor/driver.js"></script>
+<script src="tours.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
