@@ -155,6 +155,9 @@ fs.mkdirSync(new URL('../site/', import.meta.url).pathname, { recursive: true })
 fs.writeFileSync(new URL('../site/data.js', import.meta.url).pathname,
   'window.DW_DATA = ' + JSON.stringify(dataset) + ';');
 fs.writeFileSync(new URL('../cache/final-dataset.json', import.meta.url).pathname, JSON.stringify(dataset, null, 1));
+// strict-JSON copy for consumers that can't eval data.js (scripts, desktop tools);
+// fetch-icon-files.mjs rewrites both once icons are localized — keep them in lockstep
+fs.writeFileSync(new URL('../site/data.json', import.meta.url).pathname, JSON.stringify(dataset, null, 1));
 
 console.log('nodes:', nodes.length);
 console.log('spells:', spells.length, 'skills:', skills.length);

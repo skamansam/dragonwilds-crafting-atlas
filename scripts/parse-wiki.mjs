@@ -12,6 +12,29 @@ console.log(`Parsing ${files.length} raw pages...`);
 
 const INFOBOX_NAMES = new Set(['Infobox Item', 'Infobox Weapon', 'Infobox Armour', 'Infobox Tool', 'Infobox Build', 'Infobox Spell', 'Infobox Resource Node', 'Infobox Skill']);
 
+// XP template tables: {{ConstructionXP|Build_Wall_Tier1}} → concrete XP number.
+// The wiki's own {{Skill experience}} module resolves these against JSON data pages
+// (Module:Skill experience/data/<Skill>.json); fetch-xp-tables.mjs mirrors that here.
+const XP_TABLES = new Map();
+const XP_DIR = new URL('../cache/xp/', import.meta.url).pathname;
+for (const f of fs.existsSync(XP_DIR) ? fs.readdirSync(XP_DIR).filter(f => f.endsWith('.json')) : []) {
+  const rows = JSON.parse(fs.readFileSync(XP_DIR + f, 'utf8'))?.[0]?.Rows;
+  if (rows) XP_TABLES.set(f.slice(0, -5), rows);
+}
+function resolveXP(raw) {
+  if (raw == null || raw === '') return null;
+  const s = String(raw).trim();
+  const m = s.match(/^\{\{(\w+)XP\|([^}]+)\}\}$/);
+  if (!m) { const n = Number(s); return Number.isFinite(n) ? n : null; } // plain number (0 stays 0; junk → null)
+  const rows = XP_TABLES.get(m[1]);
+  if (!rows) { console.error(`unresolvable XP template: {{${m[1]}XP|${m[2]}}} (no table — run fetch-xp-tables.mjs)`); return null; }
+  const row = rows[m[2].trim()];
+  if (!row) { console.error(`unresolvable XP template: {{${m[1]}XP|${m[2]}}} (key not in table)`); return null; }
+  const xp = row.SkillXPList?.[0]?.XP;
+  if (typeof xp !== 'number') { console.error(`{{${m[1]}XP|${m[2]}}}: row has no numeric SkillXPList[0].XP`); return null; }
+  return xp;
+}
+
 // ---------- wikitext helpers ----------
 function findTemplates(wt, nameRegex) {
   // find candidate starts, then walk braces to the matching close.
@@ -338,7 +361,7 @@ for (const f of files) {
       facility,
       blueprint,
       skill: wikiLinks(args.skill || '')[0] || plainText(args.skill || '') || null,
-      xp: args.skillxp ? Number(args.skillxp) || args.skillxp : null,
+      xp: resolveXP(args.skillxp),
       notes: args.notes ? splitBr(args.notes).map(plainText) : [],
       variant,
       source: title,

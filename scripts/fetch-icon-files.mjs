@@ -45,6 +45,7 @@ for (const s of d.spells) if (s.icon && map.has(s.icon)) s.icon = map.get(s.icon
 for (const s of d.skills) if (s.icon && map.has(s.icon)) s.icon = map.get(s.icon);
 
 fs.writeFileSync(dataPath, JSON.stringify(d, null, 1));
+fs.writeFileSync(new URL('../site/data.json', import.meta.url).pathname, JSON.stringify(d, null, 1));
 fs.writeFileSync(new URL('../site/data.js', import.meta.url).pathname,
   'window.DW_DATA = ' + JSON.stringify(d) + ';');
 console.log('done. data.js rewritten with local icon paths');

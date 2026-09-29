@@ -233,9 +233,10 @@ The scraper pipeline (requires internet):
 
 ```bash
 node scripts/fetch-wiki.mjs        # ~3,650 raw wiki pages → cache/raw/
+node scripts/fetch-xp-tables.mjs   # wiki XP data tables → cache/xp/ (resolves {{ConstructionXP|…}} recipe args)
 node scripts/parse-wiki.mjs        # infoboxes + Recipe templates → cache/parsed/dataset.json
 node scripts/fetch-icons.mjs       # resolve icon URLs → cache/icons/manifest.json
-node scripts/build-data.mjs        # nodes/edges/recipes/spells/skills → site/data.js
+node scripts/build-data.mjs        # nodes/edges/recipes/spells/skills → site/data.js + site/data.json (fetch-icon-files rewrites both with local icon paths)
 node scripts/build-found-in.mjs    # location prose in cache/raw → site/found-in.js
 node scripts/build-exports.mjs     # site/data.js → data.cyjs + data.graphml + atlas-style.xml
 node scripts/fetch-icon-files.mjs  # download icons → site/icons/ (then shrink >60 KB files)
