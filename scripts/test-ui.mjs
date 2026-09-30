@@ -307,7 +307,10 @@ async function secLayouts() {
     sel.value = 'dagre';
     sel.dispatchEvent(new Event('change'));
   });
-  await page.waitForTimeout(3000);
+  // wait for the Arranging pill to turn OFF — a fixed 3s raced the worker on
+  // slower hosts and measured the previous arrangement's bounds
+  await page.waitForFunction(() => !document.getElementById('layoutInd')?.classList.contains('on'), null, { timeout: 45000, polling: 250 }).catch(() => {});
+  await page.waitForTimeout(400);
   const dagre = await page.evaluate(() => {
     const bb = window.__cy.nodes(':visible').boundingBox({});
     return { w: Math.round(bb.w), h: Math.round(bb.h), n: window.__cy.nodes(':visible').length, algo: document.getElementById('layoutMeta').textContent };
