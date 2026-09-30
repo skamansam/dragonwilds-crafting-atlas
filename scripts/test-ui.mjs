@@ -267,6 +267,27 @@ async function secLayouts() {
     const el = document.getElementById('lastLayout');
     return !!el && el.textContent !== t1;
   }, lastLayoutText1), await page.$eval('#lastLayout', el => el.textContent).catch(() => '(absent)'));
+
+  // ⏱ P21/P22: trace buttons GROW the visible tree — after an isolation (only
+  // the subtree visible), Trace inputs must REVEAL the traced ingredients (the
+  // old code only highlighted, so hidden nodes changed nothing on screen)
+  await page.evaluate(() => { window.isolateTree('Bread', 1); });
+  await page.waitForTimeout(2500); // isolation reflow settles
+  const isoShown = await page.evaluate(() => window.__cy.nodes(':visible').length);
+  await page.evaluate(() => { window.selectNode('Bread'); document.getElementById('btnTrace').click(); });
+  await page.waitForTimeout(600);
+  const afterTrace = await page.evaluate(() => window.__cy.nodes(':visible').length);
+  ok('trace inputs reveals hidden nodes (grows the isolated tree)', afterTrace > isoShown,
+    `isolation ${isoShown} -> trace ${afterTrace} nodes`);
+  await page.evaluate(() => { document.getElementById('btnTrace').click(); });
+  await page.waitForTimeout(600);
+  const afterTrace2 = await page.evaluate(() => window.__cy.nodes(':visible').length);
+  ok('second trace click expands one more level (cumulative)', afterTrace2 > afterTrace,
+    `${afterTrace} -> ${afterTrace2} nodes`);
+  // cleanup: Esc clears trace + isolation; re-show everything for the dagre section
+  await page.keyboard.press('Escape');
+  await page.evaluate(() => window.showEverything());
+  await page.waitForTimeout(6500); // settle the restore reflow
   // dagre bounds are asserted on the FULL map: the bundled/curated dagre
   // snapshot and a fresh live dagre agree there (h > w, deterministic), while
   // an isolated subtree fans out wide and low — h > w simply doesn't hold for

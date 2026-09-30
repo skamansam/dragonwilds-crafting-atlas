@@ -1163,6 +1163,7 @@ lgDeadRow.querySelector('.lg-check').textContent = showOrphans ? '◆' : '◇';
 // with every item row off there was no way to recover short of a reload)
 let lgAllRow = null; // assigned after the LINKS section is built
 function showEverything() {
+  resetTraceState(); // full view supersedes any in-progress expansion
   for (const k of Object.keys(kindColor)) activeCats.add(k);
   for (const k of Object.keys(lgRows)) lgSyncKind(k);
   showOrphans = true;
@@ -1624,6 +1625,7 @@ function selectNode(id, { fly = true } = {}) {
 function clearIsolation() {
   isolatedRoot = null;
   tracedId = null;
+  resetTraceState(); // an isolation is gone — any expansion grows from it no more
   cy.batch(() => {
     cy.nodes().removeClass('hidden traced').style({ opacity: '' });
     cy.edges().removeClass('hidden traced').style({ opacity: '' });
@@ -1653,6 +1655,7 @@ function isolateTree(id, depthOverride = null) {
     : (localStorage.getItem('dw.isoDir') || 'down'); // both | down | up
   if (dirEl) localStorage.setItem('dw.isoDir', dir);
   isolatedRoot = id;
+  resetTraceState(); // a fresh isolation is the new visible-tree base
   // breadth-first over recipe edges, up to `raw` steps (or until leaves),
   // honouring the chosen direction
   const keep = new Map([[id, 0]]);
@@ -1692,52 +1695,129 @@ function isolateTree(id, depthOverride = null) {
   toast(`Crafting tree of ${nodeById.get(id).name} · ${dirLabel} · depth ${raw === Infinity ? 'all' : raw} · ${keep.size - 1} items`);
 }
 
-function traceInputs(id) {
-  tracedId = id;
-  const keep = new Set([id]);
-  const stack = [id];
-  while (stack.length) {
-    const cur = stack.pop();
+/* ── P21/P22: progressive trace — trace buttons GROW the visible tree ── */
+// Old behaviour highlighted a full upstream/downstream closure; after an
+// isolation every highlighted node was hidden, so the buttons looked dead
+// (PLAN #21). New behaviour: the traced set SUPERSEDES visibility — it is
+// revealed (hidden removed), and each further click expands the visible tree
+// by ONE recipe level from its frontier (PLAN #22, user-confirmed):
+//   makes (down) → what the shown nodes go on to make (Bread → its sandwiches…)
+//   inputs (up)  → what the shown nodes are made from
+// State anchors on the clicked node and survives selection changes while the
+// direction stays the same; picking a node outside the traced set re-anchors.
+let traceRoot = null;        // node the trace was anchored on
+let traceDir = null;         // 'down' (makes) | 'up' (inputs)
+let traceLevels = new Map(); // id → depth from the anchor (0 = anchor)
+let traceDepth = 0;          // levels revealed so far
+function resetTraceState() {
+  traceRoot = null; traceDir = null; traceLevels = new Map(); traceDepth = 0;
+}
+function traceStep(id, dir) {
+  // re-anchor unless an active trace of the same direction already contains id
+  if (traceDir !== dir || traceRoot === null || !traceLevels.has(id)) {
+    traceRoot = id; traceDir = dir;
+    traceLevels = new Map([[id, 0]]);
+    traceDepth = 0;
+  }
+  // collect the next level: neighbours of the NEWEST frontier only.
+  // Skill-gate spokes (skill → everything it unlocks, same D.edges list as
+  // recipe edges) must not join the walk: an upstream trace would otherwise
+  // explode into a skill's ~200 unlock edges instead of recipe ingredients.
+  const next = [];
+  for (const [nid, d] of traceLevels) {
+    if (d !== traceDepth) continue;
     for (const e of D.edges) {
-      if (e.to === cur && !keep.has(e.from)) { keep.add(e.from); stack.push(e.from); }
+      const nb = dir === 'down' ? (e.from === nid ? e.to : null)
+                                : (e.to === nid ? e.from : null);
+      if (nb === null || traceLevels.has(nb)) continue;
+      const src = dir === 'down' ? nid : nb; // the edge's ingredient side
+      if (nodeById.get(src)?.kind === 'skill') continue;
+      traceLevels.set(nb, d + 1); next.push(nb);
     }
   }
+  if (!next.length) {
+    const other = dir === 'down' ? 'Trace inputs' : 'Trace makes';
+    toast(dir === 'down'
+      ? `Nothing further downstream — everything ${nodeById.get(id).name} leads to is shown. Use ${other} to expand what these are made from.`
+      : `Nothing further upstream — every ingredient of ${nodeById.get(id).name} is shown. Use ${other} to expand what they make.`);
+    return;
+  }
+  traceDepth++;
+  tracedId = id;
+  // P21: trace supersedes the current view — from an isolation it GROWS the
+  // visible tree (P22: what was shown stays shown, the new level joins it);
+  // from the full map it keeps the classic highlight look (fade + traced)
+  // while revealing kind-hidden traced nodes. Either way an active isolation
+  // ends here — the trace is the new visible context.
+  const grewFromIso = isolatedRoot !== null;
+  // hidden set BEFORE this click — every branch preserves it: the blanket
+  // class strip must not leak the previous view's hidden nodes into view
+  // (2nd click from a grown tree otherwise unhides the whole map)
+  const preHiddenIds = new Set(cy.nodes('.hidden').map(n => n.id()));
+  isolatedRoot = null;
+  document.getElementById('breadcrumb').classList.add('hidden');
+  const frontierSet = new Set(next);
   cy.batch(() => {
-    cy.elements().addClass('faded');
-    cy.nodes().forEach(n => { if (keep.has(n.id())) n.removeClass('faded').addClass('traced'); });
+    if (grewFromIso) {
+      // auto-reveal every kind so the grown tree supersedes the filters — the
+      // same courtesy isolateTree extends to the isolation
+      for (const k of Object.keys(kindLabel)) { activeCats.add(k); lgSyncKind(k); }
+      document.querySelectorAll('.chip[data-cat]').forEach(c => c.classList.add('on'));
+      showOrphans = false;
+      document.getElementById('orphansChip').classList.remove('on');
+    }
+    cy.nodes().forEach(n => {
+      const nid = n.id();
+      n.removeClass('hidden faded traced');
+      if (!traceLevels.has(nid)) {
+        if (preHiddenIds.has(nid)) n.addClass('hidden'); // stay hidden as before
+        if (!grewFromIso && !preHiddenIds.has(nid)) n.addClass('faded'); // classic highlight look
+      } else if (frontierSet.has(nid)) {
+        n.addClass('traced'); // gold = new this click
+      }
+    });
+    cy.getElementById(id).addClass('sel');
     cy.edges().forEach(e => {
-      if (keep.has(e.source().id()) && keep.has(e.target().id())) e.removeClass('faded').addClass('traced');
+      const s = traceLevels.get(e.source().id()), t = traceLevels.get(e.target().id());
+      // on-path edges connect consecutive levels in the walked direction
+      const onPath = s !== undefined && t !== undefined && Math.abs(s - t) === 1;
+      if (onPath) { e.removeClass('hidden faded').addClass('traced'); return; }
+      e.removeClass('traced faded');
+      const bothInTrace = s !== undefined && t !== undefined;
+      if (!grewFromIso) {
+        // classic highlight look: the traced closure un-fades, everything else fades
+        if (!bothInTrace) e.addClass('faded');
+      } else if (!bothInTrace) {
+        e.addClass('hidden'); // grow mode: edges leaving the traced set stay out
+      }
     });
   });
-  toast(`Inputs of ${nodeById.get(id).name} highlighted`);
+  if (grewFromIso) setTimeout(() => cy.fit(undefined, 70), 60);
+  updateReadout();
+  const dirLabel = dir === 'down' ? 'makes' : 'inputs';
+  toast(`${nodeById.get(id).name} · ${dirLabel} level ${traceDepth}: +${next.length} nodes · ${traceLevels.size - 1} total shown — click again to expand further`);
 }
 
-// forward trace (P4-2): everything this item feeds into — recipes it is an
-// ingredient of, plus whatever those outputs go on to make
-function traceOutputs(id) {
-  tracedId = id;
-  const keep = new Set([id]);
-  const stack = [id];
-  while (stack.length) {
-    const cur = stack.pop();
-    for (const e of D.edges) {
-      if (e.from === cur && !keep.has(e.to)) { keep.add(e.to); stack.push(e.to); }
-    }
-  }
-  const direct = new Set(D.edges.filter(e => e.from === id).map(e => e.to));
-  cy.batch(() => {
-    cy.elements().addClass('faded');
-    cy.nodes().forEach(n => { if (keep.has(n.id())) n.removeClass('faded').addClass('traced'); });
-    cy.edges().forEach(e => {
-      if (keep.has(e.source().id()) && keep.has(e.target().id())) e.removeClass('faded').addClass('traced');
-    });
-  });
-  toast(`Everything ${nodeById.get(id).name} makes: ${direct.size} direct, ${keep.size - 1} total downstream`);
-}
+function traceInputs(id) { traceStep(id, 'up'); }
+
+// forward trace (P4-2): everything this item feeds into — now progressive
+function traceOutputs(id) { traceStep(id, 'down'); }
 
 function clearTrace() {
   tracedId = null;
+  const hadTrace = traceRoot !== null;
+  resetTraceState();
   cy.elements().removeClass('faded traced');
+  // P22: trace now controls visibility (it supersedes isolation), so clearing
+  // it must restore the full map — otherwise traced-away nodes stay hidden
+  if (hadTrace) {
+    cy.batch(() => {
+      cy.nodes().removeClass('hidden').style({ opacity: '' });
+      cy.edges().removeClass('hidden').style({ opacity: '' });
+      applyCategoryVisibility();
+    });
+    fitSoon();
+  }
 }
 
 /* ── "From nothing" planner + two-node path query ───────────── */
