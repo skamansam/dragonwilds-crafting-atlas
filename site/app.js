@@ -994,6 +994,7 @@ function populate() {
       applyCategoryVisibility();
       applyEdgeVisibility();
       bootPopulating = false;
+      restoreTrace();
     });
     runLayout(); // the boot layout — never gated by the auto-relayout option
   } catch (e) {
@@ -1709,8 +1710,10 @@ let traceRoot = null;        // node the trace was anchored on
 let traceDir = null;         // 'down' (makes) | 'up' (inputs)
 let traceLevels = new Map(); // id → depth from the anchor (0 = anchor)
 let traceDepth = 0;          // levels revealed so far
+let traceGrewFromIso = false; // whether the trace superseded an isolation (visual mode)
 function resetTraceState() {
   traceRoot = null; traceDir = null; traceLevels = new Map(); traceDepth = 0;
+  traceGrewFromIso = false;
 }
 function traceStep(id, dir) {
   // re-anchor unless an active trace of the same direction already contains id
@@ -1750,6 +1753,7 @@ function traceStep(id, dir) {
   // while revealing kind-hidden traced nodes. Either way an active isolation
   // ends here — the trace is the new visible context.
   const grewFromIso = isolatedRoot !== null;
+  traceGrewFromIso = grewFromIso;
   // hidden set BEFORE this click — every branch preserves it: the blanket
   // class strip must not leak the previous view's hidden nodes into view
   // (2nd click from a grown tree otherwise unhides the whole map)
@@ -1796,6 +1800,7 @@ function traceStep(id, dir) {
   updateReadout();
   const dirLabel = dir === 'down' ? 'makes' : 'inputs';
   toast(`${nodeById.get(id).name} · ${dirLabel} level ${traceDepth}: +${next.length} nodes · ${traceLevels.size - 1} total shown — click again to expand further`);
+  saveTrace();
 }
 
 function traceInputs(id) { traceStep(id, 'up'); }
@@ -1808,6 +1813,7 @@ function clearTrace() {
   const hadTrace = traceRoot !== null;
   resetTraceState();
   cy.elements().removeClass('faded traced');
+  saveTrace(); // removes the stored key since traceRoot is now null
   // P22: trace now controls visibility (it supersedes isolation), so clearing
   // it must restore the full map — otherwise traced-away nodes stay hidden
   if (hadTrace) {
@@ -1818,6 +1824,119 @@ function clearTrace() {
     });
     fitSoon();
   }
+}
+
+/* ── P23: traceBack — collapse the deepest level ───────────── */
+// Mirrors the unit-tested traceBack math: drop the deepest level from
+// traceLevels, decrement traceDepth. Visually the removed frontier goes back
+// to hidden (grow-from-iso mode) or faded (classic highlight mode); the new
+// frontier (depth === traceDepth) gets the .traced gold highlight. When
+// traceDepth reaches 0 — only the anchor remains — clearTrace() restores the
+// full map.
+function traceBack() {
+  if (traceRoot === null) return;
+  if (traceDepth === 0) {
+    clearTrace();
+    return;
+  }
+  // collect + drop the deepest level
+  const removed = [];
+  for (const [nid, d] of traceLevels) {
+    if (d === traceDepth) { traceLevels.delete(nid); removed.push(nid); }
+  }
+  const removedSet = new Set(removed);
+  traceDepth--;
+  tracedId = traceRoot;
+  // new frontier = nodes at the new traceDepth
+  const frontierSet = new Set(
+    [...traceLevels.entries()].filter(([_, d]) => d === traceDepth).map(([id]) => id)
+  );
+  // currently hidden (category-hidden or hidden-by-traced) — keep them hidden
+  const preHiddenIds = new Set(cy.nodes('.hidden').map(n => n.id()));
+  cy.batch(() => {
+    cy.nodes().forEach(n => {
+      const nid = n.id();
+      n.removeClass('hidden faded traced');
+      if (!traceLevels.has(nid)) {
+        if (traceGrewFromIso || preHiddenIds.has(nid)) n.addClass('hidden');
+        else n.addClass('faded');
+      } else if (frontierSet.has(nid)) {
+        n.addClass('traced');
+      }
+      if (nid === traceRoot) n.addClass('sel');
+    });
+    cy.edges().forEach(e => {
+      const s = traceLevels.get(e.source().id()), t = traceLevels.get(e.target().id());
+      const onPath = s !== undefined && t !== undefined && Math.abs(s - t) === 1;
+      if (onPath) { e.removeClass('hidden faded').addClass('traced'); return; }
+      e.removeClass('traced faded');
+      const bothInTrace = s !== undefined && t !== undefined;
+      const touchesRemoved = removedSet.has(e.source().id()) || removedSet.has(e.target().id());
+      if (!bothInTrace || touchesRemoved) {
+        if (traceGrewFromIso) e.addClass('hidden');
+        else e.addClass('faded');
+      } else {
+        e.removeClass('hidden');
+      }
+    });
+  });
+  updateReadout();
+  const dirLabel = traceDir === 'down' ? 'makes' : 'inputs';
+  toast(`${nodeById.get(traceRoot).name} · ${dirLabel} level ${traceDepth} — ${traceLevels.size - 1} total shown`);
+  saveTrace();
+}
+
+/* ── trace persistence (localStorage dw.trace) ────────────────── */
+function saveTrace() {
+  if (traceRoot === null) { localStorage.removeItem('dw.trace'); return; }
+  localStorage.setItem('dw.trace', JSON.stringify({
+    root: traceRoot, dir: traceDir, levels: Array.from(traceLevels.entries()), depth: traceDepth,
+  }));
+}
+function restoreTrace() {
+  const raw = localStorage.getItem('dw.trace');
+  if (!raw) return;
+  let parsed;
+  try { parsed = JSON.parse(raw); } catch { return; }
+  if (!parsed.root || !parsed.dir) return;
+  traceRoot = parsed.root; traceDir = parsed.dir;
+  traceLevels = new Map(parsed.levels || []);
+  traceDepth = parsed.depth || 0;
+  traceGrewFromIso = false;
+  if (traceLevels.size === 0) { localStorage.removeItem('dw.trace'); return; }
+  if (!nodeById.has(traceRoot)) { localStorage.removeItem('dw.trace'); return; }
+  // Verify every traced node is actually in the graph — stale IDs from an old
+  // dataset version must not render partial traces
+  for (const nid of traceLevels.keys()) {
+    if (!nodeById.has(nid)) { localStorage.removeItem('dw.trace'); return; }
+  }
+  tracedId = traceRoot;
+  const frontierSet = new Set(
+    [...traceLevels.entries()].filter(([_, d]) => d === traceDepth).map(([id]) => id)
+  );
+  // nodes hidden by category/orphan filters before the trace — preserve that
+  const preHiddenIds = new Set(cy.nodes('.hidden').map(n => n.id()));
+  cy.batch(() => {
+    cy.nodes().forEach(n => {
+      const nid = n.id();
+      n.removeClass('hidden faded traced');
+      if (preHiddenIds.has(nid)) n.addClass('hidden');
+      else if (traceLevels.has(nid)) {
+        if (frontierSet.has(nid)) n.addClass('traced');
+      } else {
+        n.addClass('faded');
+      }
+      if (nid === traceRoot) n.addClass('sel');
+    });
+    cy.edges().forEach(e => {
+      const s = traceLevels.get(e.source().id()), t = traceLevels.get(e.target().id());
+      const onPath = s !== undefined && t !== undefined && Math.abs(s - t) === 1;
+      if (onPath) { e.removeClass('hidden faded').addClass('traced'); return; }
+      e.removeClass('traced faded');
+      if (!(s !== undefined && t !== undefined)) e.addClass('faded');
+    });
+  });
+  updateReadout();
 }
 
 /* ── "From nothing" planner + two-node path query ───────────── */
@@ -2398,6 +2517,8 @@ function renderPanelBody(n) {
     ${ownedBtnHTML(id)}
     <button class="btn" id="btnTrace">Trace inputs</button>
     <button class="btn" id="btnTraceOut" title="Highlight everything this item is used to make, directly or downstream">Trace makes ⤴</button>
+    <button class="btn" id="btnTraceBack" title="Step the trace back one level">Trace back ⤵</button>
+    <button class="btn" id="btnResetTrace" title="Clear trace highlights">Reset trace</button>
     <button class="btn primary" id="btnIsolate">Isolate tree</button>
     <input id="isoDepth" type="number" min="1" step="1" placeholder="all" title="How many recipe steps up & down to include. Empty = the whole tree."
            style="width:74px;flex:0 0 auto" />
@@ -2423,6 +2544,10 @@ function renderPanelBody(n) {
   if (bt) bt.onclick = () => traceInputs(id);
   const bto = document.getElementById('btnTraceOut');
   if (bto) bto.onclick = () => traceOutputs(id);
+  const btb = document.getElementById('btnTraceBack');
+  if (btb) btb.onclick = () => traceBack();
+  const btr = document.getElementById('btnResetTrace');
+  if (btr) btr.onclick = () => clearTrace();
   const bpt = document.getElementById('btnPathTo');
   if (bpt) bpt.onclick = () => armPath(id);
   const bpm = document.getElementById('btnPlanMode');

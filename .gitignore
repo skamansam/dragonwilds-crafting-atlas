@@ -1,6 +1,6 @@
 # build/test tooling
 node_modules/
-package.json
+# package.json is tracked now (holds dev tooling: vite, vitest, playwright)
 package-lock.json
 
 # scraper caches (regenerable via scripts/)

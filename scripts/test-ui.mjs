@@ -88,6 +88,20 @@ async function secSmoke() {
   await page.waitForTimeout(500);
   ok('trace inputs highlights', await page.evaluate(() => window.__cy.elements('.traced').length > 0));
 
+  // ⏱ P23: traceBack button steps the trace back one level; reset clears it
+  await page.click('#btnTraceOut'); // grow a second level (downward)
+  await page.waitForTimeout(500);
+  const depth2 = await page.evaluate(() => window.__cy.elements('.traced').length);
+  ok('trace out grows the frontier', depth2 > 0);
+  await page.click('#btnTraceBack');
+  await page.waitForTimeout(500);
+  const depth1 = await page.evaluate(() => window.__cy.elements('.traced').length);
+  ok('traceBack shrinks the frontier by one level', depth1 < depth2,
+    `depth ${depth2} -> ${depth1} traced elements`);
+  await page.click('#btnResetTrace');
+  await page.waitForTimeout(500);
+  ok('reset trace removes all highlights', await page.evaluate(() => window.__cy.elements('.traced').length === 0));
+
   await page.keyboard.press('Escape'); // close panel
   await page.waitForTimeout(300);
   // shift-tap on the canvas is hard to synthesize reliably; drive the same
@@ -284,6 +298,12 @@ async function secLayouts() {
   const afterTrace2 = await page.evaluate(() => window.__cy.nodes(':visible').length);
   ok('second trace click expands one more level (cumulative)', afterTrace2 > afterTrace,
     `${afterTrace} -> ${afterTrace2} nodes`);
+  // ⏱ P23: traceBack after growth should shrink the visible trace by one level
+  await page.evaluate(() => { document.getElementById('btnTraceBack').click(); });
+  await page.waitForTimeout(600);
+  const afterTraceBack = await page.evaluate(() => window.__cy.nodes(':visible').length);
+  ok('traceBack shrinks the isolated+traced tree by one level', afterTraceBack < afterTrace2,
+    `depth ${afterTrace2} -> ${afterTraceBack} visible nodes`);
   // cleanup: Esc clears trace + isolation; re-show everything for the dagre section
   await page.keyboard.press('Escape');
   await page.evaluate(() => window.showEverything());
