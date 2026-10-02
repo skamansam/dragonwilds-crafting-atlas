@@ -169,7 +169,7 @@
           action: () => { try { document.getElementById('btnTraceOut').click(); } catch (e) { /* noop */ } },
         },
         {
-          popover: { title: '✦ Downstream, mapped', description: 'Use it to judge what a material is worth hoarding for. <b>Trace inputs</b> does the mirror image (what went into a thing).' },
+          popover: { title: '✦ Downstream, mapped', description: 'Use it to judge what a material is worth hoarding for. <b>Trace inputs</b> does the mirror image (what went into a thing). Each click adds a level; <b>Trace back</b> (⤡) steps one level off, and <b>Clear</b> wipes it all.' },
         },
       ],
     },
@@ -188,7 +188,7 @@
           action: () => { try { document.getElementById('btnTrace').click(); } catch (e) { /* noop */ } },
         },
         {
-          popover: { title: '✦ Costed', description: 'Pair it with the plan button\'s <b>waypoint checklist</b> to actually work through the build. (Traces clear when the tour closes.)' },
+          popover: { title: '✦ Costed', description: 'Pair it with the plan button\'s <b>waypoint checklist</b> to actually work through the build. Each <b>Trace inputs</b> click adds a level; <b>Trace back</b> (⤡) steps one level off, <b>Trace makes</b> (⤴) reverses direction, and <b>Clear</b> wipes the whole trace. (Traces clear when the tour closes.)' },
         },
       ],
     },

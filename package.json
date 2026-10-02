@@ -2,6 +2,7 @@
   "name": "dragonwilds-crafting-atlas",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "description": "Interactive crafting tree map of every item in RuneScape: Dragonwilds",
   "scripts": {
     "dev": "vite",
@@ -15,6 +16,7 @@
     "lint": "biome check ."
   },
   "dependencies": {
+    "@t1ckbase/vscode-langservers-extracted": "^2.0.5",
     "json5": "^2.2.3"
   },
   "devDependencies": {

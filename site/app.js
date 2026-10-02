@@ -1717,10 +1717,12 @@ function resetTraceState() {
 }
 function traceStep(id, dir) {
   // re-anchor unless an active trace of the same direction already contains id
+  let reAnchored = false;
   if (traceDir !== dir || traceRoot === null || !traceLevels.has(id)) {
     traceRoot = id; traceDir = dir;
     traceLevels = new Map([[id, 0]]);
     traceDepth = 0;
+    reAnchored = true;
   }
   // collect the next level: neighbours of the NEWEST frontier only.
   // Skill-gate spokes (skill → everything it unlocks, same D.edges list as
@@ -1752,7 +1754,10 @@ function traceStep(id, dir) {
   // from the full map it keeps the classic highlight look (fade + traced)
   // while revealing kind-hidden traced nodes. Either way an active isolation
   // ends here — the trace is the new visible context.
-  const grewFromIso = isolatedRoot !== null;
+  // Re-anchoring: grewFromIso is true if this click started fresh from an
+  // isolation. Continuing an existing trace preserves the original value so
+  // traceBack() knows it was grown-from-iso (hide, not fade) on every level.
+  const grewFromIso = reAnchored ? isolatedRoot !== null : traceGrewFromIso;
   traceGrewFromIso = grewFromIso;
   // hidden set BEFORE this click — every branch preserves it: the blanket
   // class strip must not leak the previous view's hidden nodes into view
@@ -1796,7 +1801,7 @@ function traceStep(id, dir) {
       }
     });
   });
-  if (grewFromIso) setTimeout(() => cy.fit(undefined, 70), 60);
+  if (reAnchored && grewFromIso) setTimeout(() => cy.fit(undefined, 70), 60);
   updateReadout();
   const dirLabel = dir === 'down' ? 'makes' : 'inputs';
   toast(`${nodeById.get(id).name} · ${dirLabel} level ${traceDepth}: +${next.length} nodes · ${traceLevels.size - 1} total shown — click again to expand further`);
