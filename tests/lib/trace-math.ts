@@ -39,9 +39,19 @@ export function collectFrontier(
 			if (nb === null || traceLevels.has(nb)) continue;
 			// skill-gate edges (skill → unlocks) must not join the walk
 			const src = dir === "down" ? nid : nb;
-			if (nodeById.get(src)?.kind === "skill") continue;
-			traceLevels.set(nb, d + 1);
-			next.push(nb);
+		if (nodeById.get(src)?.kind === "skill") continue;
+		// Facility-aware frontier (TODO #23): for upstream INPUT traces the
+		// recipe's crafting station is a prerequisite at the same depth — collect
+		// it when the facility resolves to a station/tool node and isn't traced.
+		if (dir === "up" && e.facility && !traceLevels.has(e.facility)) {
+			const fnode = nodeById.get(e.facility);
+			if (fnode && (fnode.kind === "station" || fnode.kind === "tool")) {
+				traceLevels.set(e.facility, d + 1);
+				next.push(e.facility);
+			}
+		}
+		traceLevels.set(nb, d + 1);
+		next.push(nb);
 		}
 	}
 	return next;

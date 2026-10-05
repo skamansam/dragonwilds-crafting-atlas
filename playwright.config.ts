@@ -6,15 +6,15 @@ import { defineConfig, devices } from "@playwright/test";
 export default defineConfig({
 	testDir: "tests/e2e",
 	fullyParallel: false, // graph layouts are heavy; serialize to avoid contention
-	// The site is served either from the Vite dev server (npm run dev) or
-	// the existing in-process server (scripts/test-ui.mjs on :8491).
-	base: process.env.BASE_URL || "http://localhost:8491",
 	timeout: 60000,
 	expect: { timeout: 10000 },
 	retries: 1,
 	reporter: [["list"], ["html", { open: "never" }]],
 	use: {
-		base: process.env.BASE_URL || "http://localhost:8491",
+		// baseURL lets tests use relative paths (page.goto("/")). The site is served
+		// either from the Vite dev server (npm run dev), the in-process server
+		// (scripts/test-ui.mjs --serve-only on :8491), or BASE_URL for a deployment.
+		baseURL: process.env.BASE_URL || "http://localhost:8491",
 		viewport: { width: 1600, height: 950 },
 		// The app uses localStorage keys starting with "dw." — isolate per test
 		actionTimeout: 30000,

@@ -1,71 +1,71 @@
 # TODO:
 
-[x] First off, the graph is WAY too dense. I can't see or reead anything - it looks 
+[x] First off, the graph is WAY too dense. I can't see or reead anything - it looks
 — DENSITY PASS (P3-1): skill-gate edges now start hidden (1,477 fewer edges on first
 load, persisted preference), and the default cose-bilkent preset is airier
 (idealEdgeLength 135, nodeRepulsion 30000). Combined with the Dead-ends toggle and the
 saved-positions snapshot, the first view is readable.
 like a big blob with a bunch of stuff around it.
 
-[] The skill trees should be a part of the graph as well, so you know 
+[x] The skill trees should be a part of the graph as well, so you know
 what skill level you need.
 
-[] In the badges in the top, you can't unselect everything to get a blank screen.
+[x] In the badges in the top, you can't unselect everything to get a blank screen.
 
-[] when using the isolate tree function, all the nodes in the tree should 
+[x] when using the isolate tree function, all the nodes in the tree should
 automatically become visible.
 
-[] There should be a selector for the layout algorithm so we can see the graph in different ways.
+[x] There should be a selector for the layout algorithm so we can see the graph in different ways.
 
-[] There should be a layout algorithm that shows the graph as a top to bottom tree.
+[x] There should be a layout algorithm that shows the graph as a top to bottom tree.
 
-[] I would like for the ability to check off what I have and show only the things 
-I can reach. For instance, if I have the sawmill, I will be able to see only the 
+[x] I would like for the ability to check off what I have and show only the things
+I can reach. For instance, if I have the sawmill, I will be able to see only the
 things the sawmill can make or enable.
 
-[] the items in the How to make section of the info panel should be clickable and 
+[x] the items in the How to make section of the info panel should be clickable and
 would activate the corresponding node.
 
-[] The isolate tree functionality should show the items inouts and outputs all the way until 
-there are only leaf nodes left. 
+[x] The isolate tree functionality should show the items inouts and outputs all the way until
+there are only leaf nodes left.
 
-[] There should be some kind of feedback when the layout
+[x] There should be some kind of feedback when the layout
 is happening so users will knwo when there is a layout
 change. Currently, there is no way fo rhte user to knnow
 anything is happening. We should really try to get some background
 processing or threading done so it doesn't lock up the UI.
 
-[] There should be a number of links and nodes shown somewhere. I think you
-should move the DB counts in the right of the header to just under the title and search bar. 
+[x] There should be a number of links and nodes shown somewhere. I think you
+should move the DB counts in the right of the header to just under the title and search bar.
 Then show the links and nodes that are shown under the layout selction. Tihs should leave more
 room for the category filtering chits.
 
-[] Can you add the layout algorithm name in the layout dropdown, so we know 
-which one is being used. We also need a force-directed checkbox to let the 
-algorithm know it is force-directed. This force-directed approach may solve the 
+[x] Can you add the layout algorithm name in the layout dropdown, so we know
+which one is being used. We also need a force-directed checkbox to let the
+algorithm know it is force-directed. This force-directed approach may solve the
 issue of the cluster being too tight to read. There is an article on these at
-https://blog.js.cytoscape.org/2020/05/11/layouts/ . We need to add several layout 
+https://blog.js.cytoscape.org/2020/05/11/layouts/ . We need to add several layout
 options/algorithms: tidytree, breadfirst, klay, elk, cola, cise, and more, for testing.
 Do a google search for a bunch of these algorithms and we can decide which ones to keep.
 
-[] The changes to the isolate tree are not really useful. Can we add an input below the 
+[x] The changes to the isolate tree are not really useful. Can we add an input below the
 isolate tree button that shows how far deep to go, with a default of 3? It should
 show that depth forward and backwards in the tree.
 
-[] I don't know if this is a feedback issue, but when I select a new layout algorithm, the force
-directed algorithms continue to calculate layout and the selected algorithm does not appear to 
+[x] I don't know if this is a feedback issue, but when I select a new layout algorithm, the force
+directed algorithms continue to calculate layout and the selected algorithm does not appear to
 do anythng.
 
 [x] We should add a toggle for disabling animations for layouts. (add `animate: false` to the layout options) — DONE: **animate** checkbox in the header, persisted.
 
-[] It looks like physics-based layouts are taking forever. We can speed them up by running them in
+[x] It looks like physics-based layouts are taking forever. We can speed them up by running them in
 memory before showing them by adding  `maxIterations: 1000, maxSimulationTime: 3000` to the layout options.
 — PARTIAL: each extension exposes a different knob (`numIter` for bilkent/fcose,
 `maxSimulationTime`/`maxIterations` for cise/cola/euler); caps are now tuned per preset
 (a literal 1000/3000 was measured too tight for 1,408 nodes — cola needs 4s+). For the
 full speed-up, use **saved positions** (next item) or **animate off**.
 
-[] We can also have precaclulated layouts for the graphs. The available nodes should be 
+[x] We can also have precaclulated layouts for the graphs. The available nodes should be
 able to store a preset config for layouts. I can use the cytoscape desktop app to configure
 these, but if you could give me a start with what you think a good heirarchical layout would look like,
 please do.
@@ -84,8 +84,8 @@ the user to search for a node to link to.[x] We have feedback now for layouts, b
     chunks — the bar is time-calibrated (per-preset seed table + an EMA of your own
     finished runs) and decelerates into the last 5% so it always completes at layoutstop.
     It survives the supersede path too: switching presets mid-run (including into a
-    bundled-snapshot preset, where no layoutstop fires) stops the bar immediately.
-can you do some research to find out whether we can offload this to a service worker or some other 
+    bundled-snapshot preset, where no layoutstop fires) stops the bar immediately.
+can you do some research to find out whether we can offload this to a service worker or some other
 thread-like construct?
 
 [x] Where is each item found? Add region / gather-method / tool annotations to the info panel.
@@ -101,7 +101,7 @@ thread-like construct?
     **Trace makes ⤴** button highlights the full downstream subtree on the map (direct +
     transitive) with a count toast, mirroring Trace inputs.
 
-[] Explore-tree isolation may be too greedy — the both-direction walk-to-leaves pulls in
+[x] Explore-tree isolation may be too greedy — the both-direction walk-to-leaves pulls in
     nearly the whole graph for hub items (e.g. any bar/log). Consider a direction-dominant
     walk or a default depth cap, or leave full-tree as an explicit choice. (Isolation is
     intentionally left as-is for now — parked, not rejected.)
@@ -110,3 +110,15 @@ thread-like construct?
     the both-walk is a 1,408-node knot (72% of the map) for every hub item, while
     outputs-only is 89 nodes for Iron Bar, 297 for Ash Logs. Toast reports direction +
     item count. Depth caps compose with the direction. A stored choice (incl. both) wins.
+
+[x] The trace inputs algorithm isn't quite working properly. Click on isolate tree for Draconic
+   staff, then click trace inputs and you get iron bar, granite, jade, vault shard. Then trace again
+   and it shows iron ore and iron salvage for the iron bar. Clicking trace inputs again says there
+   is nothing further upstream. However, it says in the build section of draconic staff that the
+   mystic Forge and Furnace are needed, but they do not show up in the graph. These should be there.
+   Clicking again after those items are shown should reveal what is needed to make them, and on and on.
+
+[] We should keep track of graph state (layout, settings, owned items, etc.) according to cahracter. On startup, if there is not a character already saved,  we need to ask for it. If there is already saved data and no character, we ask if we want the
+saved data stored with that character. The character should have the character's total level next to it, which is calculated
+by adding up the current level of all the skills. This measn for the base skill nodes, we need a way to keep track of the
+skill level for each base node.

@@ -6,9 +6,14 @@ package-lock.json
 # scraper caches (regenerable via scripts/)
 cache/
 
+# Playwright artifacts (regenerable)
+playwright-report/
+test-results/
+
 # OS cruft
 .DS_Store
 Thumbs.db
 
 # agent workspace
 .freebuff/
+.aider*

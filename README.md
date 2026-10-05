@@ -248,6 +248,22 @@ node scripts/test-ui.mjs           # full Playwright UI suite (serves site/ itse
 node scripts/build-location-checklists.mjs  # missing find spots → docs/checklists/*.md
 ```
 
+### Tests
+
+Three layers, no build step:
+
+```bash
+npx vitest run              # Gherkin/cucumber — trace math, persistence, collapse, facilities
+npx playwright test         # Playwright e2e — boots site/ via scripts/test-ui.mjs --serve-only
+node scripts/test-ui.mjs    # broad acceptance suite (serves site/ itself)
+```
+
+Every scenario is Gherkin (`tests/features/*.feature`) with its step definitions
+beside it (`tests/features/*.spec.ts`), driving the shared pure helpers in
+`tests/lib/trace-math.ts`. The Playwright specs in `tests/e2e/` cover the core
+browser flows (boot, search → codex, isolate, trace, layout selection, persisted
+settings, guided-tour deep links, console cleanliness).
+
 ### Location checklists — the hand-annotation loop
 
 The found-in parser is best-effort: many items end up with a gather method but no

@@ -553,6 +553,7 @@ const savedToggleOn = () => { const t = document.getElementById('savedToggle'); 
 let layoutWorker = null;
 let workerJobId = 0;
 let workerRunSeq = 0;   // runLayout-generation token — stale worker results are dropped
+let layoutRunSeq = 0;   // main-thread supersede token — a superseded async layout must not write positions
 const workerJobs = new Map(); // jobId → resolve, for in-flight (supersede-safe) jobs
 // Drag-storm control (density slider): a superseded worker job is CANCELLED
 // (layout.stop() in the worker) instead of running to completion — the worker is
@@ -652,7 +653,14 @@ function isSaneSnapshot(map) {
     if (p.x < x1) x1 = p.x; if (p.x > x2) x2 = p.x;
     if (p.y < y1) y1 = p.y; if (p.y > y2) y2 = p.y;
   }
-  return x2 - x1 > 400 && y2 - y1 > 400;
+  // required spread scales with node count. A flat >400px floor rejected valid
+  // SMALL results: an isolated subtree (and the worker result that arranges it)
+  // legitimately spans only a few hundred px, so a 15-node layout at 444x224 was
+  // treated as degenerate and its worker result was discarded. Full-map
+  // snapshots (~2k nodes) keep effectively the same floor, so the mid-flight
+  // blob guard is unchanged for them.
+  const minExtent = Math.min(400, Math.max(16, Math.sqrt(ids.length) * 20));
+  return x2 - x1 > minExtent && y2 - y1 > minExtent;
 }
 // 💾 arms this, and the positions are captured at layoutstop — never mid-flight
 let pendingSave = null;
@@ -668,7 +676,7 @@ function doCustomSave(preset, spacing, dens) {
   all[`${preset}@${dens}~meta`] = { spacing, savedAt: Date.now() };
   try { localStorage.setItem('dw.customLayouts', JSON.stringify(all)); } catch { toast('Could not save — browser storage is full'); return; }
   toast(`Arrangement saved for ${preset} @ ${dens}% — it boots instantly from now on`);
-  runLayout(preset);
+  runLayout(preset, { reflow: false });
 }
 function loadSavedLayouts() {
   if (savedLayouts || window.DW_LAYOUTS === undefined) return savedLayouts || null;
@@ -738,16 +746,31 @@ function upgradeToastWithUndo() {
   }, 0);
 }
 function runLayout(preset = currentLayout, { skipSaved = false, forceMain = false, reflow = true, visibleOnly = false } = {}) {
-  // auto-relayout off: skip live recomputes on graph/option changes, except
-  // explicit user layout requests (algorithm select, density ✕, saved toggle)
-  if (!reflow && !autoRelayoutOn()) return;
+  // auto-relayout off: skip automatic graph-change reflows, but explicit user
+  // layout requests (algorithm select, density slider/✕, force/anim/saved
+  // toggles, recalc, boot) pass reflow:false so they always run
+  if (reflow && !autoRelayoutOn()) return;
   // graph-change reflows with nothing shown have nothing to arrange (class-
   // based check: :visible lags the style pass)
   if (visibleOnly && cy.nodes('.hidden').length === cy.nodes().length) return;
-  // stop any in-flight layout so a new selection always wins — and kill its
-  // progress bar: a superseded layout's layoutstop early-returns, so the bar
-  // must not depend on that handler for cleanup
-  if (activeLayout) { try { activeLayout.stop(); } catch {} activeLayout = null; }
+  // supersede every in-flight run BEFORE this one touches positions:
+  //  · bump the main-thread token — a superseded async layout still calls
+  //    layoutPositions when its promise resolves (elk's stop() is a no-op), and
+  //    those position WRITES happen before layoutstop, so the handler guard
+  //    below cannot stop them; the token-checked transform can
+  //  · bump the worker generation and cancel its job — otherwise a late worker
+  //    result would land on top of this arrangement
+  //  · null activeLayout BEFORE stop(): stop() may emit layoutstop
+  //    synchronously, and that must not be mistaken for a completion
+  const myRunSeq = ++layoutRunSeq;
+  ++workerRunSeq;
+  if (workerActiveJobId !== null) {
+    try { getLayoutWorker().postMessage({ type: 'cancel', jobId: workerActiveJobId }); } catch {}
+    workerActiveJobId = null;
+  }
+  const prevLayout = activeLayout;
+  activeLayout = null;
+  if (prevLayout) { try { prevLayout.stop(); } catch {} }
   stopProgressBar(null, false);
   stopLayoutPill(); // a superseding run owns the Arranging pill from here on
   layoutRunning = true;
@@ -814,7 +837,7 @@ function runLayout(preset = currentLayout, { skipSaved = false, forceMain = fals
     delete all[preset + '~meta'];
     try { localStorage.setItem('dw.customLayouts', JSON.stringify(all)); } catch {}
     toast(`Custom snapshot cleared for ${preset} @ ${densPct}%`);
-    runLayout(preset, { reflow: false });
+    runLayout(preset, { reflow: false, visibleOnly: true });
   };
   // ⤓ share: export the current 💾 snapshot so it can be merged into the
   // site's curated set (scripts/merge-snapshots.mjs)
@@ -825,10 +848,16 @@ function runLayout(preset = currentLayout, { skipSaved = false, forceMain = fals
   }
   // P1.5-3: precomputed positions — instant, deterministic, no physics
   // precedence: own 💾 snapshot → curated snapshot → bundled manifest
-  const customMap = skipSaved ? null : (cl[densKey(preset)] || cl[preset] || null);
+  // an isolated view has no meaningful full-map snapshot: applying bundled or
+  // curated positions holds every node where the whole map put it (the visible
+  // subtree never re-tightens) and drags the hidden majority along too. Explicit
+  // layout selections on an isolated view therefore skip snapshots and recompute
+  // on the visible subtree — the same thing graph-change reflows already do.
+  const isolatedSkipSaved = skipSaved || (visibleOnly && !!isolatedRoot);
+  const customMap = isolatedSkipSaved ? null : (cl[densKey(preset)] || cl[preset] || null);
   const cu = loadCuratedLayouts();
   const curatedMap = (cu[densKey(preset)] || cu[preset] || null);
-  let savedMap = (savedToggleOn() && !skipSaved && (customMap || curatedMap || (loadSavedLayouts() && loadSavedLayouts()[preset]))) || null;
+  let savedMap = (savedToggleOn() && !isolatedSkipSaved && (customMap || curatedMap || (loadSavedLayouts() && loadSavedLayouts()[preset]))) || null;
   if (savedMap && !isSaneSnapshot(savedMap)) {
     if (customMap) {
       const all = loadCustomLayouts();
@@ -847,7 +876,7 @@ function runLayout(preset = currentLayout, { skipSaved = false, forceMain = fals
   usingCuratedPositions = false;
   savedRunHidden = null; // live path: any pending reflow is meaningful again
   const snapNote = document.getElementById('snapshotNote'); // ⚙ status line
-  if (savedMap && !visibleOnly) {
+  if (savedMap) {
     savedRunHidden = cy.nodes('.hidden').length; // reflows before any change must not supersede this run
     usingSavedPositions = true;
     usingCustomPositions = !!customMap && savedMap === customMap;
@@ -880,7 +909,9 @@ function runLayout(preset = currentLayout, { skipSaved = false, forceMain = fals
     updateReadout();
     return;
   }
-  if (snapNote) snapNote.textContent = 'live-computed (no snapshot applied)';
+  if (snapNote) snapNote.textContent = (visibleOnly && isolatedRoot)
+    ? 'live-computed (isolated view — snapshot skipped)'
+    : 'live-computed (no snapshot applied)';
   // P1-2 worker spike: compute off-thread, apply positions in one batch. The
   // page keeps animating/panning while physics chews in the background.
   // Supersede: a newer runLayout bumps the token; a stale worker result is
@@ -888,16 +919,12 @@ function runLayout(preset = currentLayout, { skipSaved = false, forceMain = fals
   if (!forceMain && workerOn() && workerSupports(preset)) {
     const wOpts = { ...opts, animate: false }; // worker can't animate (no main-thread machinery)
     delete wOpts.animationDuration; delete wOpts.animationEasing;
+    delete wOpts.eles; // the visible-only subset is passed separately — a cytoscape collection can't be postMessage'd (it would blow up the JSON clone and drop every other option)
     setLayoutIndicator(true, `Arranging · ${opts.name} (worker)…`);
     startProgressBar(preset);
     layoutT0 = performance.now(); // ⏱ last-layout readout
     startLayoutPill(); // live elapsed in the pill
-    const jobToken = ++workerRunSeq;
-    // cancel the job of any run this one supersedes — frees the single worker thread
-    if (workerActiveJobId !== null) {
-      try { getLayoutWorker().postMessage({ type: 'cancel', jobId: workerActiveJobId }); } catch {}
-      workerActiveJobId = null;
-    }
+    const jobToken = workerRunSeq; // already bumped (and the previous job cancelled) at the top of this run
     runWorkerLayout(preset, wOpts, 120000, visibleOnly ? cy.elements(':visible') : null).then(res => {
       if (jobToken !== workerRunSeq) return; // superseded — drop the stale result
       if (res && res.type === 'done' && isSaneSnapshot(res.positions)) {
@@ -924,7 +951,10 @@ function runLayout(preset = currentLayout, { skipSaved = false, forceMain = fals
       } else {
         const why = res && res.type === 'done' ? 'returned a degenerate result' : ((res && res.message) || 'failed');
         toast(`Worker layout ${why} — running on the main thread`);
-        runLayout(preset, { skipSaved: true, forceMain: true }); // graceful fallback
+        // reflow:false — this is a continuation of the current request, not a new
+        // automatic reflow; without it the fallback would be dropped by the gate
+        // whenever "re-layout on graph change" is off and the layout would hang
+        runLayout(preset, { skipSaved: true, forceMain: true, visibleOnly, reflow: false });
       }
     });
     return;
@@ -934,8 +964,14 @@ function runLayout(preset = currentLayout, { skipSaved = false, forceMain = fals
   layoutT0 = performance.now(); // ⏱ last-layout readout — starts at the same point
   startLayoutPill(); // live elapsed in the pill
   // snapshot positions so we can detect algorithms that silently no-op
-  // (e.g. elk-radial needs a rooted/tree graph — degenerate on the full DAG)
-  const before = new Map(cy.nodes().map(n => [n.id(), n.position()]));
+  // (e.g. elk-radial needs a rooted/tree graph — degenerate on the full DAG).
+  // visibleOnly runs move just the visible subgraph, so sample the targets.
+  const targets = opts.eles || cy.nodes();
+  const before = new Map(targets.map(n => [n.id(), n.position()]));
+  // a superseded async layout that finishes late would otherwise write its stale
+  // positions over this run's fresh ones (layoutstop fires only afterwards).
+  // Once superseded, the transform returns each node's CURRENT position — a no-op.
+  opts.transform = (n, pos) => (myRunSeq === layoutRunSeq ? pos : n.position());
   const lay = cy.layout(opts);
   activeLayout = lay;
   lay.one('layoutstop', () => {
@@ -956,12 +992,12 @@ function runLayout(preset = currentLayout, { skipSaved = false, forceMain = fals
     }
     // warn when an algorithm leaves the graph untouched
     let moved = 0;
-    const sample = cy.nodes().length > 300 ? cy.nodes().slice(0, 300) : cy.nodes();
+    const sample = targets.length > 300 ? targets.slice(0, 300) : targets;
     for (const n of sample) {
       const b = before.get(n.id());
       if (b && (Math.abs(b.x - n.position().x) + Math.abs(b.y - n.position().y)) > 1) { moved++; break; }
     }
-    if (!moved && cy.nodes().length > 1) toast(`${preset} made no changes here — it needs a tree/rooted subgraph. Isolate a subtree first, or pick another layout.`);
+    if (!moved && targets.length > 1) toast(`${preset} made no changes here — it needs a tree/rooted subgraph. Isolate a subtree first, or pick another layout.`);
   });
   lay.run();
 }
@@ -996,7 +1032,7 @@ function populate() {
       bootPopulating = false;
       restoreTrace();
     });
-    runLayout(); // the boot layout — never gated by the auto-relayout option
+    runLayout(currentLayout, { reflow: false }); // the boot layout — never gated by the auto-relayout option
   } catch (e) {
     console.error('populate failed:', e);
   }
@@ -1398,7 +1434,7 @@ const autoRelayoutOn = () => { const t = document.getElementById('autoRelayout')
       const undo = () => { autoEl.checked = !on; autoEl.onchange(); };
       if (on) {
         toastWithUndo('Graph changes re-run the layout', undo);
-        runLayout(); // the run upgrades the toast with the Undo button
+        runLayout(currentLayout, { reflow: false }); // the run upgrades the toast with the Undo button
       } else {
         toastWithUndo('Layouts stay put — nodes appear where they fit', undo);
         upgradeToastWithUndo(); // turning it off re-runs nothing — upgrade directly
@@ -1465,13 +1501,13 @@ function syncForceToggleUI() {
 }
 if (layoutSelect) {
   layoutSelect.value = currentLayout;
-  layoutSelect.onchange = () => { currentLayout = layoutSelect.value; localStorage.setItem('dw.layout', currentLayout); syncForceToggleUI(); updateReadout(); runLayout(currentLayout, { reflow: false }); };
+  layoutSelect.onchange = () => { currentLayout = layoutSelect.value; localStorage.setItem('dw.layout', currentLayout); syncForceToggleUI(); updateReadout(); runLayout(currentLayout, { reflow: false, visibleOnly: true }); };
 }
 if (forceToggle) {
   forceToggle.onchange = () => {
     forceDir = forceToggle.checked;
     updateReadout();
-    if (FORCE_LAYOUTS.has(currentLayout)) runLayout(currentLayout, { reflow: false });
+    if (FORCE_LAYOUTS.has(currentLayout)) runLayout(currentLayout, { reflow: false, visibleOnly: true });
   };
 }
 // chip visuals must match persisted edge prefs (skill links default OFF, P3-1)
@@ -1483,7 +1519,7 @@ if (animToggle) {
   animToggle.onchange = () => {
     animateOn = animToggle.checked;
     localStorage.setItem('dw.animate', animateOn ? '1' : '0');
-    runLayout(currentLayout, { reflow: false });
+    runLayout(currentLayout, { reflow: false, visibleOnly: true });
   };
 }
 const savedToggle = document.getElementById('savedToggle');
@@ -1491,14 +1527,14 @@ if (savedToggle) {
   savedToggle.checked = localStorage.getItem('dw.savedLayouts') !== '0';
   savedToggle.onchange = () => {
     localStorage.setItem('dw.savedLayouts', savedToggle.checked ? '1' : '0');
-    runLayout(currentLayout, { reflow: false });
+    runLayout(currentLayout, { reflow: false, visibleOnly: true });
   };
 }
 // ⟳ recompute the current arrangement from scratch — the explicit way to see the
 // current algorithm run live even when saved positions would otherwise apply
 const recalcBtn = document.getElementById('recalcBtn');
 if (recalcBtn) recalcBtn.onclick = () => {
-  runLayout(currentLayout, { skipSaved: true, reflow: false });
+  runLayout(currentLayout, { skipSaved: true, reflow: false, visibleOnly: true });
   toast(`Recomputing the ${currentLayout} arrangement…`);
 };
 const densSlider = document.getElementById('densSlider');
@@ -1516,7 +1552,7 @@ if (densSlider) {
     // full elk pass. The worker makes each pass cheap to SUPERSEDE (previous job
     // is cancelled), and 450ms coalesces a storm into 1–2 runs.
     clearTimeout(densTimer);
-    densTimer = setTimeout(() => { if (isElkDenseable(currentLayout)) runLayout(currentLayout, { skipSaved: true, reflow: false }); }, 450);
+    densTimer = setTimeout(() => { if (isElkDenseable(currentLayout)) runLayout(currentLayout, { skipSaved: true, reflow: false, visibleOnly: true }); }, 450);
   };
 }
 syncForceToggleUI();
@@ -1737,6 +1773,17 @@ function traceStep(id, dir) {
       if (nb === null || traceLevels.has(nb)) continue;
       const src = dir === 'down' ? nid : nb; // the edge's ingredient side
       if (nodeById.get(src)?.kind === 'skill') continue;
+      // Facility-aware frontier (TODO #23): for upstream INPUT traces the recipe's
+      // crafting station is a prerequisite at the same depth — collect it when the
+      // facility resolves to a station/tool node and isn't already traced. Downstream
+      // (makes) traces exclude facilities: e.facility is where the current item was
+      // crafted, not where its products go on to be made (PLAN #23).
+      if (dir === 'up' && e.facility && !traceLevels.has(e.facility)) {
+        const fnode = nodeById.get(e.facility);
+        if (fnode && (fnode.kind === 'station' || fnode.kind === 'tool')) {
+          traceLevels.set(e.facility, d + 1); next.push(e.facility);
+        }
+      }
       traceLevels.set(nb, d + 1); next.push(nb);
     }
   }

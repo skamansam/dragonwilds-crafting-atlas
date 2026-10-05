@@ -5,6 +5,8 @@
 //   node scripts/test-ui.mjs              # full suite
 //   node scripts/test-ui.mjs smoke        # one section (smoke|panel|undo|layouts|tours)
 //   node scripts/test-ui.mjs --url=...    # run against a deployed site instead
+//   node scripts/test-ui.mjs --serve-only # just serve site/ on :8491 and stay up
+//                                         # (playwright.config.ts uses this as its webServer)
 //
 // Sections:
 //   smoke    boot, search, panel content, trace, isolate, legend filter toggle
@@ -21,6 +23,8 @@ import { chromium } from 'playwright';
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'site');
 const PORT = 8491;
 const urlArg = process.argv.find(a => a.startsWith('--url='));
+// --serve-only: serve site/ and stay up (used by playwright.config.ts webServer)
+const serveOnly = process.argv.includes('--serve-only');
 const BASE = urlArg ? urlArg.slice(6).replace(/\/$/, '') : `http://localhost:${PORT}`;
 const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.png': 'image/png', '.woff2': 'font/woff2', '.ico': 'image/x-icon', '.svg': 'image/svg+xml' };
 
@@ -39,6 +43,10 @@ if (!urlArg) {
     }
   });
   await new Promise(r => srv.listen(PORT, r));
+  if (serveOnly) {
+    console.log(`serving site/ in-process on :${PORT} (serve-only — Ctrl+C to stop)`);
+    await new Promise(() => {}); // stay alive for an external runner (playwright test)
+  }
 }
 
 const only = process.argv.slice(2).filter(a => !a.startsWith('--'))[0] || null;
@@ -354,12 +362,118 @@ async function secLayouts() {
   ok('density ✕ re-runs layout', await page.evaluate(() => window.__cy.nodes(':visible').length > 0));
   await closeSettings();
 
-  // back to the default preset for a clean state
+  // explicit layout selection on an ISOLATED view must arrange only the visible
+  // nodes AND bypass saved snapshots: a bundled/curated full-map snapshot holds
+  // every node where the whole map put it (the subtree never re-tightens) and
+  // drags the hidden majority along too. Selecting a preset that ships a bundled
+  // snapshot (elk-layered) while isolated must therefore recompute live on the
+  // visible subtree. A clean boot keeps the long runs above from racing this
+  // one, and saved positions stays ON — that is the whole point of the bypass.
+  await clearStorage(['dw.customLayouts']);
+  // boot from the instant (snapshot) default — a slow preset left over from the
+  // checks above would block the single-threaded worker and stall this block
+  await page.evaluate(() => localStorage.setItem('dw.layout', 'elk-layered-wide'));
+  await boot();
+  await page.evaluate(() => window.isolateTree('Bread', 1));
+  await page.waitForTimeout(1500);
+  const isoVisible = await page.evaluate(() => window.__cy.nodes(':visible').length);
+  // settle the isolation reflow (already live on the visible subtree — graph-
+  // change reflows pass skipSaved)
+  await page.waitForFunction(v => {
+    const m = /last layout: [\d.]+s · ([\d,]+) nodes/.exec(document.getElementById('lastLayout')?.textContent || '');
+    return m && Number(m[1].replace(/,/g, '')) === v;
+  }, isoVisible, { timeout: 45000, polling: 250 }).catch(() => {});
+  const hiddenBefore = await page.evaluate(() => {
+    const hidden = window.__cy.nodes('.hidden');
+    const n = hidden.filter(x => Math.abs(x.position('x')) + Math.abs(x.position('y')) > 2)[0] || hidden[0];
+    return n ? { id: n.id(), x: n.position('x'), y: n.position('y') } : null;
+  });
+  await openSettings();
+  ok('isolated view keeps saved positions ON', await page.$eval('#savedToggle', el => el.checked));
+  await closeSettings();
+  // clear any prior toast so we can prove this selection emits none: a valid
+  // small isolated arrangement used to be rejected by the flat >400px snapshot
+  // sanity floor, so its worker result was discarded and the fallback main run
+  // fired "Worker layout returned a degenerate result" then "made no changes".
+  await page.evaluate(() => { const t = document.getElementById('toast'); t.classList.remove('show'); t.dataset.msg = ''; });
+  await page.evaluate(() => {
+    const sel = document.getElementById('layoutSelect');
+    sel.value = 'elk-layered'; // ships a bundled snapshot in layouts/manifest.js
+    sel.dispatchEvent(new Event('change'));
+  });
+  await page.waitForFunction(() => !document.getElementById('layoutInd')?.classList.contains('on'), null, { timeout: 45000, polling: 250 }).catch(() => {});
+  await page.waitForTimeout(400);
+  const isoToast = await page.evaluate(() => document.getElementById('toast')?.dataset.msg || '');
+  ok('isolated explicit selection arranges without spurious toasts',
+    !/degenerate|made no changes/.test(isoToast), `toast="${isoToast}"`);
+  const isoRaw = await page.evaluate(() => document.getElementById('lastLayout')?.textContent || '(absent)');
+  const isoArranged = await page.evaluate(() => {
+    const m = /last layout: [\d.]+s · ([\d,]+) nodes/.exec(document.getElementById('lastLayout')?.textContent || '');
+    return m ? Number(m[1].replace(/,/g, '')) : -1;
+  });
+  ok('isolated explicit selection arranges only the visible nodes', isoArranged === isoVisible && isoVisible > 1 && isoVisible < 200,
+    `arranged=${isoArranged} visible=${isoVisible} raw="${isoRaw}"`);
+  await openSettings();
+  const isoNote = await page.$eval('#snapshotNote', el => el.textContent);
+  await closeSettings();
+  ok('isolated explicit selection bypasses the saved snapshot', /isolated view/.test(isoNote), isoNote);
+  const hiddenAfter = hiddenBefore && await page.evaluate(id => {
+    const p = window.__cy.getElementById(id).position();
+    return { x: p.x, y: p.y };
+  }, hiddenBefore.id);
+  ok('isolated explicit selection leaves hidden nodes in place',
+    !!hiddenBefore && hiddenAfter.x === hiddenBefore.x && hiddenAfter.y === hiddenBefore.y,
+    hiddenBefore ? `${hiddenBefore.id}: (${hiddenBefore.x},${hiddenBefore.y}) -> (${hiddenAfter.x},${hiddenAfter.y})` : 'no hidden node');
+  await page.keyboard.press('Escape'); // clear isolation (panel is closed)
+  await page.evaluate(() => window.showEverything());
+  await page.waitForTimeout(3000);
+
+  // explicit selection must RUN even with "re-layout on graph change" OFF — an
+  // inverted runLayout gate once silently dropped every request when it was off.
+  // Boot the instant default again, turn the option OFF, then ISOLATE (no reflow
+  // fires), so the recorded arrangement is still the full-map one; selecting a
+  // layout must then re-record with the isolated subtree's node count.
+  await clearStorage(['dw.customLayouts']);
+  await page.evaluate(() => localStorage.setItem('dw.layout', 'elk-layered-wide'));
+  await boot();
+  await openSettings();
+  await page.evaluate(() => { const t = document.getElementById('autoRelayout'); t.checked = false; t.onchange(); });
+  await closeSettings();
+  await page.waitForTimeout(300);
+  const countFromReadout = () => {
+    const m = /last layout: [\d.]+s · ([\d,]+) nodes/.exec(document.getElementById('lastLayout')?.textContent || '');
+    return m ? Number(m[1].replace(/,/g, '')) : -1;
+  };
+  const beforeOff = await page.evaluate(countFromReadout);
+  await page.evaluate(() => window.isolateTree('Bread', 1));
+  await page.waitForTimeout(1500);
+  const isoOffVisible = await page.evaluate(() => window.__cy.nodes(':visible').length);
+  const afterIsolate = await page.evaluate(countFromReadout);
+  ok('isolation does not reflow with auto-relayout OFF', afterIsolate === beforeOff,
+    `before=${beforeOff} after-isolation=${afterIsolate}`);
+  await page.evaluate(() => {
+    const sel = document.getElementById('layoutSelect');
+    sel.value = 'grid'; // deterministic and instant
+    sel.dispatchEvent(new Event('change'));
+  });
+  await page.waitForFunction(() => !document.getElementById('layoutInd')?.classList.contains('on'), null, { timeout: 45000, polling: 250 }).catch(() => {});
+  await page.waitForTimeout(400);
+  const afterSelect = await page.evaluate(countFromReadout);
+  ok('selecting a layout with auto-relayout OFF still records a completion',
+    afterSelect === isoOffVisible && isoOffVisible > 1 && afterSelect !== beforeOff,
+    `selected=${afterSelect} visible=${isoOffVisible} before=${beforeOff}`);
+
+  // back to a clean state: default preset, auto-relayout ON
+  await page.keyboard.press('Escape'); // clear isolation
+  await page.evaluate(() => window.showEverything());
+  await page.waitForTimeout(2000);
   await openSettings();
   await page.evaluate(() => {
     const sel = document.getElementById('layoutSelect');
     sel.value = 'elk-layered-wide';
     sel.dispatchEvent(new Event('change'));
+    const t = document.getElementById('autoRelayout');
+    t.checked = true; t.onchange();
   });
   await page.waitForTimeout(3000);
   await closeSettings();
