@@ -71,6 +71,66 @@ a 10-step walkthrough of the whole atlas plus 30-second scripted mini-tours that
 one real question (plan the *Dark Mage Robes*, see what *Ash Logs* make, price a *Blast
 Furnace*) — deep-linkable via `?tour=robes` and friends.
 
+### Deep links
+
+Every item has a stable URL name — the **snake_case** form of its display name — so a link
+can open the atlas straight on a spot:
+
+| URL | Opens |
+|---|---|
+| `#/ash_logs` | the **Ash Logs** codex panel, centered and selected |
+| `#/ash_logs/iron_sword` | the crafting **path** from Ash Logs to Iron Sword, gold trail and path bar included |
+
+Clicking a node (or a path step, breadcrumb or search result) keeps the fragment in step with
+what you are looking at, so the address bar is always a shareable link to the current view.
+The fragment is hash-based on purpose: the site is a static folder on GitHub Pages whose
+`index.html` loads data, icons and scripts by **relative** path, so a real deep path like
+`/ash_logs/iron_sword` would resolve `data.js`/`app.js` to `/ash_logs/iron_sword/…` and 404.
+A `#` fragment never reaches the server, so the same link works on Pages, on the dev server
+and from `file://` — and needs no 404 fallback or rewrite rules. A name that matches no item
+is reported with a toast rather than failing silently.
+
+The slug rules live in `site/routing.js` (loaded before `app.js`): accents stripped,
+apostrophes and quotes dropped (`Adventurer's Tunic` → `adventurers_tunic`), `&` spelled out
+as `and` (`Beef & Tomato Stew` → `beef_and_tomato_stew`), every other run of punctuation or
+spaces collapsed to one `_`. Two names that slug identically (the dataset has `Blue Dragon
+Leather` and `Blue  Dragon Leather`) get a deterministic `_2` suffix in data order, so every
+item keeps a URL that round-trips back to it alone.
+
+### Graph options in the URL
+
+Every option in the ⚙ panel and the legend can also be given in the query string, so a link
+can describe the whole view, not just a selection:
+
+| Param | Controls | Values |
+|---|---|---|
+| `layout` | layout algorithm | a preset name (`grid`, `cose-bilkent`, `elk-layered-wide`, …) |
+| `force` | force-directed physics | `1`/`0` (a bare `?force` means on) |
+| `anim` | animate layouts | `1`/`0` |
+| `saved` | use saved positions | `1`/`0` |
+| `worker` | run layouts in a worker | `1`/`0` |
+| `dens` | node density | 50–200 (clamped) |
+| `auto` | re-layout on graph change | `1`/`0` |
+| `cats` | legend item kinds | `all`, `none`, or a list (`food,weapon`) |
+| `orphans` | dead ends | `1`/`0` |
+| `links` | material edges | `1`/`0` |
+| `skilllinks` | skill-gate edges | `1`/`0` |
+| `regions` | region edges | `1`/`0` |
+| `possessions` | focus on owned items | `1`/`0` |
+| `iso` | isolate this item | an item slug (`iron_sword`) |
+| `isodir` | isolation direction | `up`, `down` or `both` |
+| `isodepth` | isolation depth | `all` or a number ≥ 1 |
+
+`?iso=iron_sword&isodir=up&isodepth=2&cats=food` opens that isolated two-level input tree with
+only food shown. A value from the URL **wins over the visitor's stored setting** for the session
+but is **never written to localStorage** — opening a shared link must not silently overwrite the
+recipient's own preferences (that is the difference from the ⚙ panel, which persists). Conversely
+the address bar is rewritten live as any option changes (`history.replaceState`, so one history
+entry and no reload), which makes the URL a complete, shareable description of what is on screen.
+Unusable values are ignored with a toast rather than silently changing something else, and
+unrelated params such as `?tour=robes` are preserved. The parameter list lives in
+`site/routing.js` (`OPTION_PARAMS`).
+
 ### The map
 
 | Action | Result |
@@ -253,16 +313,21 @@ node scripts/build-location-checklists.mjs  # missing find spots → docs/checkl
 Three layers, no build step:
 
 ```bash
-npx vitest run              # Gherkin/cucumber — trace math, persistence, collapse, facilities
+npx vitest run              # Gherkin/cucumber — trace math, persistence, collapse, facilities, URL routing
 npx playwright test         # Playwright e2e — boots site/ via scripts/test-ui.mjs --serve-only
 node scripts/test-ui.mjs    # broad acceptance suite (serves site/ itself)
 ```
 
 Every scenario is Gherkin (`tests/features/*.feature`) with its step definitions
 beside it (`tests/features/*.spec.ts`), driving the shared pure helpers in
-`tests/lib/trace-math.ts`. The Playwright specs in `tests/e2e/` cover the core
-browser flows (boot, search → codex, isolate, trace, layout selection, persisted
-settings, guided-tour deep links, console cleanliness).
+`tests/lib/trace-math.ts` and `tests/lib/routing.ts` — the latter covers both the
+slug/hash rules and the query-string option parser. The Playwright specs in
+`tests/e2e/` cover the core browser flows (boot, search → codex, isolate, trace,
+layout selection, persisted settings, guided-tour deep links, URL deep links,
+URL graph options, console cleanliness); `scripts/test-ui.mjs` adds a `route`
+section for the hash deep links (selection, path, in-place hash edits, unknown
+slugs) and an `options` section for the query params (each param, no persistence,
+live URL sync, isolation on load, foreign-param preservation, bad values).
 
 ### Location checklists — the hand-annotation loop
 

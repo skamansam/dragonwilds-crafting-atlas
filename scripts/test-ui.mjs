@@ -3,7 +3,7 @@
 // pass/fail summary, and exits non-zero on any failure.
 //
 //   node scripts/test-ui.mjs              # full suite
-//   node scripts/test-ui.mjs smoke        # one section (smoke|panel|undo|layouts|tours)
+//   node scripts/test-ui.mjs smoke        # one section (smoke|panel|undo|layouts|tours|route|options)
 //   node scripts/test-ui.mjs --url=...    # run against a deployed site instead
 //   node scripts/test-ui.mjs --serve-only # just serve site/ on :8491 and stay up
 //                                         # (playwright.config.ts uses this as its webServer)
@@ -13,6 +13,9 @@
 //   panel    owned marks, possessions mode, path-to, facility links
 //   undo     ⚙ panel opens/persists; re-layout-off toast gains an Undo button
 //   layouts  algorithm select (in ⚙) switches layout; density buttons behave
+//   route    #/<item> selects an item; #/<item>/<item> draws the path between them
+//   options  ?layout=/?cats=/?iso=… set the graph view from the URL without
+//            persisting anything, and the URL tracks every change made by hand
 import http from 'node:http';
 import fs from 'node:fs';
 import { readFile } from 'node:fs/promises';
@@ -50,7 +53,7 @@ if (!urlArg) {
 }
 
 const only = process.argv.slice(2).filter(a => !a.startsWith('--'))[0] || null;
-const sections = ['smoke', 'panel', 'undo', 'layouts', 'tours'].filter(s => !only || s === only);
+const sections = ['smoke', 'panel', 'undo', 'layouts', 'tours', 'route', 'options'].filter(s => !only || s === only);
 
 const results = [];
 let page, browser;
@@ -60,8 +63,8 @@ const ok = (name, cond, detail = '') => {
 };
 const errors = [];
 
-async function boot() {
-  await page.goto(`${BASE}/`, { waitUntil: 'domcontentloaded', timeout: 60000 });
+async function boot(hash = '', search = '') {
+  await page.goto(`${BASE}/${search}${hash}`, { waitUntil: 'domcontentloaded', timeout: 60000 });
   await page.waitForFunction(() => window.__cy && window.__cy.nodes().length > 0, null, { timeout: 120000, polling: 500 });
   await page.waitForFunction(() => document.getElementById('veil').classList.contains('hidden'), null, { timeout: 60000, polling: 250 });
   await page.waitForTimeout(800); // settle boot layout
@@ -537,6 +540,147 @@ async function secTours() {
     (await page.$eval('.driver-popover-title', el => el.textContent)).includes('Ash Logs'));
 }
 
+/* ── route (hash deep links) ───────────────────────────────────────────── */
+async function secRoute() {
+  console.log('route:');
+
+  // #/<item> — a one-segment route selects that item
+  await boot('#/ash_logs');
+  const one = await page.evaluate(() => ({
+    title: document.getElementById('panelTitle').textContent,
+    hash: location.hash,
+  }));
+  ok('#/ash_logs selects the item', one.title === 'Ash Logs', one.title);
+  ok('#/ash_logs keeps the fragment in the URL', one.hash === '#/ash_logs', one.hash);
+
+  // #/<from>/<to> — a two-segment route draws the path between them
+  await boot('#/ash_logs/iron_sword');
+  const path = await page.evaluate(() => ({
+    title: document.getElementById('panelTitle').textContent,
+    traced: window.__cy.edges('.traced').length,
+    bar: !document.getElementById('pathbar').classList.contains('hidden'),
+  }));
+  ok('#/ash_logs/iron_sword opens the target panel', path.title === 'Iron Sword', path.title);
+  ok('#/ash_logs/iron_sword draws the gold trail', path.traced >= 2, `${path.traced} traced edges`);
+  ok('#/ash_logs/iron_sword shows the path bar', path.bar);
+
+  // selecting an item writes its slug back into the address bar
+  await boot();
+  await page.evaluate(() => window.selectNode('Iron Bar'));
+  await page.waitForTimeout(400);
+  ok('selecting an item writes its slug to the URL',
+    (await page.evaluate(() => location.hash)) === '#/iron_bar');
+
+  // editing the fragment navigates in place (no reload) — the hashchange path
+  await boot();
+  await page.evaluate(() => { location.hash = '#/ash_logs'; });
+  await page.waitForFunction(
+    () => document.getElementById('panelTitle').textContent === 'Ash Logs',
+    null, { timeout: 10000, polling: 100 }).catch(() => {});
+  ok('editing the URL fragment navigates in place',
+    (await page.$eval('#panelTitle', el => el.textContent)) === 'Ash Logs');
+
+  // a bogus slug is reported, not fatal
+  await boot('#/not_a_real_item');
+  const bogus = await page.waitForFunction(() => {
+    const t = document.getElementById('toast');
+    return /nothing matches/i.test(t.textContent) && t.classList.contains('show');
+  }, null, { timeout: 10000, polling: 100 }).then(() => true).catch(() => false);
+  ok('an unknown slug is reported, not fatal', bogus);
+}
+
+/* ── options (the graph view via query params) ──────────────────────────── */
+async function secOptions() {
+  console.log('options:');
+  const KEYS = ['dw.layout', 'dw.animate', 'dw.savedLayouts', 'dw.worker', 'dw.dens',
+    'dw.autoRelayout', 'dw.legendKinds', 'dw.showOrphans', 'dw.showMatEdges',
+    'dw.showSkillEdges', 'dw.showRegionEdges', 'dw.isoDepth', 'dw.isoDir'];
+  await boot();
+  await clearStorage(KEYS);
+
+  // every option can be set from the URL…
+  await boot('', '?layout=grid&force=0&anim=0&saved=0&worker=0&dens=150&auto=0&orphans=1&links=0&skilllinks=1&regions=1&possessions=1&cats=food');
+  const o = await page.evaluate(() => ({
+    layout: document.getElementById('layoutSelect').value,
+    force: document.getElementById('forceToggle').checked,
+    anim: document.getElementById('animToggle').checked,
+    saved: document.getElementById('savedToggle').checked,
+    worker: document.getElementById('workerToggle').checked,
+    auto: document.getElementById('autoRelayout').checked,
+    dens: document.getElementById('densSlider').value,
+    densLabel: document.getElementById('densVal').textContent,
+    skillLinks: document.getElementById('edgeSkillChip').classList.contains('on'),
+    weaponHidden: window.__cy.getElementById('Iron Sword').hasClass('hidden'),
+    foodHidden: window.__cy.getElementById('Meat Stew').hasClass('hidden'),
+  }));
+  ok('?layout= picks the algorithm', o.layout === 'grid', o.layout);
+  ok('?force/?anim/?saved/?worker set their toggles',
+    o.force === false && o.anim === false && o.saved === false && o.worker === false);
+  ok('?auto=0 turns re-layout-on-change off', o.auto === false);
+  ok('?dens= moves the slider and its label', o.dens === '150' && o.densLabel === '150%', `${o.dens} / ${o.densLabel}`);
+  ok('?cats=food shows food only', o.weaponHidden === true && o.foodHidden === false,
+    `iron sword hidden=${o.weaponHidden}, meat stew hidden=${o.foodHidden}`);
+  ok('?skilllinks=1 reveals the gold skill gates', o.skillLinks === true);
+
+  // …and NONE of it is written to storage (that is the difference from the ⚙ panel)
+  const stored = await page.evaluate(keys => {
+    const out = {};
+    for (const k of keys) out[k] = localStorage.getItem(k);
+    return out;
+  }, KEYS);
+  const leaked = Object.entries(stored).filter(([, v]) => v !== null).map(([k]) => k);
+  ok('URL options are never persisted', leaked.length === 0, leaked.join(', ') || 'nothing stored');
+
+  // …and the URL is rewritten as a complete, shareable description of the view
+  const q = await page.evaluate(() => [...new URLSearchParams(location.search).keys()]);
+  ok('the URL carries every option', q.length >= 15 && q.includes('layout') && q.includes('cats') && q.includes('isodepth'),
+    `${q.length} params`);
+
+  // a change made by hand updates the URL live AND persists, as it always did
+  await page.evaluate(() => {
+    const row = [...document.querySelectorAll('#legend .lg-row')].find(r => r.textContent.includes('Weapons'));
+    row.click();
+  });
+  await page.waitForTimeout(300);
+  const after = await page.evaluate(() => ({
+    cats: new URLSearchParams(location.search).get('cats'),
+    stored: localStorage.getItem('dw.legendKinds'),
+  }));
+  ok('a manual change updates the URL live', !!after.cats && after.cats.includes('weapon'), after.cats);
+  ok('a manual change still persists as before', !!after.stored && after.stored.includes('weapon'), after.stored);
+
+  // ?iso= isolates an item on load, with ?isodir=/?isodepth= as its defaults
+  await boot('', '?iso=iron_sword&isodepth=1&isodir=up');
+  const iso = await page.evaluate(() => ({
+    title: document.getElementById('panelTitle').textContent,
+    shown: window.__cy.nodes(':visible').length,
+    total: window.__cy.nodes().length,
+    bc: !document.getElementById('breadcrumb').classList.contains('hidden'),
+    iso: new URLSearchParams(location.search).get('iso'),
+    dir: new URLSearchParams(location.search).get('isodir'),
+    depth: new URLSearchParams(location.search).get('isodepth'),
+  }));
+  ok('?iso= isolates that item on load', iso.title === 'Iron Sword' && iso.shown > 1 && iso.shown < iso.total,
+    `${iso.title}: ${iso.shown}/${iso.total} shown`);
+  ok('the isolated view shows its breadcrumb', iso.bc === true);
+  ok('an isolated view stays linkable', iso.iso === 'iron_sword' && iso.dir === 'up' && iso.depth === '1',
+    `iso=${iso.iso} dir=${iso.dir} depth=${iso.depth}`);
+
+  // a foreign param (?tour=) survives the rewrite
+  await boot('', '?tour=outputs&layout=grid');
+  const merged = await page.evaluate(() => location.search);
+  const mergedQ = new URLSearchParams(merged);
+  ok('foreign params such as ?tour= are preserved',
+    mergedQ.get('tour') === 'outputs' && mergedQ.get('layout') === 'grid', merged.slice(0, 60));
+
+  // a typo in a shared link is reported rather than silently ignored
+  await boot('', '?layout=nonsense');
+  const warned = await page.waitForFunction(
+    () => /ignoring unknown url option/i.test(document.getElementById('toast').textContent),
+    null, { timeout: 10000, polling: 100 }).then(() => true).catch(() => false);
+  ok('an unusable option value is reported', warned);
+}
+
 try {
   browser = await chromium.launch();
   page = await browser.newPage({ viewport: { width: 1600, height: 950 } });
@@ -553,6 +697,8 @@ try {
     else if (s === 'undo') await secUndo();
     else if (s === 'layouts') await secLayouts();
     else if (s === 'tours') await secTours();
+    else if (s === 'route') await secRoute();
+    else if (s === 'options') await secOptions();
   }
 } catch (e) {
   console.error('SUITE ERROR:', e.message);

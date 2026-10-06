@@ -12,6 +12,22 @@ const foundIn = new Map(Object.entries(window.DW_FOUND_IN || {}));
 /* ── lookup maps ─────────────────────────────────────────────── */
 const nodeById = new Map();
 for (const n of D.nodes) nodeById.set(n.id, n);
+
+/* URL identity: one snake_case slug per item ("Iron Sword" → iron_sword).
+   site/routing.js owns the slug rules and the collision-safe slug ⇄ id map;
+   the node ids above stay the display names they always were so snapshots,
+   tours, found-in and the tests keep working unchanged. */
+const routing = window.DW_ROUTING;
+const slugIndex = routing.buildIndex(D.nodes);
+// region hubs are synthesized below (not in data.json) — give them a slug too
+function registerSlug(id, name) {
+  const base = routing.slug(name);
+  let s = base;
+  for (let i = 2; slugIndex.toId.has(s); i++) s = `${base}_${i}`;
+  slugIndex.toId.set(s, id);
+  slugIndex.toSlug.set(id, s);
+  return s;
+}
 const outDegree = new Map();  // how many things this node is used to make
 const inDegree = new Map();   // how many recipes produce this node
 const SKILL_NAMES = new Set(D.skills.map(s => s.name));
@@ -265,6 +281,7 @@ if (foundIn.size) {
   for (const [region, members] of regionMembers) {
     const deg = members.size;
     nodeById.set(region, { id: region, name: region, kind: 'region' }); // searchable + openable
+    registerSlug(region, region);
     eles.push({
       group: 'nodes',
       data: {
@@ -289,8 +306,8 @@ if (foundIn.size) {
 let layoutRunning = false;
 let layoutIndTimer = null;
 const FORCE_LAYOUTS = new Set(['cose-bilkent', 'cose-bilkent-tight', 'cose', 'fcose', 'spread', 'cola', 'euler', 'd3-force', 'avsdf']);
-let forceDir = true; // force-directed physics on/off
-let animateOn = localStorage.getItem('dw.animate') !== '0'; // animate layouts (P1.5-1)
+// forceDir / animateOn are declared below the URL-options block (they read ?force=
+// and ?anim=, so the block must be initialised first).
 
 // Simulation caps per preset (P1.5-2): every extension exposes its own knob —
 // bilkent/fcose use `numIter` (default 2500), cise/cola/euler use
@@ -422,6 +439,104 @@ const LAYOUTS = {
   grid: () => ({ name: 'grid', animate: true, animationDuration: 700, spacingFactor: 1.6 }),
   random: () => ({ name: 'random', animate: true, animationDuration: 700, spacingFactor: 1.5 }),
 };
+
+/* ── graph options in the URL (?layout=grid&cats=all&iso=iron_sword…) ────────
+   Every graph option can be set from the query string, and a value given there
+   WINS over the visitor's stored pref for this session — the URL describes the
+   whole view, so a shared link reproduces it exactly instead of leaking the
+   recipient's own settings into it.
+
+   Values that arrive from the URL are never written to localStorage: opening a
+   shared link must not silently overwrite the recipient's settings (that is the
+   difference from the ⚙ panel, which persists). storeOpt() is the single
+   write path and skips URL-supplied options. Manual changes made after boot
+   persist exactly as before.
+
+   syncUrl() keeps the address bar in step with every option, so the URL is
+   always a complete, shareable description of what is on screen. */
+const urlOpts = routing.parseOptions(location.search, {
+  layouts: Object.keys(LAYOUTS),
+  kinds: Object.keys(kindLabel),
+});
+const urlLocked = new Set(urlOpts.values.keys()); // came from the URL → don't persist
+let optsReady = false; // false while boot is still applying URL options
+function urlOpt(name) { return urlOpts.values.has(name) ? urlOpts.values.get(name) : null; }
+function urlBool(name, stored) { const v = urlOpt(name); return v === null ? stored : v === '1'; }
+function urlNum(name, stored) { const v = urlOpt(name); return v === null ? stored : Number(v); }
+
+// storage key suffix → the ?param that governs it (see site/routing.js)
+const OPT_PARAM_OF_KEY = {
+  layout: 'layout', animate: 'anim', savedLayouts: 'saved', worker: 'worker',
+  dens: 'dens', autoRelayout: 'auto', legendKinds: 'cats', showOrphans: 'orphans',
+  showMatEdges: 'links', showSkillEdges: 'skilllinks', showRegionEdges: 'regions',
+  isoDepth: 'isodepth', isoDir: 'isodir',
+};
+// the ONE place option prefs are persisted, so the URL rule can't be forgotten
+function storeOpt(key, value) {
+  const param = OPT_PARAM_OF_KEY[key];
+  if (param && urlLocked.has(param) && !optsReady) return; // a link's value — leave the visitor's settings alone
+  try { localStorage.setItem('dw.' + key, value); } catch { /* storage full or blocked */ }
+}
+
+// the URL's early options (the rest read through url*() where they are set)
+if (urlOpt('cats')) {
+  const want = urlOpt('cats');
+  activeCats.clear();
+  if (want !== 'none') for (const k of (want === 'all' ? Object.keys(kindLabel) : want.split(','))) {
+    if (k in kindLabel) activeCats.add(k);
+  }
+}
+if (urlOpt('orphans')) showOrphans = urlBool('orphans', showOrphans);
+if (urlOpt('possessions')) focusOwned = urlBool('possessions', focusOwned);
+
+// the whole option state as ?params — the source syncUrl() writes from
+let isodepthOpt = urlOpt('isodepth') || 'all'; // updated by isolateTree
+function optionState() {
+  const kinds = Object.keys(kindLabel);
+  const dirEl = document.getElementById('isoDir');
+  const depthEl = document.getElementById('isoDepth');
+  const depth = depthEl && depthEl.value !== '' ? String(parseInt(depthEl.value, 10) || '') : isodepthOpt;
+  return {
+    layout: currentLayout,
+    force: forceDir ? '1' : '0',
+    anim: animateOn ? '1' : '0',
+    saved: savedToggleOn() ? '1' : '0',
+    worker: workerOn() ? '1' : '0',
+    dens: String(Math.round(densPct)),
+    auto: autoRelayoutOn() ? '1' : '0',
+    cats: activeCats.size === kinds.length ? 'all'
+      : activeCats.size === 0 ? 'none'
+        : kinds.filter(k => activeCats.has(k)).join(','),
+    orphans: showOrphans ? '1' : '0',
+    links: edgePrefs.materials ? '1' : '0',
+    skilllinks: edgePrefs.skills ? '1' : '0',
+    regions: edgePrefs.regions ? '1' : '0',
+    possessions: focusOwned ? '1' : '0',
+    iso: isolatedRoot ? (slugIndex.toSlug.get(isolatedRoot) || null) : null,
+    isodir: dirEl ? dirEl.value : (urlOpt('isodir') || localStorage.getItem('dw.isoDir') || 'down'),
+    isodepth: depth || 'all',
+  };
+}
+// mirror the option state into the address bar (replaceState: one history entry,
+// and unlike assigning location.search it fires no navigation). Foreign params
+// — ?tour= — are preserved. Idempotent, so it is safe to call on every change.
+const OPTION_NAME_SET = new Set(routing.OPTION_NAMES);
+let lastQuery = null;
+function syncUrl() {
+  if (!cy.nodes().length) return; // nothing to describe yet
+  const q = new URLSearchParams(routing.buildOptionsQuery(optionState()));
+  for (const [k, v] of new URLSearchParams(location.search)) {
+    if (!OPTION_NAME_SET.has(k)) q.append(k, v); // keep ?tour= etc. intact
+  }
+  const qs = q.toString();
+  if (qs === lastQuery || location.search.replace(/^\?/, '') === qs) return;
+  lastQuery = qs;
+  try { history.replaceState(null, '', (qs ? '?' + qs : location.pathname) + location.hash); } catch { /* file:// — leave the URL be */ }
+}
+
+// declared here, not with the other layout globals above: both read the URL
+let forceDir = urlBool('force', true); // force-directed physics on/off (?force=0)
+let animateOn = urlBool('anim', localStorage.getItem('dw.animate') !== '0'); // animate layouts (P1.5-1)
 
 function setLayoutIndicator(on, label) {
   const ind = document.getElementById('layoutInd');
@@ -562,9 +677,10 @@ const workerToggleEl = document.getElementById('workerToggle');
 // default ON since the P1-2 spike graduated (2026-09-24): the probe verified 18/18
 // capability + bit-for-bit fidelity, and jank measurements showed worst-frame 83→33ms.
 // Workers that can't spin up (file://, ancient browsers) fall back transparently.
-if (workerToggleEl) workerToggleEl.checked = localStorage.getItem('dw.worker') !== '0';
+if (workerToggleEl) workerToggleEl.checked = urlBool('worker', localStorage.getItem('dw.worker') !== '0');
 if (workerToggleEl) workerToggleEl.onchange = () => {
-  localStorage.setItem('dw.worker', workerToggleEl.checked ? '1' : '0');
+  storeOpt('worker', workerToggleEl.checked ? '1' : '0');
+  syncUrl();
   toast(workerToggleEl.checked
     ? 'Worker layout on — heavy layouts compute in a background thread'
     : 'Worker layout off — layouts run on the main thread again');
@@ -627,7 +743,7 @@ async function runWorkerLayout(preset, opts, timeoutMs = 120000, eles = null) {
 
 // P3-1b: density slider — scales elk layered spacing 50–200%, live re-runs; 💾 saves
 // the current arrangement per layout+density as a custom snapshot that boots instantly.
-let densPct = parseFloat(localStorage.getItem('dw.dens')) || 100;
+let densPct = urlNum('dens', parseFloat(localStorage.getItem('dw.dens')) || 100);
 const DENS_BASE = {
   'elk-layered': true,
   'elk-layered-wide': true,
@@ -1003,7 +1119,7 @@ function runLayout(preset = currentLayout, { skipSaved = false, forceMain = fals
 }
 // layout choice persists (P3-1: a calm boot you only configure once)
 // P3-1: calm elk default for first-time visitors; a persisted choice wins after that
-let currentLayout = localStorage.getItem('dw.layout');
+let currentLayout = urlOpt('layout') || localStorage.getItem('dw.layout');
 if (!LAYOUTS[currentLayout]) currentLayout = 'elk-layered-wide';
 
 /* populate */
@@ -1101,9 +1217,9 @@ function fitSoon() {
 // Region links (P4-1b) start hidden too — they are geography, not crafting, and
 // the default map is a crafting view.
 const edgePrefs = {
-  materials: localStorage.getItem('dw.showMatEdges') !== '0', // recipe links (default ON, persisted)
-  skills: localStorage.getItem('dw.showSkillEdges') === '1', // default OFF first load
-  regions: localStorage.getItem('dw.showRegionEdges') === '1', // default OFF first load
+  materials: urlBool('links', localStorage.getItem('dw.showMatEdges') !== '0'), // recipe links (default ON, persisted)
+  skills: urlBool('skilllinks', localStorage.getItem('dw.showSkillEdges') === '1'), // default OFF first load
+  regions: urlBool('regions', localStorage.getItem('dw.showRegionEdges') === '1'), // default OFF first load
 }; // toggle via the legend's LINKS rows (retired header chips kept in sync)
 function applyEdgeVisibility() {
   cy.batch(() => {
@@ -1118,6 +1234,7 @@ function applyEdgeVisibility() {
       if (!e.hasClass('hidden') && (e.source().hasClass('hidden') || e.target().hasClass('hidden'))) e.addClass('hidden');
     }
   });
+  syncUrl(); // link prefs are part of the shared view too (this is their one choke point)
 }
 
 /* ── legend: the single filter surface ───────────────────────── */
@@ -1138,7 +1255,7 @@ function lgSyncKind(k) {
   if (lgRows[k]) lgRows[k].classList.toggle('off', !activeCats.has(k));
   const chip = document.querySelector(`.chip[data-cat="${k}"]`); // hidden legacy chip mirrors
   if (chip) chip.classList.toggle('on', activeCats.has(k));
-  localStorage.setItem('dw.legendKinds', JSON.stringify([...activeCats])); // kinds survive reloads
+  storeOpt('legendKinds', JSON.stringify([...activeCats])); // kinds survive reloads (skipped when ?cats= supplied them)
 }
 for (const k of Object.keys(kindColor)) {
   lgRows[k] = lgMakeRow({
@@ -1187,7 +1304,7 @@ const lgDeadRow = lgMakeRow({
   on: showOrphans,
   onclick: () => {
     showOrphans = !showOrphans;
-    localStorage.setItem('dw.showOrphans', showOrphans ? '1' : '0');
+    storeOpt('showOrphans', showOrphans ? '1' : '0');
     lgDeadRow.classList.toggle('off', !showOrphans);
     lgDeadRow.querySelector('.lg-check').textContent = showOrphans ? '◆' : '◇';
     const oc = document.getElementById('orphansChip');
@@ -1204,20 +1321,20 @@ function showEverything() {
   for (const k of Object.keys(kindColor)) activeCats.add(k);
   for (const k of Object.keys(lgRows)) lgSyncKind(k);
   showOrphans = true;
-  localStorage.setItem('dw.showOrphans', '1');
+  storeOpt('showOrphans', '1');
   document.getElementById('orphansChip').classList.add('on');
   lgDeadRow.classList.remove('off');
   lgDeadRow.querySelector('.lg-check').textContent = '◆';
   edgePrefs.materials = true;
-  localStorage.setItem('dw.showMatEdges', '1');
+  storeOpt('showMatEdges', '1');
   lgMatRow.classList.remove('off');
   document.getElementById('edgeMatChip').classList.add('on');
   edgePrefs.skills = true;
-  localStorage.setItem('dw.showSkillEdges', '1');
+  storeOpt('showSkillEdges', '1');
   lgSkillRow.classList.remove('off');
   document.getElementById('edgeSkillChip').classList.add('on');
   edgePrefs.regions = true;
-  localStorage.setItem('dw.showRegionEdges', '1');
+  storeOpt('showRegionEdges', '1');
   lgRegionRow.classList.remove('off');
   if (lgAllRow) lgAllRow.classList.remove('attention');
   applyCategoryVisibility();
@@ -1274,7 +1391,7 @@ const lgMatRow = lgMakeRow({
   on: edgePrefs.materials,
   onclick: () => {
     edgePrefs.materials = !edgePrefs.materials;
-    localStorage.setItem('dw.showMatEdges', edgePrefs.materials ? '1' : '0');
+    storeOpt('showMatEdges', edgePrefs.materials ? '1' : '0');
     lgMatRow.classList.toggle('off', !edgePrefs.materials);
     document.getElementById('edgeMatChip').classList.toggle('on', edgePrefs.materials);
     applyEdgeVisibility();
@@ -1287,7 +1404,7 @@ const lgSkillRow = lgMakeRow({
   on: edgePrefs.skills,
   onclick: () => {
     edgePrefs.skills = !edgePrefs.skills;
-    localStorage.setItem('dw.showSkillEdges', edgePrefs.skills ? '1' : '0');
+    storeOpt('showSkillEdges', edgePrefs.skills ? '1' : '0');
     lgSkillRow.classList.toggle('off', !edgePrefs.skills);
     document.getElementById('edgeSkillChip').classList.toggle('on', edgePrefs.skills);
     applyEdgeVisibility();
@@ -1300,7 +1417,7 @@ const lgRegionRow = lgMakeRow({
   on: edgePrefs.regions,
   onclick: () => {
     edgePrefs.regions = !edgePrefs.regions;
-    localStorage.setItem('dw.showRegionEdges', edgePrefs.regions ? '1' : '0');
+    storeOpt('showRegionEdges', edgePrefs.regions ? '1' : '0');
     lgRegionRow.classList.toggle('off', !edgePrefs.regions);
     applyEdgeVisibility();
   },
@@ -1333,7 +1450,7 @@ document.querySelectorAll('.chip[data-cat]').forEach(chip => {
 document.getElementById('resetFilters').onclick = () => {
   for (const k of Object.keys(kindLabel)) activeCats.add(k);
   document.querySelectorAll('.chip[data-cat]').forEach(c => c.classList.add('on'));
-  localStorage.setItem('dw.legendKinds', JSON.stringify([...activeCats]));
+  storeOpt('legendKinds', JSON.stringify([...activeCats]));
   // ↺ All resets to the calm first-load view: dead ends hidden too, and the
   // Possessions focus dropped (owned marks themselves persist)
   showOrphans = false;
@@ -1348,11 +1465,11 @@ document.getElementById('resetFilters').onclick = () => {
   }
   // skill + region edges hidden too
   edgePrefs.skills = false;
-  localStorage.setItem('dw.showSkillEdges', '0');
+  storeOpt('showSkillEdges', '0');
   document.getElementById('edgeSkillChip').classList.remove('on');
   lgSkillRow.classList.add('off');
   edgePrefs.regions = false;
-  localStorage.setItem('dw.showRegionEdges', '0');
+  storeOpt('showRegionEdges', '0');
   lgRegionRow.classList.add('off');
   for (const k of Object.keys(lgRows)) lgSyncKind(k); // legend rows stay in step
   applyCategoryVisibility();
@@ -1373,7 +1490,7 @@ document.getElementById('edgeMatChip').onclick = () => {
 };
 document.getElementById('edgeSkillChip').onclick = () => {
   edgePrefs.skills = !edgePrefs.skills;
-  localStorage.setItem('dw.showSkillEdges', edgePrefs.skills ? '1' : '0');
+  storeOpt('showSkillEdges', edgePrefs.skills ? '1' : '0');
   document.getElementById('edgeSkillChip').classList.toggle('on', edgePrefs.skills);
   lgSkillRow.classList.toggle('off', !edgePrefs.skills); // legend mirrors
   applyEdgeVisibility();
@@ -1410,6 +1527,7 @@ function updateReadout() {
       `<span>algorithm: <span class="algo">${esc(algo)}</span>${FORCE_LAYOUTS.has(currentLayout) ? (forceDir ? ' · force' : ' · spread') : ''}${usingCustomPositions ? ' · custom' : usingCuratedPositions ? ' · curated' : usingSavedPositions ? ' · saved' : ''}</span>` +
       dur;
   }
+  syncUrl(); // every graph-state change funnels through here — keep the URL truthful
 }
 
 /* ── zoom controls ───────────────────────────────────────────── */
@@ -1427,10 +1545,11 @@ const autoRelayoutOn = () => { const t = document.getElementById('autoRelayout')
 (function initSettings() {
   const autoEl = document.getElementById('autoRelayout');
   if (autoEl) {
-    autoEl.checked = localStorage.getItem('dw.autoRelayout') !== '0';
+    autoEl.checked = urlBool('auto', localStorage.getItem('dw.autoRelayout') !== '0');
     autoEl.onchange = () => {
       const on = autoEl.checked;
-      localStorage.setItem('dw.autoRelayout', on ? '1' : '0');
+      storeOpt('autoRelayout', on ? '1' : '0');
+      syncUrl();
       const undo = () => { autoEl.checked = !on; autoEl.onchange(); };
       if (on) {
         toastWithUndo('Graph changes re-run the layout', undo);
@@ -1497,11 +1616,17 @@ const forceToggle = document.getElementById('forceToggle');
 function syncForceToggleUI() {
   const applicable = FORCE_LAYOUTS.has(currentLayout);
   if (forceToggleWrap) forceToggleWrap.classList.toggle('off', !applicable);
-  if (forceToggle) forceToggle.disabled = !applicable;
+  if (forceToggle) {
+    forceToggle.disabled = !applicable;
+    // force was memory-only (no dw.* key), so the checkbox never had to be
+    // synced from forceDir — ?force=0 makes it a URL-settable option, so
+    // reflect the real value instead of the markup's default
+    forceToggle.checked = forceDir;
+  }
 }
 if (layoutSelect) {
   layoutSelect.value = currentLayout;
-  layoutSelect.onchange = () => { currentLayout = layoutSelect.value; localStorage.setItem('dw.layout', currentLayout); syncForceToggleUI(); updateReadout(); runLayout(currentLayout, { reflow: false, visibleOnly: true }); };
+  layoutSelect.onchange = () => { currentLayout = layoutSelect.value; storeOpt('layout', currentLayout); syncForceToggleUI(); updateReadout(); runLayout(currentLayout, { reflow: false, visibleOnly: true }); };
 }
 if (forceToggle) {
   forceToggle.onchange = () => {
@@ -1518,15 +1643,17 @@ if (animToggle) {
   animToggle.checked = animateOn;
   animToggle.onchange = () => {
     animateOn = animToggle.checked;
-    localStorage.setItem('dw.animate', animateOn ? '1' : '0');
+    storeOpt('animate', animateOn ? '1' : '0');
+    syncUrl();
     runLayout(currentLayout, { reflow: false, visibleOnly: true });
   };
 }
 const savedToggle = document.getElementById('savedToggle');
 if (savedToggle) {
-  savedToggle.checked = localStorage.getItem('dw.savedLayouts') !== '0';
+  savedToggle.checked = urlBool('saved', localStorage.getItem('dw.savedLayouts') !== '0');
   savedToggle.onchange = () => {
-    localStorage.setItem('dw.savedLayouts', savedToggle.checked ? '1' : '0');
+    storeOpt('savedLayouts', savedToggle.checked ? '1' : '0');
+    syncUrl();
     runLayout(currentLayout, { reflow: false, visibleOnly: true });
   };
 }
@@ -1544,8 +1671,9 @@ if (densSlider) {
   if (densVal) densVal.textContent = densPct + '%';    let densTimer = null;
   densSlider.oninput = () => {
     densPct = parseFloat(densSlider.value) || 100;
-    localStorage.setItem('dw.dens', String(densPct));
+    storeOpt('dens', String(densPct));
     if (densVal) densVal.textContent = densPct + '%';
+    syncUrl(); // the debounced re-layout may not run at all — keep the URL current
     // drag-storm batching: the label updates live (cheap), but the layout only
     // re-runs once the slider has been still for a beat. 260ms felt instant for
     // discrete jumps but a continuous drag queued a re-layout per notch — each a
@@ -1638,7 +1766,7 @@ function applyPossessions() {
 
 /* ── selection / isolation / panel ──────────────────────────── */
 
-function selectNode(id, { fly = true } = {}) {
+function selectNode(id, { fly = true, syncHash = true } = {}) {
   document.getElementById('welcome').classList.add('hidden');
   selectedId = id;
   const n0 = nodeById.get(id);
@@ -1657,6 +1785,7 @@ function selectNode(id, { fly = true } = {}) {
   if (fly) cy.animate({ center: { eles: n }, zoom: Math.max(cy.zoom(), 1.1) }, { duration: 420 });
   openPanel(id);
   updateBreadcrumb();
+  if (syncHash) writeRoute([id]);
 }
 
 function clearIsolation() {
@@ -1670,6 +1799,7 @@ function clearIsolation() {
   });
   document.getElementById('breadcrumb').classList.add('hidden');
   fitSoon();
+  syncUrl(); // no isolation any more — drop ?iso= from the shared view
 }
 
 function isolateTree(id, depthOverride = null) {
@@ -1678,7 +1808,8 @@ function isolateTree(id, depthOverride = null) {
   const dEl = document.getElementById('isoDepth');
   const raw = depthOverride !== null ? depthOverride
     : (dEl && dEl.value !== '' ? Math.max(1, parseInt(dEl.value, 10) || 3) : Infinity);
-  if (dEl) localStorage.setItem('dw.isoDepth', dEl.value);
+  if (dEl) storeOpt('isoDepth', dEl.value);
+  isodepthOpt = raw === Infinity ? 'all' : String(raw); // keeps ?isodepth= truthful for syncUrl
   // P4-3 direction-dominant walk, promoted to DEFAULT 'down' (outputs only) on
   // 2026-09-24: the both-direction walk-to-leaves is a 1,408-node knot (72% of
   // the map) for every hub item, while outputs-only is surgical (Iron Bar 89,
@@ -1689,8 +1820,8 @@ function isolateTree(id, depthOverride = null) {
   // choice); otherwise the persisted pref; otherwise the promoted default.
   const dirEl = document.getElementById('isoDir');
   const dir = dirEl ? dirEl.value
-    : (localStorage.getItem('dw.isoDir') || 'down'); // both | down | up
-  if (dirEl) localStorage.setItem('dw.isoDir', dir);
+    : (urlOpt('isodir') || localStorage.getItem('dw.isoDir') || 'down'); // both | down | up (?isodir= wins)
+  if (dirEl) storeOpt('isoDir', dir);
   isolatedRoot = id;
   resetTraceState(); // a fresh isolation is the new visible-tree base
   // breadth-first over recipe edges, up to `raw` steps (or until leaves),
@@ -1728,6 +1859,7 @@ function isolateTree(id, depthOverride = null) {
   });
   selectNode(id, { fly: false });
   setTimeout(() => cy.fit(undefined, 70), 60);
+  syncUrl(); // the isolated tree is part of the shared view (?iso=)
   const dirLabel = dir === 'down' ? 'outputs only' : dir === 'up' ? 'inputs only' : 'inputs + outputs';
   toast(`Crafting tree of ${nodeById.get(id).name} · ${dirLabel} · depth ${raw === Infinity ? 'all' : raw} · ${keep.size - 1} items`);
 }
@@ -2236,6 +2368,7 @@ function clearPath() {
   disarmPath();
   hidePathbar();
   cy.elements().removeClass('faded traced');
+  writeRoute(selectedId ? [selectedId] : []); // the trail is gone, the selection stays
 }
 
 function runPath(a, b, multi = false) {
@@ -2251,7 +2384,7 @@ function runPath(a, b, multi = false) {
     return;
   }
   lastPath = { from: multi ? srcIds : a, to: b, steps, multi };
-  selectNode(b); // renders target panel (which shows the path section) and clears old classes
+  selectNode(b, { syncHash: false }); // renders target panel (which shows the path section) and clears old classes
   cy.batch(() => {
     cy.elements().addClass('faded');
     for (const s of steps) {
@@ -2266,6 +2399,8 @@ function runPath(a, b, multi = false) {
     : nodeById.get(a).name;
   showPathbar(`Path: ${fromTxt} → ${nodeById.get(b).name} · ${steps.length} step${steps.length > 1 ? 's' : ''}`, false);
   toast(`Path: ${steps.length} step${steps.length > 1 ? 's' : ''} from ${fromTxt} to ${nodeById.get(b).name}`);
+  // a multi-source query has no single "from" slug, so the URL keeps the target
+  writeRoute(multi ? [b] : [a, b]);
 }
 
 // PF-3: path seeded with every item in the possessions ledger
@@ -2304,6 +2439,78 @@ function pathStepsHTML(p) {
     <button class="p-clear" id="btnClearPath" title="Clear path">✕</button></div>${rows}
     <div class="p-hint">Gold trail = the shortest material route. Esc also clears.</div></div>`;
 }
+
+/* ── URL routing (hash deep links) ───────────────────────────────
+   #/ash_logs              → select Ash Logs
+   #/ash_logs/iron_sword   → draw the path Ash Logs → Iron Sword
+   A fragment never reaches the server, so these work unchanged on GitHub
+   Pages, the Vite dev server, the in-process test server and file:// —
+   no fallback page, no rewrite rules. See site/routing.js for the slug
+   rules and the collision-safe slug ⇄ id map.                      */
+
+function idForSlug(slug) { return slugIndex.toId.get(slug) || null; }
+
+// mirror the current view into the address bar. replaceState keeps one
+// history entry (so Back still leaves the atlas) and, unlike assigning
+// location.hash, never fires hashchange — our own writes can't loop.
+function writeRoute(ids) {
+  const h = routing.buildHash((ids || []).map(id => slugIndex.toSlug.get(id)));
+  if (location.hash === h) return;
+  try { history.replaceState(null, '', h); } catch { /* file:// — leave the URL be */ }
+}
+
+// turn a fragment into the matching view. Unknown items are reported, never
+// silently ignored, and a bad route leaves the previous view untouched.
+function applyRoute(hash = location.hash) {
+  if (!cy.nodes().length) return; // graph not populated yet — boot gate applies it
+  const slugs = routing.parseHash(hash).segments;
+  if (!slugs.length) return; // bare "#/" — leave the current view alone
+  const ids = slugs.map(idForSlug);
+  if (!ids[0]) { toast(`Nothing matches “${slugs[0]}” in the URL — check the item's name`); return; }
+  if (!ids[1] || ids[0] === ids[1]) { selectNode(ids[0]); return; }
+  if (!idForSlug(slugs[1])) {
+    toast(`Nothing matches “${slugs[1]}” in the URL — showing ${nodeById.get(ids[0]).name}`);
+    selectNode(ids[0]);
+    return;
+  }
+  runPath(ids[0], ids[1]);
+}
+
+// typed URLs and Back/Forward to a different fragment drive the map
+window.addEventListener('hashchange', () => applyRoute());
+
+// boot finish: apply the URL options that need a live graph (?iso= isolates an
+// item, #/… selects one or draws a path), then hand option persistence back to
+// the visitor's own edits and write the URL. Same veil gate the ?tour= link uses.
+(function finishBoot() {
+  const wantIso = urlOpt('iso');
+  const wantHash = location.hash;
+  const hasRoute = !!wantIso || routing.parseHash(wantHash).segments.length > 0;
+  const t0 = Date.now();
+  const wait = () => {
+    const booted = window.__cy && cy.nodes().length > 0 && document.getElementById('veil').classList.contains('hidden');
+    if (!booted) {
+      if (Date.now() - t0 < 60000) setTimeout(wait, 250);
+      return;
+    }
+    setTimeout(() => {
+      // a typo in a shared link shouldn't fail silently
+      if (urlOpts.invalid.length) {
+        toast(`Ignoring unknown URL option${urlOpts.invalid.length > 1 ? 's' : ''}: ${urlOpts.invalid.join(', ')}`);
+      }
+      // ?iso= first, so the requested hash route still wins if both are given
+      if (wantIso) {
+        const id = idForSlug(wantIso);
+        if (id) isolateTree(id, isodepthOpt === 'all' ? null : parseInt(isodepthOpt, 10));
+        else toast(`Nothing matches “${wantIso}” in the URL — check the item's name`);
+      }
+      if (hasRoute) applyRoute(wantHash);
+      optsReady = true; // boot is over — the visitor's own edits persist from here
+      syncUrl();
+    }, hasRoute ? 300 : 0);
+  };
+  wait();
+})();
 
 /* ── canvas events ───────────────────────────────────────────── */
 cy.on('tap', 'node', (evt) => {
@@ -2375,6 +2582,7 @@ function closePanel() {
   selectedId = null;
   cy.elements().removeClass('sel');
   updateBreadcrumb();
+  writeRoute([]); // nothing selected — the URL goes back to the bare map
 }
 
 document.getElementById('panelClose').onclick = closePanel;
@@ -2639,14 +2847,15 @@ function renderPanelBody(n) {
     bi.onclick = () => isolateTree(id);
     const dEl = document.getElementById('isoDepth');
     if (dEl) {
-      dEl.value = localStorage.getItem('dw.isoDepth') ?? '';
+      const uDepth = urlOpt('isodepth');
+      dEl.value = uDepth === 'all' ? '' : (uDepth ?? localStorage.getItem('dw.isoDepth') ?? '');
       dEl.onkeydown = ev => { if (ev.key === 'Enter') { ev.preventDefault(); isolateTree(id); } };
     }
     const dirEl = document.getElementById('isoDir');
     if (dirEl) {
-      const saved = localStorage.getItem('dw.isoDir');
+      const saved = urlOpt('isodir') || localStorage.getItem('dw.isoDir');
       dirEl.value = saved === 'down' || saved === 'up' || saved === 'both' ? saved : 'down'; // default: outputs only
-      dirEl.onchange = () => localStorage.setItem('dw.isoDir', dirEl.value);
+      dirEl.onchange = () => { storeOpt('isoDir', dirEl.value); syncUrl(); };
     }
   }
   const bo = document.getElementById('btnOwn');

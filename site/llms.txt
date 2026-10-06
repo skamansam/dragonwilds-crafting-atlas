@@ -21,7 +21,15 @@ Interactions worth knowing about: click a node to open its codex panel (recipes,
 facilities, skills, a from-nothing Gather/Build/Train plan), Shift+Click to isolate its
 crafting tree, type to search; the ⚙ panel offers force-directed / dagre / ELK layouts
 with snapshot save/restore; scripted guided tours live in `site/tours.js`
-(deep-link `?tour=robes`, `?tour=outputs`, `?tour=inputs`). All data is non-commercial
+(deep-link `?tour=robes`, `?tour=outputs`, `?tour=inputs`). Every item also has a
+stable URL name — the snake_case form of its display name — so `#/ash_logs` opens
+that item's codex panel and `#/ash_logs/iron_sword` opens the crafting path between
+the two (rules in `site/routing.js`; the fragment never reaches the server). Every
+graph option is settable from the query string too — `?layout=elk-layered-wide`,
+`?cats=food`, `?links=0`, `?iso=iron_sword&isodir=up&isodepth=2`, and the rest of
+`OPTION_PARAMS` — and a value from the URL overrides the visitor's stored setting for
+that session without ever being saved, so a link reproduces a view exactly; the
+address bar is kept in step as options change. All data is non-commercial
 fan content used under the
 [RuneScape Fan Content Policy](https://www.jagex.com/en-GB/legal/fan-content).
 
