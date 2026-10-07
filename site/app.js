@@ -37,6 +37,23 @@ for (const e of D.edges) {
   inDegree.set(e.to, (inDegree.get(e.to) || 0) + 1);
 }
 
+// recipe-unlock ledger (P3-6): the wiki's Recipe template carries a `recipe=`
+// field — the atlas already stores it per-recipe as `blueprint` — naming the
+// item you must obtain (a found PLAN / PATTERN / VESTIGE, a vestige-like
+// trinket such as the Commemorative Coin, …) to be taught that recipe
+// automatically. This is the reverse view: blueprint item → recipe outputs.
+const unlocksRecipes = new Map(); // blueprint node id -> Map(output -> Set(facility))
+for (const r of D.recipes) {
+  // blueprint === output is a wiki template quirk (Lumber Backpack names its own
+  // recipe there — the page says it unlocks at level 59 Woodcutting), not an
+  // obtain-to-learn link
+  if (!r.blueprint || r.blueprint === r.output) continue;
+  if (!unlocksRecipes.has(r.blueprint)) unlocksRecipes.set(r.blueprint, new Map());
+  const outs = unlocksRecipes.get(r.blueprint);
+  if (!outs.has(r.output)) outs.set(r.output, new Set());
+  outs.get(r.output).add(r.facility);
+}
+
 const kindColor = {
   weapon:   '#c96a4a',
   armour:   '#7fa8c9',
@@ -2744,6 +2761,18 @@ function renderPanelBody(n) {
     }</div>`);
   }
 
+  // recipe-unlock ledger (P3-6): blueprint items teach their recipes the moment
+  // you pick them up — surface what obtaining this item gives you
+  const teaches = unlocksRecipes.get(id);
+  if (teaches) {
+    const rows = [...teaches.entries()].sort((a, b) => a[0].localeCompare(b[0])).map(([out, facs]) =>
+      `<div class="used-row" data-goto="${esc(out)}" title="Obtaining ${esc(id)} grants the recipe for ${esc(out)} automatically">${iconImg(out)}<span class="un">${esc(out)}</span><span class="uout">${esc([...facs].join(' · '))}</span></div>`
+    ).join('');
+    sections.push(`<div class="p-section"><div class="p-label">Unlocks when obtained (${teaches.size})</div>
+      <div class="p-hint" style="margin-bottom:6px">Picking this item up teaches you the recipe${teaches.size > 1 ? 's' : ''} automatically — no crafting needed.</div>
+      ${rows}</div>`);
+  }
+
   // found in — regions, gather method and tool (P4-1); rows jump to the region
   // pseudo-node (P4-1b), which now always exists for canonical regions
   if (foundIn.get(id)) {
@@ -2902,10 +2931,16 @@ function recipeCard(r) {
   const facHTML = facNode
     ? `<span class="recipe-facility fac-link" data-goto="${esc(facNode.id)}">${facilityIcon(facNode.id)}${esc(facNode.name)}</span>`
     : `<span class="recipe-facility">${esc(facility)}</span>`;
+  // P3-6: surface the recipe-unlock item (the `recipe=` field) on cards that
+  // have a separate facility — it's how this recipe is learned in-game
+  const unlockHTML = r.blueprint && r.facility && r.blueprint !== r.facility && r.blueprint !== r.output
+    ? `<span class="recipe-unlock fac-link" data-goto="${esc(r.blueprint)}" title="Obtaining/studying this item unlocks the recipe automatically">${iconImg(r.blueprint)}${esc(r.blueprint)}</span>`
+    : '';
   return `<div class="recipe ${r.deprecated ? 'deprecated' : ''}">
     <div class="recipe-head">
       ${facHTML}
       ${variant ? `<span class="recipe-variant">${esc(variant)}</span>` : ''}
+      ${unlockHTML}
       ${r.skill ? `<span class="recipe-skill" ${SKILL_NAMES.has(r.skill) ? `data-goto="${esc(r.skill)}" style="cursor:pointer"` : ''}>${skillIcon(r.skill)}${esc(r.skill)}${r.xp === 0 ? ' <span class="xp-zero" title="No XP reward">+0xp</span>' : (r.xp ? ' +' + r.xp + 'xp' : '')}</span>` : ''}
     </div>
     <div class="recipe-mats">${r.inputs.map(i =>

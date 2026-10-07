@@ -199,6 +199,28 @@ async function secPanel() {
     await page.waitForTimeout(600);
     ok('facility link navigates', (await page.$eval('#panelTitle', el => el.textContent)) !== 'Iron Bar');
   } else ok('facility link present', false);
+
+  // recipe-unlock ledger (P3-6): blueprint items teach their recipes when obtained
+  await page.fill('#search', 'PLAN: Wooden Barrel');
+  await page.keyboard.press('Enter');
+  await page.waitForTimeout(600);
+  const unlockTxt = await page.$eval('#panelBody', el => {
+    const sec = [...el.querySelectorAll('.p-section')]
+      .find(s => s.querySelector('.p-label')?.textContent.includes('Unlocks when obtained'));
+    return sec ? sec.innerText : '';
+  });
+  ok('blueprint item shows what it unlocks', unlockTxt.includes('Wooden Barrel'), unlockTxt.split('\n').slice(0, 3).join(' | '));
+  ok('unlock section explains the mechanic', unlockTxt.includes('automatically'));
+  await page.fill('#search', 'Commemorative Coin');
+  await page.keyboard.press('Enter');
+  await page.waitForTimeout(600);
+  ok('vestige-like item unlocks its recipe', await page.$eval('#panelBody', el =>
+    [...el.querySelectorAll('.used-row')].some(r => r.textContent.includes('Amulet of Glory'))));
+  await page.fill('#search', 'Wooden Barrel');
+  await page.keyboard.press('Enter');
+  await page.waitForTimeout(600);
+  ok('recipe card names the unlock item', await page.$eval('#panelBody', el =>
+    [...el.querySelectorAll('.recipe-unlock')].some(c => c.textContent.includes('PLAN: Wooden Barrel'))));
 }
 
 /* ── undo ──────────────────────────────────────────────────────────────── */

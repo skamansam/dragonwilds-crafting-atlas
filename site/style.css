@@ -908,6 +908,13 @@ body.path-arming #panelBody { pointer-events: none; }
 .wp-fac { color: var(--faint); font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; text-align: right; }
 .recipe-notes { font-size: 11.5px; color: var(--faint); margin-top: 6px; font-style: italic; }
 .recipe-variant { font-size: 10.5px; color: var(--faint); letter-spacing: 0.08em; text-transform: uppercase; }
+/* recipe-unlock item (P3-6): the `recipe=` field — the item that teaches the
+   recipe when obtained; shown on cards whose facility is a separate station */
+.recipe-unlock {
+  font-size: 11px; color: var(--gold); display: inline-flex; align-items: center; gap: 5px;
+}
+.recipe-unlock img { width: 16px; height: 16px; object-fit: contain; }
+.recipe-unlock:hover { color: var(--gold-bright); }
 
 .p-actions { display: flex; gap: 8px; margin-top: 2px; }
 .btn {

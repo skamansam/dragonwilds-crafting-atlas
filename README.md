@@ -135,7 +135,7 @@ unrelated params such as `?tour=robes` are preserved. The parameter list lives i
 
 | Action | Result |
 |---|---|
-| **Click a node** | Opens its codex panel (top-right): description, stats, all recipes & facilities, skill gates, everything it is used to make |
+| **Click a node** | Opens its codex panel (top-right): description, stats, all recipes & facilities, skill gates, what it unlocks when obtained, everything it is used to make |
 | **Shift+Click a node** | Isolates the crafting *tree* of that item — by default **outputs only** (what it enables); the panel's direction select adds inputs or restores the full both-way walk |
 | **Hover a node** | Direct neighbours highlight |
 | **Breadcrumb** (top right) | Crafting lineage of the current selection; click any step to walk the chain |
@@ -169,6 +169,12 @@ unrelated params such as `?tour=robes` are preserved. The parameter list lives i
   (shown when you own at least one item and don't already own the selection). It arms a
   multi-source path query seeded with *everything* in your ledger, so the route shown is the
   shortest one **from anything you hold** — tap the map or pick from search as usual.
+- **Recipe unlocks**: some items teach you a recipe the moment you obtain them — the wiki's
+  `recipe=` field (the atlas' `blueprint`): the found **PLAN:** and **PATTERN:** items, and
+  vestige-like finds such as the **Commemorative Coin** (→ Amulet of Glory). Those items'
+  panels list what they unlock under **Unlocks when obtained**, and recipe cards learned this
+  way show a gold chip naming the unlock item, so "why can't I craft this yet?" is answerable
+  from both ends. (Skill levels grant recipes too — see a skill hub's **Level unlocks**.)
 - **Possessions** (header chip): mark items as **✓ Owned** in their panel — or tap the **☆**
   right-aligned on any search result to mark that item's recipe owned in place — then flip the
   Possessions chip to see only what you can reach from what you have. The count badge next to
