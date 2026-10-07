@@ -40,6 +40,14 @@ const countFromReadout = (page: Page): Promise<number> =>
 	});
 
 test.describe("Crafting Atlas", () => {
+	// The first-run character prompt (TODO #24) overlays the whole viewport, so it
+	// would obscure every control below. Answer it up-front; the per-character
+	// behaviour itself is covered by tests/features/characters.* and the
+	// `characters` section of scripts/test-ui.mjs.
+	test.beforeEach(async ({ page }) => {
+		await page.addInitScript(() => localStorage.setItem("dw.charPrompted", "1"));
+	});
+
 	test("boots the full graph", async ({ page }) => {
 		await boot(page);
 		const { nodes, data } = await page.evaluate(() => {

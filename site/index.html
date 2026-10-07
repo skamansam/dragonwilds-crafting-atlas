@@ -66,6 +66,33 @@
     </div><!-- /header-center -->
 
     <div class="header-right">
+    <div class="char-wrap">
+      <button id="charBtn" aria-expanded="false" aria-controls="charPanel"
+              title="Character — skill levels, owned items, layout &amp; settings are saved per character" aria-label="Character"><span class="cb-rune">⚉</span><span class="cb-name">Character</span></button>
+      <div id="charPanel" popover="auto">
+        <div class="s-title">Character</div>
+        <div class="char-active">
+          <input id="charName" type="text" maxlength="40" placeholder="Name this character…" aria-label="Character name">
+          <span id="charTotal" class="char-badge">No character</span>
+        </div>
+        <div id="charList" class="char-list"></div>
+        <div class="s-sep"></div>
+        <div class="s-group">Skill levels</div>
+        <div id="charSkills" class="char-skills"></div>
+        <div id="charTotalLine" class="char-total"></div>
+        <div class="s-sep"></div>
+        <div class="s-group">New character</div>
+        <div class="char-new">
+          <input id="charNewName" type="text" maxlength="40" placeholder="Name…" aria-label="New character name">
+          <button id="charCreate" class="s-btn gold">Create</button>
+        </div>
+        <label id="charAdoptWrap" class="char-adopt" hidden>
+          <input type="checkbox" id="charAdopt" checked> keep my current map settings &amp; owned items
+        </label>
+        <button id="charDelete" class="s-btn danger">Delete this character</button>
+        <div id="charNote" class="s-note"></div>
+      </div>
+    </div>
     <div class="settings-wrap">
       <button id="settingsBtn" aria-expanded="false" aria-controls="settingsPanel"
               title="Graph settings — layouts, density &amp; relayout options" aria-label="Graph settings">⚙</button>
@@ -239,6 +266,13 @@
             bottom of the VIEW section. <b>Found in</b> rows in a panel jump to green
             <b>region hubs</b> (map aids from the wiki's location prose — their links start
             hidden; enable Region links in the legend).</p>
+            <h3>Characters</h3>
+            <p><b>⚉ Character</b> (header) keeps a <b>level per skill</b> plus a separate
+            memory of your layout, settings and owned items — two characters on one browser
+            no longer overwrite each other. The number beside a name is its <b>total level</b>
+            (the sum of all skills); set each skill from the grid in the panel, or from a
+            skill hub's own <b>Your level</b> row. The atlas asks for a character once and
+            remembers your answer — add, rename, switch or delete them any time.</p>
           </div>
           <div class="h-col">
             <h3>Layouts</h3>
@@ -301,6 +335,24 @@ exactly what you are looking at.</p>
 
     <div id="minimap" hidden><canvas id="mmCanvas"></canvas><div class="mm-viewport" id="mmViewport"></div></div>
   </div>
+
+  <div id="charModal" role="dialog" aria-modal="true" aria-label="Choose your character" hidden>
+    <div class="char-card">
+      <div class="h-rune">⚉</div>
+      <h2>WHO ARE YOU?</h2>
+      <p class="h-tag">Your layout, settings and owned items are saved <b>per character</b>,
+      and each character tracks a level per skill — the number beside the name is their total.
+      Name one to keep it all together; you can add more later from the header.</p>
+      <input id="charModalName" type="text" maxlength="40" placeholder="Your character's name" aria-label="Character name">
+      <label id="charModalAdoptWrap" class="char-adopt" hidden>
+        <input type="checkbox" id="charModalAdopt" checked> attach my existing map settings &amp; owned items to this character
+      </label>
+      <div class="char-modal-actions">
+        <button id="charModalCreate" class="btn primary">Create character</button>
+        <button id="charModalSkip" class="char-skip">Skip — use the atlas without a character</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script src="vendor/cytoscape.min.js"></script>
@@ -338,6 +390,7 @@ exactly what you are looking at.</p>
 <script src="layouts/curated.js"></script>
 <script src="found-in.js"></script>
 <script src="routing.js"></script>
+<script src="characters.js"></script>
 <script src="vendor/driver.js"></script>
 <script src="tours.js"></script>
 <script src="app.js"></script>

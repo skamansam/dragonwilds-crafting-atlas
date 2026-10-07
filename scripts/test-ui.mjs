@@ -16,6 +16,8 @@
 //   route    #/<item> selects an item; #/<item>/<item> draws the path between them
 //   options  ?layout=/?cats=/?iso=… set the graph view from the URL without
 //            persisting anything, and the URL tracks every change made by hand
+//   characters  per-character graph state: the first-run prompt (incl. the
+//            attach-existing-data path), skill levels + total, switching, delete
 import http from 'node:http';
 import fs from 'node:fs';
 import { readFile } from 'node:fs/promises';
@@ -53,7 +55,7 @@ if (!urlArg) {
 }
 
 const only = process.argv.slice(2).filter(a => !a.startsWith('--'))[0] || null;
-const sections = ['smoke', 'panel', 'undo', 'layouts', 'tours', 'route', 'options'].filter(s => !only || s === only);
+const sections = ['smoke', 'panel', 'undo', 'layouts', 'tours', 'route', 'options', 'characters'].filter(s => !only || s === only);
 
 const results = [];
 let page, browser;
@@ -589,6 +591,155 @@ async function secRoute() {
   ok('an unknown slug is reported, not fatal', bogus);
 }
 
+/* ── characters (per-character state, TODO #24) ─────────────────────────── */
+async function secCharacters() {
+  console.log('characters:');
+  // every key a character owns, so a fresh run starts genuinely clean
+  const CLEAR = ['dw.characters', 'dw.charPrompted', 'dw.layout', 'dw.owned',
+    'dw.legendKinds', 'dw.showOrphans', 'dw.dens', 'dw.animate', 'dw.savedLayouts',
+    'dw.worker', 'dw.autoRelayout', 'dw.showMatEdges', 'dw.showSkillEdges',
+    'dw.showRegionEdges', 'dw.isoDepth', 'dw.isoDir', 'dw.trace', 'dw.planMode',
+    'dw.planUseOwned', 'dw.wpProgress'];
+  const waitBoot = async () => {
+    await page.waitForFunction(() => window.__cy && window.__cy.nodes().length > 0, null, { timeout: 120000, polling: 500 });
+    await page.waitForFunction(() => document.getElementById('veil').classList.contains('hidden'), null, { timeout: 60000, polling: 250 });
+    await page.waitForTimeout(700);
+  };
+  // create/switch/delete reload the page — wait for the navigation itself,
+  // not just the boot conditions (which the old document already satisfies)
+  const reloadClick = async (sel) => {
+    await Promise.all([
+      page.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: 60000 }),
+      page.click(sel),
+    ]);
+    await waitBoot();
+  };
+  // blur first: a real click on the header button right after editing the
+  // focused skill input can be swallowed by the harness; a user's mousedown
+  // would blur it, so mimic that rather than losing the click
+  const openCharPanel = async () => {
+    await page.evaluate(() => { if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); });
+    await page.click('#charBtn');
+    await page.waitForTimeout(250);
+  };
+  const activeName = () => page.evaluate(() => (window.DW_CHARACTERS.activeCharacter() || {}).name || null);
+
+  // 1. existing saved data with no character → the migration prompt offers to attach it
+  await clearStorage(CLEAR);
+  await page.evaluate(() => {
+    localStorage.setItem('dw.layout', 'grid');
+    localStorage.setItem('dw.owned', JSON.stringify(['Iron Sword']));
+  });
+  await boot();
+  const mig = await page.evaluate(() => ({
+    open: !document.getElementById('charModal').hidden,
+    adopt: !document.getElementById('charModalAdoptWrap').hidden,
+  }));
+  ok('existing data with no character asks to attach it', mig.open && mig.adopt, `open=${mig.open} adopt=${mig.adopt}`);
+  await page.fill('#charModalName', 'Legacy');
+  await reloadClick('#charModalCreate');
+  const legacy = await page.evaluate(() => ({
+    modal: !document.getElementById('charModal').hidden,
+    active: (window.DW_CHARACTERS.activeCharacter() || {}).name,
+    layoutValue: document.getElementById('layoutSelect').value,
+    stored: localStorage.getItem('dw.layout'),
+  }));
+  ok('attaching keeps the saved data with the character',
+    legacy.active === 'Legacy' && legacy.stored === 'grid' && legacy.layoutValue === 'grid',
+    `${legacy.active} stored=${legacy.stored} layout=${legacy.layoutValue}`);
+  ok('the prompt does not reappear once answered', legacy.modal === false);
+
+  // 2. skipping is remembered, and the atlas still works without a character
+  await clearStorage(CLEAR);
+  await boot();
+  ok('a fresh visitor is asked to name a character', await page.$eval('#charModal', el => !el.hidden));
+  await page.evaluate(() => document.getElementById('charModalSkip').click());
+  await page.waitForTimeout(200);
+  const skipped = await page.evaluate(() => ({
+    hidden: document.getElementById('charModal').hidden,
+    prompted: localStorage.getItem('dw.charPrompted'),
+    active: !!window.DW_CHARACTERS.activeCharacter(),
+  }));
+  ok('skipping hides the prompt and is remembered', skipped.hidden && skipped.prompted === '1' && !skipped.active);
+  await boot();
+  ok('the prompt is not asked twice', await page.$eval('#charModal', el => el.hidden));
+
+  // 3. create a character; the header shows the name and the total level
+  await clearStorage(CLEAR);
+  await boot();
+  await page.fill('#charModalName', 'Alice');
+  await reloadClick('#charModalCreate');
+  const alice = await page.evaluate(() => ({
+    active: (window.DW_CHARACTERS.activeCharacter() || {}).name,
+    total: window.DW_CHARACTERS.totalLevel(window.DW_CHARACTERS.activeCharacter().skills),
+    btn: document.getElementById('charBtn').textContent,
+  }));
+  ok('creating a character makes it active', alice.active === 'Alice');
+  ok('the header shows the name and the total level', /Alice/.test(alice.btn) && alice.total === 12, `${alice.btn} / total ${alice.total}`);
+  // the character control is labelled for screen readers
+  ok('the character control is labelled', (await page.$eval('#charBtn', el => el.getAttribute('aria-label'))) === 'Character');
+
+  // 4. a skill hub tracks its own level; editing it updates the total
+  await page.evaluate(() => window.selectNode('Artisan'));
+  await page.waitForTimeout(500);
+  ok('a skill hub panel offers a level input', (await page.$('#skillLevelInput')) !== null);
+  await page.fill('#skillLevelInput', '20');
+  await page.dispatchEvent('#skillLevelInput', 'change');
+  await page.waitForTimeout(300);
+  const lvl = await page.evaluate(() => ({
+    total: window.DW_CHARACTERS.totalLevel(window.DW_CHARACTERS.activeCharacter().skills),
+    btn: document.getElementById('charBtn').textContent,
+    label: window.__cy.getElementById('Artisan').data('label'),
+  }));
+  ok('editing a level updates the total', lvl.total === 31, `total ${lvl.total}`);
+  ok('the header total follows the edit', /31/.test(lvl.btn), lvl.btn);
+  ok('the skill hub label shows the tracked level', lvl.label === 'Artisan · 20', lvl.label);
+
+  // 5. per-character state: Alice keeps her grid + owned item; a new character is clean
+  await page.evaluate(() => {
+    localStorage.setItem('dw.layout', 'grid');
+    localStorage.setItem('dw.owned', JSON.stringify(['Iron Sword']));
+  });
+  await openCharPanel();
+  await page.fill('#charNewName', 'Bob');
+  await reloadClick('#charCreate');
+  const bob = await page.evaluate(() => ({
+    active: (window.DW_CHARACTERS.activeCharacter() || {}).name,
+    layout: document.getElementById('layoutSelect').value,
+    owned: JSON.parse(localStorage.getItem('dw.owned') || '[]'),
+  }));
+  ok('a new character starts from a clean slate',
+    bob.active === 'Bob' && bob.layout === 'elk-layered-wide' && bob.owned.length === 0,
+    `${bob.active} layout=${bob.layout} owned=${bob.owned.length}`);
+
+  // 6. switching back restores that character's own graph state
+  await openCharPanel();
+  await Promise.all([
+    page.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: 60000 }),
+    page.click('.char-row:has-text("Alice")'),
+  ]);
+  await waitBoot();
+  const back = await page.evaluate(() => ({
+    active: (window.DW_CHARACTERS.activeCharacter() || {}).name,
+    layoutValue: document.getElementById('layoutSelect').value,
+    owned: JSON.parse(localStorage.getItem('dw.owned') || '[]'),
+    total: window.DW_CHARACTERS.totalLevel(window.DW_CHARACTERS.activeCharacter().skills),
+  }));
+  ok('switching restores the character\'s layout', back.active === 'Alice' && back.layoutValue === 'grid', `${back.active} layout=${back.layoutValue}`);
+  ok('switching restores the character\'s owned items', back.owned.includes('Iron Sword'));
+  ok('switching restores the character\'s skill levels', back.total === 31, `total ${back.total}`);
+
+  // 7. deleting the active character falls back to another
+  await openCharPanel();
+  await reloadClick('#charDelete');
+  const afterDel = await page.evaluate(() => ({
+    active: (window.DW_CHARACTERS.activeCharacter() || {}).name,
+    count: window.DW_CHARACTERS.read().chars.length,
+  }));
+  ok('deleting the active character falls back', afterDel.active === 'Bob' && afterDel.count === 1, `${afterDel.active} (${afterDel.count} left)`);
+  ok('the fallback character is the active one', (await activeName()) === 'Bob');
+}
+
 /* ── options (the graph view via query params) ──────────────────────────── */
 async function secOptions() {
   console.log('options:');
@@ -689,6 +840,12 @@ try {
   if (!urlArg) console.log(`serving site/ in-process on :${PORT}`);
   console.log(`target: ${BASE}\n`);
 
+  // The first-run character prompt (TODO #24) overlays the viewport, so it would
+  // block every other section. Answer it once here — the `characters` section
+  // clears the flag itself to exercise the prompt.
+  await page.goto(`${BASE}/`, { waitUntil: 'domcontentloaded', timeout: 60000 });
+  await page.evaluate(() => localStorage.setItem('dw.charPrompted', '1'));
+
   fs.mkdirSync('cache/shots-ui', { recursive: true });
 
   for (const s of sections) {
@@ -699,6 +856,7 @@ try {
     else if (s === 'tours') await secTours();
     else if (s === 'route') await secRoute();
     else if (s === 'options') await secOptions();
+    else if (s === 'characters') await secCharacters();
   }
 } catch (e) {
   console.error('SUITE ERROR:', e.message);

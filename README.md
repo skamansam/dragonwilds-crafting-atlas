@@ -203,6 +203,20 @@ unrelated params such as `?tour=robes` are preserved. The parameter list lives i
   view** back to the calm first-load state. The old header kind/link chips are retired
   (hidden, still scriptable).
 
+### Characters
+
+- **⚉ Character** (header) keeps a **level per skill** and its own copy of your layout,
+  settings and owned items, so two characters on one browser don't overwrite each other.
+  The number beside a name is its **total level** — the sum of all its skill levels. Set each
+  skill from the grid in the panel, or from a skill hub's own **Your level** row; the hub's
+  map label shows the tracked level too.
+- The atlas asks for a character **once** (skippable, and remembered). If you already have
+  saved settings and no character, it offers to **attach them** to the one you create.
+  Switch, rename or delete characters from the same panel; a switched-to character's layout
+  and ledger are restored exactly.
+- Levels are **tracked and displayed**, not enforced: setting a skill does not hide or lock
+  items yet (planned).
+
 ### Layouts
 
 - **24 layout algorithms** in the ⚙ graph settings panel, grouped: force-directed (cose-bilkent, fcose,
