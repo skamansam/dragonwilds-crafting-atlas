@@ -145,6 +145,24 @@ async function secPanel() {
   console.log('panel:');
   await clearStorage(['dw.owned']);
   await boot();
+
+  // search results carry a right-aligned favourite star that marks the recipe
+  // owned in place (like the panel's ✓ Owned) without picking the result
+  await page.fill('#search', 'Iron Bar');
+  await page.waitForTimeout(400);
+  ok('search result has an owned star', (await page.$$('.sug-item .sug-own')).length > 0);
+  ok('star starts empty', (await page.$eval('.sug-item .sug-own', el => el.textContent.trim())) === '☆');
+  await page.click('.sug-item .sug-own');
+  await page.waitForTimeout(400);
+  ok('star marks the item owned', await page.evaluate(() =>
+    (JSON.parse(localStorage.getItem('dw.owned') || '[]')).includes('Iron Bar')));
+  ok('star fills when owned', (await page.$eval('.sug-item .sug-own', el => el.textContent.trim())) === '★');
+  ok('star does not open the panel', await page.$eval('#panel', el => !el.classList.contains('open')));
+  await page.click('.sug-item .sug-own');
+  await page.waitForTimeout(400);
+  ok('star unmarks on a second click', await page.evaluate(() =>
+    !(JSON.parse(localStorage.getItem('dw.owned') || '[]')).includes('Iron Bar')));
+
   for (const item of ['Furnace', 'Campfire']) {
     await page.fill('#search', item);
     await page.keyboard.press('Enter');

@@ -178,6 +178,17 @@ header {
 .sug-name .n { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .sug-name .t { font-size: 11px; color: var(--faint); text-transform: capitalize; }
 .sug-item mark { background: none; color: var(--gold-bright); font-weight: 700; }
+/* right-aligned owned/favourite star on each search result (mirrors the panel's
+   ✓ Owned button): click to mark the recipe owned without selecting the result */
+.sug-own {
+  flex: none; width: 26px; height: 26px; padding: 0; border-radius: 6px;
+  display: grid; place-items: center; line-height: 1;
+  background: none; border: 1px solid transparent; color: var(--faint);
+  font-size: 15px; cursor: pointer; transition: color 0.15s, background 0.15s, border-color 0.15s;
+}
+.sug-own:hover { color: var(--gold-bright); border-color: var(--gold-dim); background: var(--bg1); }
+.sug-own.on { color: var(--gold-bright); }
+.sug-own.on:hover { border-color: var(--gold-dim); background: var(--bg1); }
 
 /* ── filter chips ───────────────────────────────────────────── */
 .filters { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }

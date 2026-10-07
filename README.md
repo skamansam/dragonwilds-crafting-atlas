@@ -169,7 +169,8 @@ unrelated params such as `?tour=robes` are preserved. The parameter list lives i
   (shown when you own at least one item and don't already own the selection). It arms a
   multi-source path query seeded with *everything* in your ledger, so the route shown is the
   shortest one **from anything you hold** — tap the map or pick from search as usual.
-- **Possessions** (header chip): mark items as **✓ Owned** in their panel, then flip the
+- **Possessions** (header chip): mark items as **✓ Owned** in their panel — or tap the **☆**
+  right-aligned on any search result to mark that item's recipe owned in place — then flip the
   Possessions chip to see only what you can reach from what you have. The count badge next to
   the chip shows how many items you've marked; everything is persisted in your browser.
 

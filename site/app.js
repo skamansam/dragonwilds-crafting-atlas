@@ -1718,6 +1718,15 @@ function persistOwned() {
 }
 const ownedCountEl = document.getElementById('ownedCount');
 
+// Toggle one item's owned mark and repaint — shared by the node panel and the
+// search box's right-aligned favourite stars. Returns the new owned state.
+function toggleOwned(id) {
+  if (owned.has(id)) owned.delete(id); else owned.add(id);
+  persistOwned();
+  applyPossessions();
+  return owned.has(id);
+}
+
 function propagateReach() {
   // walk forward from owned nodes through recipe + skill edges
   const reach = new Set();
@@ -2864,11 +2873,9 @@ function renderPanelBody(n) {
   }
   const bo = document.getElementById('btnOwn');
   if (bo) bo.onclick = () => {
-    if (owned.has(id)) owned.delete(id); else owned.add(id);
-    persistOwned();
-    applyPossessions();
+    const has = toggleOwned(id);
     renderPanelBody(n);
-    toast(owned.has(id) ? `Marked owned: ${n.name}` : `Unmarked: ${n.name}`);
+    toast(has ? `Marked owned: ${n.name}` : `Unmarked: ${n.name}`);
   };
   // per-character skill level editor on a skill hub (TODO #24)
   const sli = document.getElementById('skillLevelInput');
@@ -2984,14 +2991,20 @@ searchInput.addEventListener('input', () => {
   scored.sort((a, b) => b[0] - a[0]);
   sugItems = scored.slice(0, 30).map(x => x[1]);
   if (!sugItems.length) { closeSuggestions(); return; }
-  suggestions.innerHTML = sugItems.map((n, i) => `
+  suggestions.innerHTML = sugItems.map((n, i) => {
+    const has = owned.has(n.id);
+    return `
     <div class="sug-item" data-i="${i}">
       ${n.icon ? `<img src="${n.icon}" alt="">` : `<span class="sug-ico">${kindGlyph[n.kind] || '✦'}</span>`}
       <div class="sug-name">
         <div class="n">${highlight(n.name, q)}</div>
         <div class="t">${esc(kindLabel[n.kind] || n.kind)}${outDegree.get(n.id) ? ' · used in ' + outDegree.get(n.id) : ''}</div>
       </div>
-    </div>`).join('');
+      <button class="sug-own${has ? ' on' : ''}" type="button" data-own="${i}" aria-pressed="${has}"
+              title="${has ? 'You own this — click to unmark' : 'Mark as owned (you have the recipe)'}"
+              aria-label="${has ? 'Owned' : 'Mark owned'}">${has ? '★' : '☆'}</button>
+    </div>`;
+  }).join('');
   suggestions.classList.add('open');
   sugIndex = -1;
   suggestions.querySelectorAll('.sug-item').forEach(el => {
@@ -3005,6 +3018,21 @@ searchInput.addEventListener('input', () => {
         else if (pathFrom && n.id !== pathFrom) { runPath(pathFrom, n.id); searchInput.blur(); return; }
       }
       selectNode(n.id);
+    };
+  });
+  // the right-aligned star marks the recipe owned without picking the result
+  suggestions.querySelectorAll('.sug-own').forEach(btn => {
+    btn.onmousedown = (e) => e.preventDefault(); // keep the search input focused
+    btn.onclick = (e) => {
+      e.stopPropagation(); // don't also select the row
+      const n = sugItems[Number(btn.dataset.own)];
+      const has = toggleOwned(n.id);
+      btn.classList.toggle('on', has);
+      btn.setAttribute('aria-pressed', String(has));
+      btn.setAttribute('aria-label', has ? 'Owned' : 'Mark owned');
+      btn.title = has ? 'You own this — click to unmark' : 'Mark as owned (you have the recipe)';
+      btn.textContent = has ? '★' : '☆';
+      toast(has ? `Marked owned: ${n.name}` : `Unmarked: ${n.name}`);
     };
   });
 });
