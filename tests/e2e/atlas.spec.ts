@@ -210,12 +210,14 @@ test.describe("Crafting Atlas", () => {
 			// the point of the whole feature: a shared link must not rewrite the visitor's prefs
 			storedLayout: localStorage.getItem("dw.layout"),
 			storedKinds: localStorage.getItem("dw.legendKinds"),
+			storedForce: localStorage.getItem("dw.force"),
 		}));
 		expect(seen.layout).toBe("grid");
 		expect(seen.force).toBe(false);
 		expect(seen.weaponHidden).toBe(true);
 		expect(seen.storedLayout).toBeNull();
 		expect(seen.storedKinds).toBeNull();
+		expect(seen.storedForce).toBeNull();
 	});
 
 	test("the URL tracks options changed by hand", async ({ page }) => {

@@ -59,6 +59,7 @@ const stepSetLevel = async (_ctx: unknown, skill: string, level: number) => { se
 const stepSetLiveLayout = async (_ctx: unknown, layout: string) => { state.store.setItem("dw.layout", layout); };
 const stepSavedLayout = async (_ctx: unknown, layout: string) => { state.store.setItem("dw.layout", layout); };
 const stepMarkOwned = async (_ctx: unknown, item: string) => { state.store.setItem("dw.owned", JSON.stringify([item])); };
+const stepForceOff = async () => { state.store.setItem("dw.force", "0"); };
 const stepSavedLedger = async (_ctx: unknown, item: string) => { state.store.setItem("dw.owned", JSON.stringify([item])); };
 const stepSwitch = async (_ctx: unknown, name: string) => { activate(idFor(name), state.store); };
 const stepDeleteActive = async () => { const a = activeCharacter(state.store); if (a) remove(a.id, state.store); };
@@ -92,6 +93,8 @@ const thenLiveLayout = async (_ctx: unknown, layout: string) => {
 	expect(state.store.getItem("dw.layout")).toBe(layout);
 };
 const thenOwnedEmpty = async () => { expect(state.store.getItem("dw.owned")).toBeNull(); };
+const thenNoForcePref = async () => { expect(state.store.getItem("dw.force")).toBeNull(); };
+const thenForceOff = async () => { expect(state.store.getItem("dw.force")).toBe("0"); };
 const thenOwnedContains = async (_ctx: unknown, item: string) => {
 	expect(JSON.parse(state.store.getItem("dw.owned") || "[]")).toContain(item);
 };
@@ -156,6 +159,15 @@ describeFeature(feature, ({ Background, Scenario }) => {
 		When("I switch to the character named {string}", stepSwitch);
 		Then("the live layout is {string}", thenLiveLayout);
 		And("the owned ledger contains {string}", thenOwnedContains);
+	});
+
+	Scenario("The force-directed toggle follows the character", ({ When, Then, And }) => {
+		When("I create a character named {string}", stepCreate);
+		And("I turn the force-directed toggle off", stepForceOff);
+		And("I also create a character named {string}", stepAlsoCreate);
+		Then("no force-directed preference is stored", thenNoForcePref);
+		When("I switch to the character named {string}", stepSwitch);
+		Then("the force-directed toggle is off", thenForceOff);
 	});
 
 	Scenario("Creating a character can adopt the existing saved data", ({ Given, When, Then, And }) => {

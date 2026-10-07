@@ -30,7 +30,7 @@
     'layout', 'dens', 'animate', 'savedLayouts', 'worker', 'autoRelayout',
     'showMatEdges', 'showSkillEdges', 'showRegionEdges', 'legendKinds',
     'showOrphans', 'owned', 'planMode', 'planUseOwned', 'wpProgress',
-    'isoDepth', 'isoDir', 'trace',
+    'isoDepth', 'isoDir', 'trace', 'force',
   ];
 
   const store = () => window.localStorage;

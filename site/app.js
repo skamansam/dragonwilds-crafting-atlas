@@ -469,7 +469,7 @@ const OPT_PARAM_OF_KEY = {
   layout: 'layout', animate: 'anim', savedLayouts: 'saved', worker: 'worker',
   dens: 'dens', autoRelayout: 'auto', legendKinds: 'cats', showOrphans: 'orphans',
   showMatEdges: 'links', showSkillEdges: 'skilllinks', showRegionEdges: 'regions',
-  isoDepth: 'isodepth', isoDir: 'isodir',
+  isoDepth: 'isodepth', isoDir: 'isodir', force: 'force',
 };
 // the ONE place option prefs are persisted, so the URL rule can't be forgotten
 function storeOpt(key, value) {
@@ -535,7 +535,7 @@ function syncUrl() {
 }
 
 // declared here, not with the other layout globals above: both read the URL
-let forceDir = urlBool('force', true); // force-directed physics on/off (?force=0)
+let forceDir = urlBool('force', localStorage.getItem('dw.force') !== '0'); // force-directed physics (?force=0, per character)
 let animateOn = urlBool('anim', localStorage.getItem('dw.animate') !== '0'); // animate layouts (P1.5-1)
 
 function setLayoutIndicator(on, label) {
@@ -1619,9 +1619,8 @@ function syncForceToggleUI() {
   if (forceToggleWrap) forceToggleWrap.classList.toggle('off', !applicable);
   if (forceToggle) {
     forceToggle.disabled = !applicable;
-    // force was memory-only (no dw.* key), so the checkbox never had to be
-    // synced from forceDir — ?force=0 makes it a URL-settable option, so
-    // reflect the real value instead of the markup's default
+    // force is a URL-settable option (?force=0) with a stored per-character
+    // default (dw.force), so reflect the real value instead of the markup's
     forceToggle.checked = forceDir;
   }
 }
@@ -1632,6 +1631,8 @@ if (layoutSelect) {
 if (forceToggle) {
   forceToggle.onchange = () => {
     forceDir = forceToggle.checked;
+    storeOpt('force', forceDir ? '1' : '0');
+    syncUrl();
     updateReadout();
     if (FORCE_LAYOUTS.has(currentLayout)) runLayout(currentLayout, { reflow: false, visibleOnly: true });
   };

@@ -44,6 +44,14 @@ Feature: Per-character graph state and skill levels
     Then the live layout is "grid"
     And the owned ledger contains "Iron Sword"
 
+  Scenario: The force-directed toggle follows the character
+    When I create a character named "Alice"
+    And I turn the force-directed toggle off
+    And I also create a character named "Bob"
+    Then no force-directed preference is stored
+    When I switch to the character named "Alice"
+    Then the force-directed toggle is off
+
   Scenario: Creating a character can adopt the existing saved data
     Given the saved layout is "grid"
     And the saved ledger contains "Iron Sword"

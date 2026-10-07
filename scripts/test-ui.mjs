@@ -599,7 +599,7 @@ async function secCharacters() {
     'dw.legendKinds', 'dw.showOrphans', 'dw.dens', 'dw.animate', 'dw.savedLayouts',
     'dw.worker', 'dw.autoRelayout', 'dw.showMatEdges', 'dw.showSkillEdges',
     'dw.showRegionEdges', 'dw.isoDepth', 'dw.isoDir', 'dw.trace', 'dw.planMode',
-    'dw.planUseOwned', 'dw.wpProgress'];
+    'dw.planUseOwned', 'dw.wpProgress', 'dw.force'];
   const waitBoot = async () => {
     await page.waitForFunction(() => window.__cy && window.__cy.nodes().length > 0, null, { timeout: 120000, polling: 500 });
     await page.waitForFunction(() => document.getElementById('veil').classList.contains('hidden'), null, { timeout: 60000, polling: 250 });
@@ -699,6 +699,7 @@ async function secCharacters() {
   await page.evaluate(() => {
     localStorage.setItem('dw.layout', 'grid');
     localStorage.setItem('dw.owned', JSON.stringify(['Iron Sword']));
+    localStorage.setItem('dw.force', '0'); // a per-character pref (P3-2)
   });
   await openCharPanel();
   await page.fill('#charNewName', 'Bob');
@@ -707,10 +708,11 @@ async function secCharacters() {
     active: (window.DW_CHARACTERS.activeCharacter() || {}).name,
     layout: document.getElementById('layoutSelect').value,
     owned: JSON.parse(localStorage.getItem('dw.owned') || '[]'),
+    force: localStorage.getItem('dw.force'),
   }));
   ok('a new character starts from a clean slate',
-    bob.active === 'Bob' && bob.layout === 'elk-layered-wide' && bob.owned.length === 0,
-    `${bob.active} layout=${bob.layout} owned=${bob.owned.length}`);
+    bob.active === 'Bob' && bob.layout === 'elk-layered-wide' && bob.owned.length === 0 && bob.force === null,
+    `${bob.active} layout=${bob.layout} owned=${bob.owned.length} force=${bob.force}`);
 
   // 6. switching back restores that character's own graph state
   await openCharPanel();
@@ -723,10 +725,12 @@ async function secCharacters() {
     active: (window.DW_CHARACTERS.activeCharacter() || {}).name,
     layoutValue: document.getElementById('layoutSelect').value,
     owned: JSON.parse(localStorage.getItem('dw.owned') || '[]'),
+    force: localStorage.getItem('dw.force'),
     total: window.DW_CHARACTERS.totalLevel(window.DW_CHARACTERS.activeCharacter().skills),
   }));
   ok('switching restores the character\'s layout', back.active === 'Alice' && back.layoutValue === 'grid', `${back.active} layout=${back.layoutValue}`);
   ok('switching restores the character\'s owned items', back.owned.includes('Iron Sword'));
+  ok('switching restores the character\'s force preference', back.force === '0', `force=${back.force}`);
   ok('switching restores the character\'s skill levels', back.total === 31, `total ${back.total}`);
 
   // 7. deleting the active character falls back to another
@@ -743,7 +747,7 @@ async function secCharacters() {
 /* ── options (the graph view via query params) ──────────────────────────── */
 async function secOptions() {
   console.log('options:');
-  const KEYS = ['dw.layout', 'dw.animate', 'dw.savedLayouts', 'dw.worker', 'dw.dens',
+  const KEYS = ['dw.layout', 'dw.force', 'dw.animate', 'dw.savedLayouts', 'dw.worker', 'dw.dens',
     'dw.autoRelayout', 'dw.legendKinds', 'dw.showOrphans', 'dw.showMatEdges',
     'dw.showSkillEdges', 'dw.showRegionEdges', 'dw.isoDepth', 'dw.isoDir'];
   await boot();
@@ -799,6 +803,27 @@ async function secOptions() {
   }));
   ok('a manual change updates the URL live', !!after.cats && after.cats.includes('weapon'), after.cats);
   ok('a manual change still persists as before', !!after.stored && after.stored.includes('weapon'), after.stored);
+
+  // the force-directed toggle persists too (P3-2) — it was memory-only before,
+  // so this is the check that would have caught the missing dw.force key
+  await clearStorage(['dw.force', 'dw.layout']);
+  await page.evaluate(() => {
+    localStorage.setItem('dw.layout', 'cose-bilkent'); // a force layout ⇒ the toggle is live
+    localStorage.setItem('dw.settingsOpen', '1');       // …and it lives in the ⚙ panel
+  });
+  await boot();
+  ok('the force toggle is live on a force layout', await page.$eval('#forceToggle', el => el.disabled === false));
+  await page.click('#forceToggle');
+  await page.waitForTimeout(300);
+  const fPref = await page.evaluate(() => ({
+    stored: localStorage.getItem('dw.force'),
+    url: new URLSearchParams(location.search).get('force'),
+  }));
+  ok('toggling force persists it', fPref.stored === '0', `stored=${fPref.stored}`);
+  ok('toggling force keeps the URL current', fPref.url === '0', `force=${fPref.url}`);
+  await boot();
+  ok('force off survives a reload', await page.$eval('#forceToggle', el => el.checked === false));
+  await clearStorage(['dw.force', 'dw.layout']);
 
   // ?iso= isolates an item on load, with ?isodir=/?isodepth= as its defaults
   await boot('', '?iso=iron_sword&isodepth=1&isodir=up');

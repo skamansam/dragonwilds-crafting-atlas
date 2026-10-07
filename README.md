@@ -230,7 +230,7 @@ unrelated params such as `?tour=robes` are preserved. The parameter list lives i
   airy hierarchical view that boots instantly from its precomputed snapshot. Pick any other
   algorithm once and that choice is remembered forever.
 - **force-directed toggle**: off swaps force presets to "spread" presets (larger spacing,
-  weaker pull) for a more readable map.
+  weaker pull) for a more readable map. Persisted per character (P3-2).
 - **animate toggle**: off jumps straight to the final arrangement — faster, less CPU, no
   motion sickness. Persisted.
 - **saved positions**: layouts with a precomputed snapshot (*elk-layered*,
