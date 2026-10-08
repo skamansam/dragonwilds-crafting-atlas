@@ -330,6 +330,22 @@ async function secEdits() {
   await page.fill('#search', 'Iron Bar');
   await page.keyboard.press('Enter');
   await page.waitForTimeout(600);
+
+  // custom relationships (P6-3): add a link from the panel, see it on the map
+  ok('panel has a Links add form', (await page.$('#linkAdd')) !== null);
+  await page.selectOption('#linkRel', 'makes');
+  await page.fill('#linkTarget', 'Ash Logs');
+  await page.click('#linkAdd');
+  await page.waitForTimeout(500);
+  ok('link adds a custom edge', await page.evaluate(() =>
+    window.__cy.getElementById('usr:Iron Bar→Ash Logs:makes').nonempty()));
+  ok('link persisted in the browser', await page.evaluate(() =>
+    (JSON.parse(localStorage.getItem('dw.edits') || '{}').links || []).some(l => l.from === 'Iron Bar' && l.to === 'Ash Logs' && l.rel === 'makes')));
+  await page.click('[data-unlink]');
+  await page.waitForTimeout(500);
+  ok('link removal drops the edge', await page.evaluate(() =>
+    window.__cy.getElementById('usr:Iron Bar→Ash Logs:makes').empty()));
+
   ok('codex has an Edit data button', (await page.$('#btnEditData')) !== null);
   await page.click('#btnEditData');
   await page.waitForTimeout(200);

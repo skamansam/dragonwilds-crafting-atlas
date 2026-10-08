@@ -13,19 +13,25 @@ const D = window.DW_DATA;
    values. The shipped `site/data.*` files are never touched; PLAN §3 P6 adds
    relationship editing, export and scripts/apply-edits.mjs. */
 const EDITS_KEY = 'dw.edits';
+// custom relationships the user adds from a node's codex (P6-3): the link goes
+// current → target with the chosen relationship
+const LINK_RELS = ['makes', 'gives', 'found-in'];
+const LINK_LABEL = { makes: 'makes', gives: 'gives', 'found-in': 'found in' };
 function loadEdits() {
   try {
     const raw = JSON.parse(localStorage.getItem(EDITS_KEY) || 'null');
     if (raw && typeof raw === 'object' && raw.nodes && typeof raw.nodes === 'object') {
-      return { nodes: raw.nodes };
+      return { nodes: raw.nodes, links: Array.isArray(raw.links) ? raw.links : [] };
     }
   } catch { /* corrupt storage → clean slate */ }
-  return { nodes: {} };
+  return { nodes: {}, links: [] };
 }
 function persistEdits() {
   try {
-    if (Object.keys(dataEdits.nodes).length) localStorage.setItem(EDITS_KEY, JSON.stringify(dataEdits));
-    else localStorage.removeItem(EDITS_KEY); // no edits left → drop the key entirely
+    const hasNodes = Object.keys(dataEdits.nodes).length;
+    const hasLinks = (dataEdits.links || []).length;
+    if (hasNodes || hasLinks) localStorage.setItem(EDITS_KEY, JSON.stringify(dataEdits));
+    else localStorage.removeItem(EDITS_KEY); // nothing left → drop the key entirely
   } catch { /* storage blocked/full */ }
 }
 // The editable fields of a node, and the pristine (bundled) values for every
@@ -47,6 +53,12 @@ function applyEditsToData(data, edits) {
     bundledNodes.set(id, snapshotNodeFields(n));
     Object.assign(n, patch);
   }
+  // custom relationships (P6-3) join the edge list before degrees/filters are built
+  for (const l of (edits.links || [])) {
+    if (!l || !l.from || !l.to || !LINK_RELS.includes(l.rel)) continue;
+    if (!data.nodes.some(n => n.id === l.from) || !data.nodes.some(n => n.id === l.to)) continue;
+    data.edges.push({ from: l.from, to: l.to, qty: null, facility: null, skill: null, xp: null, blueprint: null, variant: null, deprecated: false, source: 'user', rel: l.rel });
+  }
   return data;
 }
 // the fields where this browser differs from the bundle ([] = your edit is now
@@ -64,6 +76,53 @@ function editFieldDiff(id) {
   }
   return { rows, merged: rows.length === 0 };
 }
+
+/* ── custom relationships (P6-3) ─────────────────────────────────── */
+function customEdgeId(from, to, rel) { return `usr:${from}→${to}:${rel}`; }
+function customEdgeElement(e) {
+  return {
+    group: 'edges',
+    data: { id: customEdgeId(e.from, e.to, e.rel), source: e.from, target: e.to, meta: e, rel: e.rel },
+    classes: 'customLink',
+  };
+}
+// resolve a typed name to a node id (exact match first, then case-insensitive)
+function resolveNodeId(name) {
+  const n = String(name || '').trim();
+  if (!n) return null;
+  if (nodeById.has(n)) return n;
+  const lower = n.toLowerCase();
+  for (const node of D.nodes) if (node.name.toLowerCase() === lower) return node.id;
+  return null;
+}
+function addCustomLink(from, to, rel) {
+  if (!LINK_RELS.includes(rel) || !from || !to || from === to) return false;
+  if (!nodeById.has(from) || !nodeById.has(to)) return false;
+  if ((dataEdits.links || []).some(l => l.from === from && l.to === to && l.rel === rel)) return false;
+  if (!Array.isArray(dataEdits.links)) dataEdits.links = [];
+  dataEdits.links.push({ from, to, rel });
+  persistEdits();
+  const e = { from, to, qty: null, facility: null, skill: null, xp: null, blueprint: null, variant: null, deprecated: false, source: 'user', rel };
+  D.edges.push(e);
+  cy.add(customEdgeElement(e));
+  applyCategoryVisibility();
+  return true;
+}
+function removeCustomLink(from, to, rel) {
+  dataEdits.links = (dataEdits.links || []).filter(l => !(l.from === from && l.to === to && l.rel === rel));
+  persistEdits();
+  const el = cy.getElementById(customEdgeId(from, to, rel));
+  if (el.nonempty()) el.remove();
+  const i = D.edges.findIndex(e => e.rel === rel && e.from === from && e.to === to);
+  if (i >= 0) D.edges.splice(i, 1);
+  applyCategoryVisibility();
+}
+// every node name once — the "link to item" picker's datalist
+const linkTargetList = document.createElement('datalist');
+linkTargetList.id = 'linkTargetList';
+linkTargetList.innerHTML = D.nodes.map(n => `<option value="${esc(n.name)}"></option>`).join('');
+document.body.appendChild(linkTargetList);
+
 const dataEdits = loadEdits();
 applyEditsToData(D, dataEdits);
 
@@ -270,6 +329,24 @@ const cy = cytoscape({
       selector: 'edge.reachable',
       style: { 'line-color': 'rgba(226,185,92,0.5)', 'target-arrow-color': 'rgba(226,185,92,0.5)' },
     },
+    // user-added relationships (P6-3) — a real curve (not haystack) so the
+    // relationship reads from the line style as well as the colour
+    {
+      selector: 'edge.customLink',
+      style: { 'curve-style': 'bezier', width: 2.4, 'z-index': 98 },
+    },
+    {
+      selector: 'edge.customLink[rel = "makes"]',
+      style: { 'line-color': '#e2b95c', 'target-arrow-color': '#e2b95c', width: 2.6 },
+    },
+    {
+      selector: 'edge.customLink[rel = "gives"]',
+      style: { 'line-color': 'rgba(88,201,185,0.9)', 'target-arrow-color': 'rgba(88,201,185,0.9)', 'line-style': 'dashed' },
+    },
+    {
+      selector: 'edge.customLink[rel = "found-in"]',
+      style: { 'line-color': '#7fc9a6', 'target-arrow-color': '#7fc9a6', 'line-style': 'dotted' },
+    },
     {
       selector: '.faded',
       style: { opacity: 0.08, 'text-opacity': 0.06 },
@@ -314,6 +391,7 @@ for (const n of D.nodes) {
   });
 }
 for (const e of D.edges) {
+  if (e.rel) { eles.push(customEdgeElement(e)); continue; } // user relationship (P6-3)
   const isSkillGate = SKILL_NAMES.has(e.from);
   eles.push({
     group: 'edges',
@@ -2766,7 +2844,9 @@ function fmtEditVal(v) {
 }
 function updateEditsCount() {
   const el = document.getElementById('editsCount');
-  if (el) el.textContent = Object.keys(dataEdits.nodes).length ? String(Object.keys(dataEdits.nodes).length) : '';
+  if (!el) return;
+  const n = Object.keys(dataEdits.nodes).length + (dataEdits.links || []).length;
+  el.textContent = n ? String(n) : '';
 }
 function openEditsModal(show = true) {
   const modal = document.getElementById('editsModal');
@@ -2778,10 +2858,11 @@ function renderEditsModal() {
   const list = document.getElementById('editsList');
   if (!list) return;
   const ids = Object.keys(dataEdits.nodes);
+  const links = dataEdits.links || [];
   const changed = [], merged = [];
   for (const id of ids) (editFieldDiff(id).merged ? merged : changed).push(id);
-  if (!ids.length) {
-    list.innerHTML = '<div class="edits-empty">No local edits yet. Open any item and press <b>✎ Edit data</b> to correct it.</div>';
+  if (!ids.length && !links.length) {
+    list.innerHTML = '<div class="edits-empty">No local edits yet. Open any item and press <b>✎ Edit data</b> to correct it, or add a link from the Links section.</div>';
   } else {
     const head = merged.length
       ? `<div class="edits-note">✓ ${merged.length} of your edit${merged.length > 1 ? 's have' : ' has'} been added to the dataset — your value and the bundled value are now the same, so ${merged.length > 1 ? 'they' : 'it'} can be cleared.</div>`
@@ -2794,12 +2875,15 @@ function renderEditsModal() {
         <div class="edits-node-head"><span class="en-name">${esc(name)}</span>${isMerged ? '<span class="pe-flag">in dataset</span>' : ''}<button class="p-clear ed-revert" data-revert="${esc(id)}" title="Drop this item's local edit and reload the bundled value">revert</button></div>
         ${diffs}</div>`;
     };
-    list.innerHTML = head + changed.map(id => rowFor(id, false)).join('') + merged.map(id => rowFor(id, true)).join('');
+    const linkBlock = links.length
+      ? `<div class="edits-node"><div class="edits-node-head"><span class="en-name">Custom links</span></div>${links.map(l => `<div class="edit-diff"><span class="ed-field">${esc(LINK_LABEL[l.rel] || l.rel)}</span><span class="ed-to">${esc(l.from)} → ${esc(l.to)}</span></div>`).join('')}</div>`
+      : '';
+    list.innerHTML = head + linkBlock + changed.map(id => rowFor(id, false)).join('') + merged.map(id => rowFor(id, true)).join('');
   }
   const cbtn = document.getElementById('editsClear');
-  if (cbtn) cbtn.disabled = ids.length === 0;
+  if (cbtn) cbtn.disabled = ids.length === 0 && links.length === 0;
   const exb = document.getElementById('editsExport');
-  if (exb) exb.disabled = ids.length === 0;
+  if (exb) exb.disabled = ids.length === 0 && links.length === 0;
   list.querySelectorAll('[data-revert]').forEach(b => {
     b.onclick = () => {
       delete dataEdits.nodes[b.dataset.revert];
@@ -2833,15 +2917,17 @@ function downloadJSON(obj, filename) {
 // the edits overlay, in the shape scripts/apply-edits.mjs merges
 function exportEditsFile() {
   const ids = Object.keys(dataEdits.nodes);
-  if (!ids.length) { toast('No edits to export'); return; }
+  const links = dataEdits.links || [];
+  if (!ids.length && !links.length) { toast('No edits to export'); return; }
   downloadJSON({
     format: 'dragonwilds-edits',
     version: 1,
     exportedAt: new Date().toISOString(),
     baseGeneratedAt: D.generatedAt || null,
     nodes: dataEdits.nodes,
+    links,
   }, 'dragonwilds-edits.json');
-  toast(`Exported ${ids.length} edit${ids.length > 1 ? 's' : ''} — bake in with scripts/apply-edits.mjs`);
+  toast(`Exported ${ids.length + links.length} edit${ids.length + links.length > 1 ? 's' : ''} — bake in with scripts/apply-edits.mjs`);
 }
 // the whole edited dataset (what this browser is showing), as data.json
 function exportFullData() {
@@ -2859,7 +2945,7 @@ function exportFullData() {
   const ec = document.getElementById('editsClose');
   if (ec) ec.onclick = () => openEditsModal(false);
   const cl = document.getElementById('editsClear');
-  if (cl) cl.onclick = () => { dataEdits.nodes = {}; persistEdits(); location.reload(); };
+  if (cl) cl.onclick = () => { dataEdits.nodes = {}; dataEdits.links = []; persistEdits(); location.reload(); };
   const ex = document.getElementById('editsExport');
   if (ex) ex.onclick = () => exportEditsFile();
   const exf = document.getElementById('editsExportFull');
@@ -3094,6 +3180,22 @@ function renderPanelBody(n) {
     }</div></div>`);
   }
 
+  // custom relationships (P6-3) — the user's own links, in and out
+  const outLinks = (dataEdits.links || []).filter(l => l.from === id);
+  const inLinks = (dataEdits.links || []).filter(l => l.to === id);
+  const linkRows = [...outLinks, ...inLinks].map(l =>
+    `<div class="edit-diff"><span class="ed-field">${esc(LINK_LABEL[l.rel] || l.rel)}</span><span class="ed-to link-jump" data-goto="${esc(l.from === id ? l.to : l.from)}">${esc(l.from)} → ${esc(l.to)}</span><button class="ed-revert" data-unlink="${esc(l.from)}|${esc(l.to)}|${esc(l.rel)}" title="Remove this link">remove</button></div>`).join('');
+  sections.push(`<div class="p-section">
+    <div class="p-label">Links${outLinks.length + inLinks.length ? ` (${outLinks.length + inLinks.length})` : ''}</div>
+    <div class="p-hint" style="margin-bottom:6px">Your own links — <b>makes</b>, <b>gives</b> or <b>found-in</b>. They draw an edge on the map (gold · teal · green) and are saved in this browser.</div>
+    ${linkRows}
+    <div class="link-add">
+      <select id="linkRel" title="The relationship from this item to the target">${Object.keys(LINK_LABEL).map(r => `<option value="${esc(r)}">${esc(LINK_LABEL[r])}</option>`).join('')}</select>
+      <input id="linkTarget" list="linkTargetList" placeholder="link to item…" aria-label="Link target item" />
+      <button class="btn" id="linkAdd">＋ Add link</button>
+    </div>
+  </div>`);
+
   // actions
   sections.push(`<div class="p-section p-actions">
     ${ownedBtnHTML(id)}
@@ -3123,6 +3225,25 @@ function renderPanelBody(n) {
   panelBody.querySelectorAll('[data-goto]').forEach(el => {
     el.onclick = () => { selectNode(el.dataset.goto); };
   });
+  // custom link rows: remove buttons + the add form (P6-3)
+  panelBody.querySelectorAll('[data-unlink]').forEach(b => {
+    b.onclick = () => {
+      const [f, t, r] = b.dataset.unlink.split('|');
+      removeCustomLink(f, t, r);
+      renderPanelBody(nodeById.get(id));
+      toast('Link removed');
+    };
+  });
+  const lad = document.getElementById('linkAdd');
+  if (lad) lad.onclick = () => {
+    const rel = document.getElementById('linkRel').value;
+    const target = resolveNodeId(document.getElementById('linkTarget').value);
+    if (!target) { toast('No item by that name'); return; }
+    if (target === id) { toast('An item cannot link to itself'); return; }
+    if (!addCustomLink(id, target, rel)) { toast('That link already exists'); return; }
+    renderPanelBody(nodeById.get(id));
+    toast(`Linked: ${id} ${LINK_LABEL[rel] || rel} ${target}`);
+  };
   const bt = document.getElementById('btnRequires');
   if (bt) bt.onclick = () => showRequires(id);
   const bto = document.getElementById('btnEnables');

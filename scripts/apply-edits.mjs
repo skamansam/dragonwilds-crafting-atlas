@@ -35,9 +35,12 @@ if (input && Array.isArray(input.nodes)) {
   if (v.dangling.length) console.error(`warning: ${v.dangling.length} edge(s) reference an unknown node id`);
   console.log(`full dataset: replaced ${input.nodes.length} node(s)`);
 } else if (input?.nodes && typeof input.nodes === 'object') {
-  const { changed, missed } = mergeEditsOverlay(dataset, input);
-  console.log(`edits overlay: ${changed} node(s) updated${missed.length ? `, ${missed.length} unknown id(s) skipped` : ''}`);
+  const { changed, missed, linksAdded, missedLinks } = mergeEditsOverlay(dataset, input);
+  const note = missed.length ? `, ${missed.length} unknown id(s) skipped` : '';
+  const linkNote = linksAdded || missedLinks.length ? `, ${linksAdded} link(s) added${missedLinks.length ? `, ${missedLinks.length} link(s) skipped` : ''}` : '';
+  console.log(`edits overlay: ${changed} node(s) updated${note}${linkNote}`);
   if (missed.length) console.log('  unknown ids:', missed.slice(0, 10).join(', ') + (missed.length > 10 ? ' …' : ''));
+  if (missedLinks.length) console.log('  skipped links:', missedLinks.slice(0, 10).join(', ') + (missedLinks.length > 10 ? ' …' : ''));
 } else {
   console.error('unrecognised file: expected a dragonwilds-edits or dataset JSON export');
   process.exit(2);

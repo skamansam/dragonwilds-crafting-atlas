@@ -1149,6 +1149,19 @@ body.path-arming #panelBody { pointer-events: none; }
 .edit-diff .ed-arrow { color: var(--gold); }
 .edit-diff .ed-to { color: var(--gold-bright); font-weight: 700; }
 
+/* custom relationship editor (P6-3) */
+.link-add { display: flex; gap: 6px; margin-top: 8px; align-items: center; }
+.link-add select, .link-add input {
+  background: var(--bg1); border: 1px solid var(--line); border-radius: 8px;
+  color: var(--ink); font-family: var(--font-body); font-size: 12px; padding: 7px 8px; outline: none;
+}
+.link-add select { flex: 0 0 auto; }
+.link-add input { flex: 1; min-width: 0; }
+.link-add select:focus, .link-add input:focus { border-color: var(--gold-dim); }
+.link-add .btn { flex: 0 0 auto; padding: 7px 10px; }
+.link-jump { cursor: pointer; }
+.link-jump:hover { text-decoration: underline; }
+
 /* ── guided tours (driver.js) ──────────────────────────────── */
 /* popover re-themed to the atlas' dark-and-gold tome look; driver.css loads
    first, so these need no !important fights */

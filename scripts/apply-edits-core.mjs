@@ -5,6 +5,13 @@
 
 export const EDIT_FIELDS = ['name', 'kind', 'itemType', 'wiki', 'description', 'stats'];
 
+// user-added relationships (P6-3): the link goes from → to with this relationship
+export const LINK_RELS = ['makes', 'gives', 'found-in'];
+export const linkEdge = (l) => ({
+  from: l.from, to: l.to, qty: null, facility: null, skill: null, xp: null,
+  blueprint: null, variant: null, deprecated: false, source: 'user', rel: l.rel,
+});
+
 // Merge an edits-overlay export ({ nodes: { id: { field: value } } }) onto a
 // dataset, field by field. Returns { changed, missed }: changed counts nodes
 // whose value actually differed, missed lists ids not present in the dataset.
@@ -26,7 +33,20 @@ export function mergeEditsOverlay(dataset, edits) {
     }
     if (touched) changed++;
   }
-  return { changed, missed };
+
+  // custom relationships (P6-3) become edges on the dataset
+  const ids = new Set(dataset.nodes.map(n => n.id));
+  const edges = (dataset.edges = dataset.edges || []);
+  let linksAdded = 0;
+  const missedLinks = [];
+  for (const l of (edits?.links || [])) {
+    if (!l || !l.from || !l.to || !LINK_RELS.includes(l.rel)) { missedLinks.push(`${l?.from}→${l?.to}`); continue; }
+    if (!ids.has(l.from) || !ids.has(l.to)) { missedLinks.push(`${l.from}→${l.to}`); continue; }
+    if (edges.some(e => e.from === l.from && e.to === l.to && e.rel === l.rel)) continue;
+    edges.push(linkEdge(l));
+    linksAdded++;
+  }
+  return { changed, missed, linksAdded, missedLinks };
 }
 
 // Validate a full-dataset export: unique non-empty string ids; report any edge

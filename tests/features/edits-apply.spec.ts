@@ -26,23 +26,35 @@ interface DwNode {
 	stats?: Record<string, unknown>;
 }
 
+interface DwEdge {
+	from: string;
+	to: string;
+	rel?: string | null;
+}
+
 interface Dataset {
 	nodes: DwNode[];
-	edges: Array<{ from: string; to: string }>;
+	edges: DwEdge[];
 }
 
 interface EditsOverlay {
 	format?: string;
 	version?: number;
 	nodes: Record<string, Partial<DwNode>>;
+	links?: Array<{ from: string; to: string; rel: string }>;
 }
 
 const feature = await loadFeature("./edits-apply.feature");
 
 let dataset: Dataset;
 let overlay: EditsOverlay;
-let datasetExport: { nodes: DwNode[]; edges: Array<{ from: string; to: string }> };
-let result: { changed: number; missed: string[] };
+let datasetExport: { nodes: DwNode[]; edges: DwEdge[] };
+let result: {
+	changed: number;
+	missed: string[];
+	linksAdded: number;
+	missedLinks: string[];
+};
 let validation: { ok: boolean; error?: string };
 
 const makeNode = (id: string, kind: string): DwNode => ({
@@ -63,7 +75,7 @@ describeFeature(feature, ({ Scenario, Background }) => {
 				dataset = { nodes: [makeNode(a, "other"), makeNode(b, "resource")], edges: [] };
 				overlay = { nodes: {} };
 				datasetExport = { nodes: [], edges: [] };
-				result = { changed: 0, missed: [] };
+				result = { changed: 0, missed: [], linksAdded: 0, missedLinks: [] };
 				validation = { ok: true };
 			},
 		);
@@ -129,6 +141,42 @@ describeFeature(feature, ({ Scenario, Background }) => {
 		});
 		And("the dataset no longer has a node {string}", (_ctx, id: string) => {
 			expect(dataset.nodes.some((n) => n.id === id)).toBe(false);
+		});
+	});
+
+	Scenario("A custom relationship becomes an edge", ({ Given, When, Then }) => {
+		Given(
+			"an edits overlay adding a {string} link from {string} to {string}",
+			(_ctx, rel: string, from: string, to: string) => {
+				overlay = { nodes: {}, links: [{ from, to, rel }] };
+			},
+		);
+		When("the edits overlay is merged", () => {
+			result = mergeEditsOverlay(dataset, overlay);
+		});
+		Then(
+			"the dataset has a {string} edge from {string} to {string}",
+			(_ctx, rel: string, from: string, to: string) => {
+				expect(
+					dataset.edges.some((e) => e.from === from && e.to === to && e.rel === rel),
+				).toBe(true);
+			},
+		);
+	});
+
+	Scenario("A link to an unknown node is skipped", ({ Given, When, Then }) => {
+		Given(
+			"an edits overlay adding a {string} link from {string} to {string}",
+			(_ctx, rel: string, from: string, to: string) => {
+				overlay = { nodes: {}, links: [{ from, to, rel }] };
+			},
+		);
+		When("the edits overlay is merged", () => {
+			result = mergeEditsOverlay(dataset, overlay);
+		});
+		Then("the merge reports the link {string} as skipped", (_ctx, label: string) => {
+			expect(result.missedLinks).toContain(label);
+			expect(result.linksAdded).toBe(0);
 		});
 	});
 

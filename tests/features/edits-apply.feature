@@ -28,6 +28,16 @@ Feature: Applying exported data edits
     Then the dataset has a node "Custom Ore"
     And the dataset no longer has a node "Iron Bar"
 
+  Scenario: A custom relationship becomes an edge
+    Given an edits overlay adding a "makes" link from "Iron Bar" to "Ash Logs"
+    When the edits overlay is merged
+    Then the dataset has a "makes" edge from "Iron Bar" to "Ash Logs"
+
+  Scenario: A link to an unknown node is skipped
+    Given an edits overlay adding a "gives" link from "Iron Bar" to "Ghost Item"
+    When the edits overlay is merged
+    Then the merge reports the link "Iron Bar→Ghost Item" as skipped
+
   Scenario: A dataset export with duplicate ids is rejected
     Given a dataset export with a duplicate "Iron Bar" id
     When the dataset export is validated
