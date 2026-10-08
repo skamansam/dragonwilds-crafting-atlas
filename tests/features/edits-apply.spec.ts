@@ -54,6 +54,8 @@ let result: {
 	missed: string[];
 	linksAdded: number;
 	missedLinks: string[];
+	addedCount: number;
+	removedCount: number;
 };
 let validation: { ok: boolean; error?: string };
 
@@ -75,7 +77,7 @@ describeFeature(feature, ({ Scenario, Background }) => {
 				dataset = { nodes: [makeNode(a, "other"), makeNode(b, "resource")], edges: [] };
 				overlay = { nodes: {} };
 				datasetExport = { nodes: [], edges: [] };
-				result = { changed: 0, missed: [], linksAdded: 0, missedLinks: [] };
+				result = { changed: 0, missed: [], linksAdded: 0, missedLinks: [], addedCount: 0, removedCount: 0 };
 				validation = { ok: true };
 			},
 		);
@@ -141,6 +143,39 @@ describeFeature(feature, ({ Scenario, Background }) => {
 		});
 		And("the dataset no longer has a node {string}", (_ctx, id: string) => {
 			expect(dataset.nodes.some((n) => n.id === id)).toBe(false);
+		});
+	});
+
+	Scenario("A removed node leaves the dataset", ({ Given, When, Then, And }) => {
+		Given("an edits overlay removing the node {string}", (_ctx, id: string) => {
+			overlay = { nodes: {}, removed: [id] };
+		});
+		When("the edits overlay is merged", () => {
+			result = mergeEditsOverlay(dataset, overlay);
+		});
+		Then("the dataset no longer has a node {string}", (_ctx, id: string) => {
+			expect(dataset.nodes.some((n) => n.id === id)).toBe(false);
+		});
+		And("the merge reports {int} removed nodes", (_ctx, n: number) => {
+			expect(result.removedCount).toBe(n);
+		});
+	});
+
+	Scenario("An added node joins the dataset", ({ Given, When, Then, And }) => {
+		Given(
+			"an edits overlay adding a node {string} of kind {string}",
+			(_ctx, id: string, kind: string) => {
+				overlay = { nodes: {}, added: { [id]: { name: id, kind } } };
+			},
+		);
+		When("the edits overlay is merged", () => {
+			result = mergeEditsOverlay(dataset, overlay);
+		});
+		Then("the dataset has a node {string}", (_ctx, id: string) => {
+			expect(dataset.nodes.some((n) => n.id === id)).toBe(true);
+		});
+		And("the merge reports {int} added nodes", (_ctx, n: number) => {
+			expect(result.addedCount).toBe(n);
 		});
 	});
 

@@ -35,10 +35,11 @@ if (input && Array.isArray(input.nodes)) {
   if (v.dangling.length) console.error(`warning: ${v.dangling.length} edge(s) reference an unknown node id`);
   console.log(`full dataset: replaced ${input.nodes.length} node(s)`);
 } else if (input?.nodes && typeof input.nodes === 'object') {
-  const { changed, missed, linksAdded, missedLinks } = mergeEditsOverlay(dataset, input);
+  const { changed, missed, linksAdded, missedLinks, addedCount, removedCount } = mergeEditsOverlay(dataset, input);
   const note = missed.length ? `, ${missed.length} unknown id(s) skipped` : '';
+  const nodeNote = `${changed} node(s) updated${addedCount ? `, ${addedCount} added` : ''}${removedCount ? `, ${removedCount} removed` : ''}`;
   const linkNote = linksAdded || missedLinks.length ? `, ${linksAdded} link(s) added${missedLinks.length ? `, ${missedLinks.length} link(s) skipped` : ''}` : '';
-  console.log(`edits overlay: ${changed} node(s) updated${note}${linkNote}`);
+  console.log(`edits overlay: ${nodeNote}${note}${linkNote}`);
   if (missed.length) console.log('  unknown ids:', missed.slice(0, 10).join(', ') + (missed.length > 10 ? ' …' : ''));
   if (missedLinks.length) console.log('  skipped links:', missedLinks.slice(0, 10).join(', ') + (missedLinks.length > 10 ? ' …' : ''));
 } else {

@@ -28,6 +28,18 @@ Feature: Applying exported data edits
     Then the dataset has a node "Custom Ore"
     And the dataset no longer has a node "Iron Bar"
 
+  Scenario: A removed node leaves the dataset
+    Given an edits overlay removing the node "Ash Logs"
+    When the edits overlay is merged
+    Then the dataset no longer has a node "Ash Logs"
+    And the merge reports 1 removed nodes
+
+  Scenario: An added node joins the dataset
+    Given an edits overlay adding a node "Custom Ore" of kind "material"
+    When the edits overlay is merged
+    Then the dataset has a node "Custom Ore"
+    And the merge reports 1 added nodes
+
   Scenario: A custom relationship becomes an edge
     Given an edits overlay adding a "makes" link from "Iron Bar" to "Ash Logs"
     When the edits overlay is merged

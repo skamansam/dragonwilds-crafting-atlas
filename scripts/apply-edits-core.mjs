@@ -12,10 +12,30 @@ export const linkEdge = (l) => ({
   blueprint: null, variant: null, deprecated: false, source: 'user', rel: l.rel,
 });
 
-// Merge an edits-overlay export ({ nodes: { id: { field: value } } }) onto a
-// dataset, field by field. Returns { changed, missed }: changed counts nodes
-// whose value actually differed, missed lists ids not present in the dataset.
+// a user-created node (P6-2), shaped like the bundled ones
+export const makeNode = (id, spec = {}) => ({
+  id, name: spec.name || id, kind: spec.kind || 'other', itemType: spec.itemType || null,
+  icon: null, wiki: spec.wiki || null, description: spec.description || [], stats: spec.stats || {},
+  weight: null, stacklimit: null, repaircost: null, catalogue: null, pageid: null,
+});
+
+// Merge an edits-overlay export onto a dataset, field by field, plus the
+// whole-node edits (removed ids, added nodes) and the custom links. Returns
+// counts + anything skipped. Mutates `dataset` in place.
 export function mergeEditsOverlay(dataset, edits) {
+  dataset.edges = dataset.edges || [];
+
+  // hide/remove whole nodes first so patches and links skip them (P6-2)
+  const removedList = Array.isArray(edits?.removed) ? edits.removed : [];
+  let removedCount = 0;
+  if (removedList.length) {
+    const gone = new Set(removedList);
+    const before = dataset.nodes.length;
+    dataset.nodes = dataset.nodes.filter(n => !gone.has(n.id));
+    dataset.edges = dataset.edges.filter(e => !gone.has(e.from) && !gone.has(e.to));
+    removedCount = before - dataset.nodes.length;
+  }
+
   const patchNodes = edits?.nodes || {};
   const byId = new Map(dataset.nodes.map(n => [n.id, n]));
   let changed = 0;
@@ -34,9 +54,17 @@ export function mergeEditsOverlay(dataset, edits) {
     if (touched) changed++;
   }
 
+  // user-created nodes (P6-2)
+  let addedCount = 0;
+  for (const [id, spec] of Object.entries(edits?.added || {})) {
+    if (!id || dataset.nodes.some(n => n.id === id)) continue;
+    dataset.nodes.push(makeNode(id, spec || {}));
+    addedCount++;
+  }
+
   // custom relationships (P6-3) become edges on the dataset
   const ids = new Set(dataset.nodes.map(n => n.id));
-  const edges = (dataset.edges = dataset.edges || []);
+  const edges = dataset.edges;
   let linksAdded = 0;
   const missedLinks = [];
   for (const l of (edits?.links || [])) {
@@ -46,7 +74,7 @@ export function mergeEditsOverlay(dataset, edits) {
     edges.push(linkEdge(l));
     linksAdded++;
   }
-  return { changed, missed, linksAdded, missedLinks };
+  return { changed, missed, linksAdded, missedLinks, addedCount, removedCount };
 }
 
 // Validate a full-dataset export: unique non-empty string ids; report any edge

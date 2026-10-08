@@ -21,18 +21,34 @@ function loadEdits() {
   try {
     const raw = JSON.parse(localStorage.getItem(EDITS_KEY) || 'null');
     if (raw && typeof raw === 'object' && raw.nodes && typeof raw.nodes === 'object') {
-      return { nodes: raw.nodes, links: Array.isArray(raw.links) ? raw.links : [] };
+      return {
+        nodes: raw.nodes,
+        links: Array.isArray(raw.links) ? raw.links : [],
+        added: raw.added && typeof raw.added === 'object' ? raw.added : {},
+        removed: Array.isArray(raw.removed) ? raw.removed : [],
+      };
     }
   } catch { /* corrupt storage → clean slate */ }
-  return { nodes: {}, links: [] };
+  return { nodes: {}, links: [], added: {}, removed: [] };
 }
 function persistEdits() {
   try {
     const hasNodes = Object.keys(dataEdits.nodes).length;
     const hasLinks = (dataEdits.links || []).length;
-    if (hasNodes || hasLinks) localStorage.setItem(EDITS_KEY, JSON.stringify(dataEdits));
+    const hasAdded = Object.keys(dataEdits.added || {}).length;
+    const hasRemoved = (dataEdits.removed || []).length;
+    if (hasNodes || hasLinks || hasAdded || hasRemoved) localStorage.setItem(EDITS_KEY, JSON.stringify(dataEdits));
     else localStorage.removeItem(EDITS_KEY); // nothing left → drop the key entirely
   } catch { /* storage blocked/full */ }
+}
+// ids the user created (P6-2) — kept visible even with no links (they are never orphans)
+const addedNodeIds = new Set();
+function emptyNode(id, spec) {
+  return {
+    id, name: spec.name || id, kind: spec.kind || 'other', itemType: spec.itemType || null,
+    icon: null, wiki: spec.wiki || null, description: spec.description || [], stats: spec.stats || {},
+    weight: null, stacklimit: null, repaircost: null, catalogue: null, pageid: null,
+  };
 }
 // The editable fields of a node, and the pristine (bundled) values for every
 // node the overlay touches — kept so the edits window can show a real diff
@@ -47,11 +63,23 @@ function snapshotNodeFields(n) {
 }
 // overlay the saved node patches onto the live dataset (the id field stays the key)
 function applyEditsToData(data, edits) {
+  // hide/remove whole nodes first (P6-2) so patches and links skip them
+  const removed = new Set(edits.removed || []);
+  if (removed.size) {
+    data.nodes = data.nodes.filter(n => !removed.has(n.id));
+    data.edges = data.edges.filter(e => !removed.has(e.from) && !removed.has(e.to));
+  }
   for (const [id, patch] of Object.entries(edits.nodes || {})) {
     const n = data.nodes.find(x => x.id === id);
     if (!n || !patch || typeof patch !== 'object') continue;
     bundledNodes.set(id, snapshotNodeFields(n));
     Object.assign(n, patch);
+  }
+  // user-created nodes (P6-2) — always shown, never treated as orphan drops
+  for (const [id, spec] of Object.entries(edits.added || {})) {
+    if (!id || data.nodes.some(n => n.id === id)) continue;
+    data.nodes.push(emptyNode(id, spec || {}));
+    addedNodeIds.add(id);
   }
   // custom relationships (P6-3) join the edge list before degrees/filters are built
   for (const l of (edits.links || [])) {
@@ -1297,7 +1325,7 @@ function populate() {
       cy.nodes().forEach(n => {
         const craftDeg = n.degree(false) - n.connectedEdges('.regionEdge').length;
         if (n.data('meta').kind === 'region') n.removeClass('orphan');
-        else if (craftDeg === 0) n.addClass('orphan');
+        else if (craftDeg === 0 && !addedNodeIds.has(n.id())) n.addClass('orphan'); // user-made nodes always show
       });
       bootPopulating = true; // applyCategoryVisibility's reflow must not double-run the boot layout
       applyCategoryVisibility();
@@ -2770,6 +2798,9 @@ function nodeEditorHTML(n) {
       <button class="btn primary" id="peSave">Save</button>
       <button class="btn" id="peCancel">Cancel</button>
     </div>
+    <div class="p-actions">
+      <button class="btn danger" id="peHide" title="Hide this item from the atlas — saved in this browser (⚙ → Your data edits)">Hide item</button>
+    </div>
     <div class="p-hint pe-id">id <code>${esc(n.id)}</code> — fixed; edges reference it.</div>
   </div>`;
 }
@@ -2817,6 +2848,13 @@ function renderNodeEditor(n) {
     persistEdits();
     location.reload(); // the bundle is the baseline — a reload re-reads it clean
   };
+  const hid = document.getElementById('peHide');
+  if (hid) hid.onclick = () => {
+    if (!dataEdits.removed) dataEdits.removed = [];
+    if (!dataEdits.removed.includes(n.id)) dataEdits.removed.push(n.id);
+    persistEdits();
+    location.reload(); // the node (and its edges) must leave the built graph
+  };
 }
 
 // push an edited node into the live graph: label, colour, kind filter, panel title
@@ -2845,7 +2883,8 @@ function fmtEditVal(v) {
 function updateEditsCount() {
   const el = document.getElementById('editsCount');
   if (!el) return;
-  const n = Object.keys(dataEdits.nodes).length + (dataEdits.links || []).length;
+  const n = Object.keys(dataEdits.nodes).length + (dataEdits.links || []).length +
+    Object.keys(dataEdits.added || {}).length + (dataEdits.removed || []).length;
   el.textContent = n ? String(n) : '';
 }
 function openEditsModal(show = true) {
@@ -2859,9 +2898,11 @@ function renderEditsModal() {
   if (!list) return;
   const ids = Object.keys(dataEdits.nodes);
   const links = dataEdits.links || [];
+  const added = Object.keys(dataEdits.added || {});
+  const removedIds = dataEdits.removed || [];
   const changed = [], merged = [];
   for (const id of ids) (editFieldDiff(id).merged ? merged : changed).push(id);
-  if (!ids.length && !links.length) {
+  if (!ids.length && !links.length && !added.length && !removedIds.length) {
     list.innerHTML = '<div class="edits-empty">No local edits yet. Open any item and press <b>✎ Edit data</b> to correct it, or add a link from the Links section.</div>';
   } else {
     const head = merged.length
@@ -2878,12 +2919,19 @@ function renderEditsModal() {
     const linkBlock = links.length
       ? `<div class="edits-node"><div class="edits-node-head"><span class="en-name">Custom links</span></div>${links.map(l => `<div class="edit-diff"><span class="ed-field">${esc(LINK_LABEL[l.rel] || l.rel)}</span><span class="ed-to">${esc(l.from)} → ${esc(l.to)}</span></div>`).join('')}</div>`
       : '';
-    list.innerHTML = head + linkBlock + changed.map(id => rowFor(id, false)).join('') + merged.map(id => rowFor(id, true)).join('');
+    const addedBlock = added.length
+      ? `<div class="edits-node"><div class="edits-node-head"><span class="en-name">Added items</span></div>${added.map(id => `<div class="edit-diff"><span class="ed-field">${esc(dataEdits.added[id]?.kind || 'other')}</span><span class="ed-to">${esc(id)}</span></div>`).join('')}</div>`
+      : '';
+    const removedBlock = removedIds.length
+      ? `<div class="edits-node"><div class="edits-node-head"><span class="en-name">Hidden items</span></div>${removedIds.map(id => `<div class="edit-diff"><span class="ed-field">hidden</span><span class="ed-to">${esc(id)}</span></div>`).join('')}</div>`
+      : '';
+    list.innerHTML = head + addedBlock + removedBlock + linkBlock + changed.map(id => rowFor(id, false)).join('') + merged.map(id => rowFor(id, true)).join('');
   }
+  const none = !ids.length && !links.length && !added.length && !removedIds.length;
   const cbtn = document.getElementById('editsClear');
-  if (cbtn) cbtn.disabled = ids.length === 0 && links.length === 0;
+  if (cbtn) cbtn.disabled = none;
   const exb = document.getElementById('editsExport');
-  if (exb) exb.disabled = ids.length === 0 && links.length === 0;
+  if (exb) exb.disabled = none;
   list.querySelectorAll('[data-revert]').forEach(b => {
     b.onclick = () => {
       delete dataEdits.nodes[b.dataset.revert];
@@ -2918,7 +2966,10 @@ function downloadJSON(obj, filename) {
 function exportEditsFile() {
   const ids = Object.keys(dataEdits.nodes);
   const links = dataEdits.links || [];
-  if (!ids.length && !links.length) { toast('No edits to export'); return; }
+  const added = Object.keys(dataEdits.added || {});
+  const removed = dataEdits.removed || [];
+  const total = ids.length + links.length + added.length + removed.length;
+  if (!total) { toast('No edits to export'); return; }
   downloadJSON({
     format: 'dragonwilds-edits',
     version: 1,
@@ -2926,8 +2977,10 @@ function exportEditsFile() {
     baseGeneratedAt: D.generatedAt || null,
     nodes: dataEdits.nodes,
     links,
+    added: dataEdits.added || {},
+    removed,
   }, 'dragonwilds-edits.json');
-  toast(`Exported ${ids.length + links.length} edit${ids.length + links.length > 1 ? 's' : ''} — bake in with scripts/apply-edits.mjs`);
+  toast(`Exported ${total} edit${total > 1 ? 's' : ''} — bake in with scripts/apply-edits.mjs`);
 }
 // the whole edited dataset (what this browser is showing), as data.json
 function exportFullData() {
@@ -2945,7 +2998,27 @@ function exportFullData() {
   const ec = document.getElementById('editsClose');
   if (ec) ec.onclick = () => openEditsModal(false);
   const cl = document.getElementById('editsClear');
-  if (cl) cl.onclick = () => { dataEdits.nodes = {}; dataEdits.links = []; persistEdits(); location.reload(); };
+  if (cl) cl.onclick = () => {
+    dataEdits.nodes = {};
+    dataEdits.links = [];
+    dataEdits.added = {};
+    dataEdits.removed = [];
+    persistEdits();
+    location.reload();
+  };
+  const nk = document.getElementById('newNodeKind');
+  if (nk) nk.innerHTML = Object.keys(kindLabel).map(k => `<option value="${esc(k)}">${esc(kindLabel[k])}</option>`).join('');
+  const na = document.getElementById('newNodeAdd');
+  if (na) na.onclick = () => {
+    const name = document.getElementById('newNodeName').value.trim();
+    const kind = document.getElementById('newNodeKind').value;
+    if (!name) { toast('Give the new item a name'); return; }
+    if (nodeById.has(name) || dataEdits.added?.[name]) { toast('An item with that name already exists'); return; }
+    if (!dataEdits.added) dataEdits.added = {};
+    dataEdits.added[name] = { name, kind };
+    persistEdits();
+    location.reload();
+  };
   const ex = document.getElementById('editsExport');
   if (ex) ex.onclick = () => exportEditsFile();
   const exf = document.getElementById('editsExportFull');

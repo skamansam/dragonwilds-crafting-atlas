@@ -422,6 +422,38 @@ async function secEdits() {
   await page.waitForFunction(() => !localStorage.getItem('dw.edits'), null, { timeout: 20000 });
   await boot();
   ok('reset-to-bundled drops the edit', await page.evaluate(() => localStorage.getItem('dw.edits') === null));
+
+  // whole-node edits (P6-2): add an item from the edits window
+  await page.click('#settingsBtn');
+  await page.waitForTimeout(250);
+  await page.click('#editsBtn');
+  await page.waitForTimeout(250);
+  await page.fill('#newNodeName', 'Test Widget');
+  await page.selectOption('#newNodeKind', 'material');
+  const addNav = page.waitForEvent('load', { timeout: 20000 });
+  await page.click('#newNodeAdd');
+  await addNav;
+  await boot();
+  ok('added node appears on the map', await page.evaluate(() => window.__cy.getElementById('Test Widget').nonempty()));
+  ok('added node persisted', await page.evaluate(() => !!JSON.parse(localStorage.getItem('dw.edits') || '{}').added?.['Test Widget']));
+
+  // hide a bundled node from its edit form
+  await page.fill('#search', 'Ash Logs');
+  await page.keyboard.press('Enter');
+  await page.waitForTimeout(600);
+  await page.click('#btnEditData');
+  await page.waitForTimeout(250);
+  const hideNav = page.waitForEvent('load', { timeout: 20000 });
+  await page.click('#peHide');
+  await hideNav;
+  await boot();
+  ok('hidden node leaves the map', await page.evaluate(() => window.__cy.getElementById('Ash Logs').empty()));
+  ok('hidden node persisted', await page.evaluate(() => (JSON.parse(localStorage.getItem('dw.edits') || '{}').removed || []).includes('Ash Logs')));
+
+  // leave the section clean for the sections that follow
+  await clearStorage(['dw.edits']);
+  await boot();
+  ok('node edits cleared at the end', await page.evaluate(() => localStorage.getItem('dw.edits') === null));
 }
 
 /* ── undo ──────────────────────────────────────────────────────────────── */
