@@ -329,12 +329,29 @@ node scripts/test-ui.mjs           # full Playwright UI suite (serves site/ itse
 node scripts/build-location-checklists.mjs  # missing find spots → docs/checklists/*.md
 ```
 
+### Editing the data in the app
+
+Corrections can be made in the page itself: open any item and press **✎ Edit data**.
+They are kept in your browser only (`dw.edits`) and never change the shipped files.
+**⚙ → Your data edits** lists every difference against the bundled atlas, flags edits
+the dataset has since caught up with, and exports either your edits or the whole edited
+dataset. To bake an export into the dataset for everyone, run the apply script:
+
+```bash
+node scripts/apply-edits.mjs dragonwilds-edits.json            # merge an edits overlay
+node scripts/apply-edits.mjs dragonwilds-data.json             # replace from a full export
+node scripts/apply-edits.mjs dragonwilds-edits.json --dry-run  # report, write nothing
+```
+
+It rewrites `cache/final-dataset.json` and re-emits `site/data.json` + `site/data.js` in
+the same shape `build-data.mjs` uses.
+
 ### Tests
 
 Three layers, no build step:
 
 ```bash
-npx vitest run              # Gherkin/cucumber — highlight math, persistence, collapse, facilities, URL routing
+npx vitest run              # Gherkin/cucumber — highlight math, persistence, collapse, facilities, URL routing, data edits
 npx playwright test         # Playwright e2e — boots site/ via scripts/test-ui.mjs --serve-only
 node scripts/test-ui.mjs    # broad acceptance suite (serves site/ itself)
 ```

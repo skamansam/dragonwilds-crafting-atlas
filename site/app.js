@@ -2798,6 +2798,8 @@ function renderEditsModal() {
   }
   const cbtn = document.getElementById('editsClear');
   if (cbtn) cbtn.disabled = ids.length === 0;
+  const exb = document.getElementById('editsExport');
+  if (exb) exb.disabled = ids.length === 0;
   list.querySelectorAll('[data-revert]').forEach(b => {
     b.onclick = () => {
       delete dataEdits.nodes[b.dataset.revert];
@@ -2815,6 +2817,38 @@ function notifyMergedEdits() {
     toast(`✓ ${merged.length} of your data edit${merged.length > 1 ? 's have' : ' has'} been added to the dataset — see ⚙ → Your data edits`);
   }
 }
+
+/* ── exporting edits (P6-4) ────────────────────────────────────── */
+function downloadJSON(obj, filename) {
+  const blob = new Blob([JSON.stringify(obj, null, 1)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+}
+// the edits overlay, in the shape scripts/apply-edits.mjs merges
+function exportEditsFile() {
+  const ids = Object.keys(dataEdits.nodes);
+  if (!ids.length) { toast('No edits to export'); return; }
+  downloadJSON({
+    format: 'dragonwilds-edits',
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    baseGeneratedAt: D.generatedAt || null,
+    nodes: dataEdits.nodes,
+  }, 'dragonwilds-edits.json');
+  toast(`Exported ${ids.length} edit${ids.length > 1 ? 's' : ''} — bake in with scripts/apply-edits.mjs`);
+}
+// the whole edited dataset (what this browser is showing), as data.json
+function exportFullData() {
+  downloadJSON(D, 'dragonwilds-data.json');
+  toast('Exported the edited dataset (dragonwilds-data.json)');
+}
+
 {
   const eb = document.getElementById('editsBtn');
   if (eb) eb.onclick = () => {
@@ -2826,6 +2860,10 @@ function notifyMergedEdits() {
   if (ec) ec.onclick = () => openEditsModal(false);
   const cl = document.getElementById('editsClear');
   if (cl) cl.onclick = () => { dataEdits.nodes = {}; persistEdits(); location.reload(); };
+  const ex = document.getElementById('editsExport');
+  if (ex) ex.onclick = () => exportEditsFile();
+  const exf = document.getElementById('editsExportFull');
+  if (exf) exf.onclick = () => exportFullData();
 }
 
 function openPanel(id) {

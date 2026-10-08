@@ -363,11 +363,13 @@ exactly what you are looking at.</p>
       <div class="h-rune">✎</div>
       <h2>YOUR DATA EDITS</h2>
       <p class="h-tag">The differences between <b>this browser</b> and the bundled atlas data.
-      Nothing here changes the shipped files — exporting and baking edits in ship in a later piece
-      (PLAN §3 P6). When a shipped dataset catches up with one of your edits, it moves to
-      <b>in dataset</b> and can be cleared.</p>
+      Nothing here changes the shipped files. Export your edits to bake them into the dataset with
+      <b>scripts/apply-edits.mjs</b>, or export the whole edited dataset. When a shipped dataset
+      catches up with one of your edits, it moves to <b>in dataset</b> and can be cleared.</p>
       <div id="editsList" class="edits-list"></div>
       <div class="char-modal-actions">
+        <button id="editsExport" class="btn" title="Download your edits as dragonwilds-edits.json — bake them into the dataset with node scripts/apply-edits.mjs">⤓ Export edits</button>
+        <button id="editsExportFull" class="btn" title="Download the whole edited dataset as dragonwilds-data.json">⤓ Export full data</button>
         <button id="editsClear" class="btn danger">Clear all my edits</button>
       </div>
       <div class="h-legal">Clearing (or reverting a row) reloads the atlas from its bundled data.</div>

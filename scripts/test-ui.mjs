@@ -358,6 +358,16 @@ async function secEdits() {
   ok('edits window shows a field diff', await page.$eval('#editsList', (el, orig) =>
     [...el.querySelectorAll('.edit-diff')].some(d => d.textContent.includes(orig) && d.textContent.includes('Iron Bar ✎')), original));
   ok('edits window offers a per-row revert', await page.$eval('.edits-node .ed-revert', el => !el.disabled));
+
+  // export the edits overlay as a file (P6-4) — the input to scripts/apply-edits.mjs
+  const [download] = await Promise.all([
+    page.waitForEvent('download'),
+    page.click('#editsExport'),
+  ]);
+  ok('export downloads the edits file', download.suggestedFilename() === 'dragonwilds-edits.json');
+  const dlJson = JSON.parse(fs.readFileSync(await download.path(), 'utf8'));
+  ok('export file carries the edit + format', dlJson.format === 'dragonwilds-edits' && dlJson.nodes['Iron Bar']?.name === 'Iron Bar ✎');
+
   await page.click('#editsClose');
   await page.waitForTimeout(200);
 
