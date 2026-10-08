@@ -400,6 +400,21 @@ Regenerating the checklists overwrites the files, so fold any filled-in answers
 back into `site/found-in.js` before re-running the generator (a merge-back script
 is planned for exactly that).
 
+## Contributing
+
+Two guides, depending on what you are changing:
+
+- **[CONTRIBUTOR.md](CONTRIBUTOR.md)** — the code: how `site/` is wired (classic
+  scripts, no build step), the conventions, the three test layers, and the
+  non-goals that decide what belongs here at all.
+- **[CONTRIBUTOR-DATA.md](CONTRIBUTOR-DATA.md)** — the data: correct a row in the
+  app and ship it as a PR end to end, refresh from the wiki, or answer the
+  location checklists.
+
+Small corrections are always welcome — a wrong stat, a missing link or a find
+spot you verified in game is exactly the kind of contribution this project is
+built around.
+
 ## Licensing
 
 This repo mixes code, data, and game assets under different licenses:
