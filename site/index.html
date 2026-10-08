@@ -159,6 +159,9 @@
         <label title="Run heavy layouts in a background worker thread so the page stays responsive. Falls back to the main thread automatically.">
           <input type="checkbox" id="workerToggle"> worker layout
         </label>
+        <div class="s-sep"></div>
+        <div class="s-group">Data</div>
+        <button id="editsBtn" class="s-btn" title="See what this browser has changed vs the bundled atlas data — clear it, or confirm what has since been added to the dataset">✎ Your data edits <span class="pe-count" id="editsCount"></span></button>
       </div>
     </div>
 
@@ -351,6 +354,23 @@ exactly what you are looking at.</p>
         <button id="charModalCreate" class="btn primary">Create character</button>
         <button id="charModalSkip" class="char-skip">Skip — use the atlas without a character</button>
       </div>
+    </div>
+  </div>
+
+  <div id="editsModal" role="dialog" aria-modal="true" aria-label="Your data edits" hidden>
+    <div class="help-card edits-card">
+      <button id="editsClose" title="Close" aria-label="Close">✕</button>
+      <div class="h-rune">✎</div>
+      <h2>YOUR DATA EDITS</h2>
+      <p class="h-tag">The differences between <b>this browser</b> and the bundled atlas data.
+      Nothing here changes the shipped files — exporting and baking edits in ship in a later piece
+      (PLAN §3 P6). When a shipped dataset catches up with one of your edits, it moves to
+      <b>in dataset</b> and can be cleared.</p>
+      <div id="editsList" class="edits-list"></div>
+      <div class="char-modal-actions">
+        <button id="editsClear" class="btn danger">Clear all my edits</button>
+      </div>
+      <div class="h-legal">Clearing (or reverting a row) reloads the atlas from its bundled data.</div>
     </div>
   </div>
 </div>

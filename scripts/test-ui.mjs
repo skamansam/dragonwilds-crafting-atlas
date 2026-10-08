@@ -11,6 +11,7 @@
 // Sections:
 //   smoke    boot, search, panel content, highlight, isolate, legend filter toggle
 //   panel    owned marks, possessions mode, path-to, facility links
+//   edits    in-app node data editing + the browser↔dataset diff window
 //   undo     ⚙ panel opens/persists; re-layout-off toast gains an Undo button
 //   layouts  algorithm select (in ⚙) switches layout; density buttons behave
 //   route    #/<item> selects an item; #/<item>/<item> draws the path between them
@@ -55,7 +56,7 @@ if (!urlArg) {
 }
 
 const only = process.argv.slice(2).filter(a => !a.startsWith('--'))[0] || null;
-const sections = ['smoke', 'panel', 'undo', 'layouts', 'tours', 'route', 'options', 'characters'].filter(s => !only || s === only);
+const sections = ['smoke', 'panel', 'edits', 'undo', 'layouts', 'tours', 'route', 'options', 'characters'].filter(s => !only || s === only);
 
 const results = [];
 let page, browser;
@@ -317,6 +318,84 @@ async function secPanel() {
   await page.waitForTimeout(600);
   ok('recipe card names the unlock item', await page.$eval('#panelBody', el =>
     [...el.querySelectorAll('.recipe-unlock')].some(c => c.textContent.includes('PLAN: Wooden Barrel'))));
+}
+
+/* ── edits (in-app data editing, P6-1) ─────────────────────────────────── */
+async function secEdits() {
+  console.log('edits:');
+  await clearStorage(['dw.edits']);
+  await boot();
+
+  // open a node and flip the codex into its edit form
+  await page.fill('#search', 'Iron Bar');
+  await page.keyboard.press('Enter');
+  await page.waitForTimeout(600);
+  ok('codex has an Edit data button', (await page.$('#btnEditData')) !== null);
+  await page.click('#btnEditData');
+  await page.waitForTimeout(200);
+  ok('edit form opens', (await page.$('#peName')) !== null);
+
+  // change the name + description and save
+  const original = await page.$eval('#peName', el => el.value);
+  await page.fill('#peName', 'Iron Bar ✎');
+  await page.fill('#peDesc', 'Edited by the test suite.');
+  await page.click('#peSave');
+  await page.waitForTimeout(400);
+  ok('panel title shows the edited name', (await page.$eval('#panelTitle', el => el.textContent)) === 'Iron Bar ✎');
+  ok('graph label follows the edit', await page.evaluate(() =>
+    window.__cy.getElementById('Iron Bar').data('label') === 'Iron Bar ✎'));
+  ok('edit persisted in the browser', await page.evaluate(() =>
+    JSON.parse(localStorage.getItem('dw.edits') || '{}').nodes?.['Iron Bar']?.name === 'Iron Bar ✎'));
+
+  // the edits window lists the difference between this browser and the bundle
+  await page.click('#settingsBtn');
+  await page.waitForTimeout(250);
+  ok('settings entry shows the edit count', (await page.$eval('#editsCount', el => el.textContent)).trim() === '1');
+  await page.click('#editsBtn');
+  await page.waitForTimeout(250);
+  ok('edits window opens', await page.$eval('#editsModal', el => !el.hidden));
+  ok('edits window lists the changed node', await page.$eval('#editsList', el => el.innerText.includes('Iron Bar ✎')));
+  ok('edits window shows a field diff', await page.$eval('#editsList', (el, orig) =>
+    [...el.querySelectorAll('.edit-diff')].some(d => d.textContent.includes(orig) && d.textContent.includes('Iron Bar ✎')), original));
+  ok('edits window offers a per-row revert', await page.$eval('.edits-node .ed-revert', el => !el.disabled));
+  await page.click('#editsClose');
+  await page.waitForTimeout(200);
+
+  // an edit the shipped dataset has caught up with is flagged + announced
+  await clearStorage(['dw.edits']); // navigates, so the origin is available
+  await page.evaluate(() => localStorage.setItem('dw.edits', JSON.stringify({ nodes: { 'Iron Bar': { name: 'Iron Bar' } } })));
+  await boot();
+  ok('merged edit is announced', (await page.$eval('#toast', el => el.textContent)).includes('added to the dataset'));
+  await page.click('#settingsBtn');
+  await page.waitForTimeout(250);
+  await page.click('#editsBtn');
+  await page.waitForTimeout(250);
+  ok('merged edit is marked in the window', await page.$eval('#editsList', el => el.textContent.includes('in dataset')));
+  ok('merged edit shows no field diff', (await page.$$('.edits-node .edit-diff')).length === 0);
+
+  // Clear all removes the overlay and reloads from the bundle
+  await page.click('#editsClear');
+  await page.waitForFunction(() => !localStorage.getItem('dw.edits'), null, { timeout: 20000 });
+  await boot();
+  ok('clear-all wipes the overlay', await page.evaluate(() => localStorage.getItem('dw.edits') === null));
+  ok('clear-all restores the bundled name', await page.evaluate(() =>
+    window.__cy.getElementById('Iron Bar').data('label') === 'Iron Bar'));
+
+  // Reset to bundled from the edit form also drops the entry
+  await page.fill('#search', 'Iron Bar');
+  await page.keyboard.press('Enter');
+  await page.waitForTimeout(600);
+  await page.click('#btnEditData');
+  await page.waitForTimeout(200);
+  await page.fill('#peName', 'Iron Bar ✎✎');
+  await page.click('#peSave');
+  await page.waitForTimeout(400);
+  await page.click('#btnEditData');
+  await page.waitForTimeout(200);
+  await page.click('#peReset');
+  await page.waitForFunction(() => !localStorage.getItem('dw.edits'), null, { timeout: 20000 });
+  await boot();
+  ok('reset-to-bundled drops the edit', await page.evaluate(() => localStorage.getItem('dw.edits') === null));
 }
 
 /* ── undo ──────────────────────────────────────────────────────────────── */
@@ -1012,6 +1091,7 @@ try {
   for (const s of sections) {
     if (s === 'smoke') await secSmoke();
     else if (s === 'panel') await secPanel();
+    else if (s === 'edits') await secEdits();
     else if (s === 'undo') await secUndo();
     else if (s === 'layouts') await secLayouts();
     else if (s === 'tours') await secTours();
