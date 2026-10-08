@@ -1291,7 +1291,8 @@ for (const k of Object.keys(kindColor)) {
   lgRows[k].querySelector('.lg-only').onclick = e => {
     e.stopPropagation();
     const solo = activeCats.size === 1 && activeCats.has(k);
-    for (const kk of Object.keys(kindLabel)) activeCats[solo ? 'add' : 'delete'](kk);
+    // never drop the row's own kind — the kind we're soloing must survive
+    for (const kk of Object.keys(kindLabel)) if (kk !== k) activeCats[solo ? 'add' : 'delete'](kk);
     if (!solo) showOrphans = false; // a solo view means exactly one kind, no dead ends
     for (const kk of Object.keys(lgRows)) lgSyncKind(kk);
     lgDeadRow.classList.toggle('off', !showOrphans);

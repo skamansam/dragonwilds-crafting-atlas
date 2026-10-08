@@ -138,6 +138,35 @@ async function secSmoke() {
       .find(r => r.querySelector('span:last-child')?.textContent === 'Food').click();
   });
   await page.waitForTimeout(300);
+
+  // "only" solo-filter: the clicked kind must stay visible (regression — it
+  // deleted every kind including its own, blanking the whole map)
+  await page.evaluate(() => {
+    [...document.querySelectorAll('#legend .lg-row')]
+      .find(r => r.querySelector('span:last-child')?.textContent === 'Food')
+      .querySelector('.lg-only').click();
+  });
+  await page.waitForTimeout(700);
+  const solo = await page.evaluate(() => {
+    let food = 0, others = 0;
+    window.__cy.nodes(':visible').forEach(n => { n.data('meta').kind === 'food' ? food++ : others++; });
+    return { food, others };
+  });
+  ok('"only" keeps the clicked kind visible', solo.food > 0, `${solo.food} food node(s) visible`);
+  ok('"only" hides every other kind', solo.others === 0, `${solo.others} non-food node(s) visible`);
+  // a second click restores every kind
+  await page.evaluate(() => {
+    [...document.querySelectorAll('#legend .lg-row')]
+      .find(r => r.querySelector('span:last-child')?.textContent === 'Food')
+      .querySelector('.lg-only').click();
+  });
+  await page.waitForTimeout(700);
+  const restored = await page.evaluate(() => {
+    let others = 0;
+    window.__cy.nodes(':visible').forEach(n => { if (n.data('meta').kind !== 'food') others++; });
+    return others;
+  });
+  ok('a second "only" click restores every kind', restored > 0, `${restored} non-food node(s) visible again`);
 }
 
 /* ── panel ─────────────────────────────────────────────────────────────── */
