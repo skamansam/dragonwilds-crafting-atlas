@@ -106,7 +106,7 @@
         },
         {
           element: '#panel',
-          popover: { title: 'Shift+Click isolates a tree', description: 'Shift+Click any node to collapse the map to just its crafting tree — outputs only by default. Watch:' },
+          popover: { title: 'Shift+Click isolates a tree', description: 'Shift+Click any node to collapse the map to just its crafting tree — everything it requires plus one level of what it enables. Watch:' },
           action: () => isolateTree('Iron Bar'),
         },
         {

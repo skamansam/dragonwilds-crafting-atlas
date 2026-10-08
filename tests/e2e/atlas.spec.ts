@@ -72,6 +72,8 @@ test.describe("Crafting Atlas", () => {
 	test("isolate tree collapses to the subtree", async ({ page }) => {
 		await boot(page);
 		await page.evaluate(() => {
+			// pin the outputs-only walk (the default 'needs' walk is the full upstream)
+			localStorage.setItem("dw.isoDir", "down");
 			(window as unknown as { isolateTree(id: string, d: number): void }).isolateTree("Bread", 1);
 		});
 		await expect
@@ -91,6 +93,8 @@ test.describe("Crafting Atlas", () => {
 	test("requires grows the isolated tree", async ({ page }) => {
 		await boot(page);
 		await page.evaluate(() => {
+			// outputs-only, so Requires has hidden upstream levels left to reveal
+			localStorage.setItem("dw.isoDir", "down");
 			(window as unknown as { isolateTree(id: string, d: number): void }).isolateTree("Bread", 1);
 		});
 		await page.waitForTimeout(2000);
@@ -250,10 +254,20 @@ test.describe("Crafting Atlas", () => {
 		expect(inputs).toBeGreaterThan(1);
 		expect(inputs).toBeLessThan(200);
 
-		// the default direction is outputs-only: nothing is made FROM Iron Sword,
-		// so the isolated view is just the item itself
-		const outputs = await shownFor("/?iso=iron_sword&isodepth=1");
-		expect(outputs).toBeLessThan(inputs);
+		// the whole upstream closure (no depth cap) for the comparison below
+		const upAll = await shownFor("/?iso=iron_sword&isodir=up");
+		expect(upAll).toBeGreaterThanOrEqual(inputs);
+
+		// the default walk ('needs') shows everything the item requires at any
+		// depth plus one level of what it enables — never just the item itself
+		const def = await shownFor("/?iso=iron_sword&isodepth=1");
+		expect(def).toBeGreaterThan(inputs); // deeper than one level of inputs
+		expect(def).toBeGreaterThanOrEqual(upAll); // the full requires closure is there
+		expect(def).toBeLessThan(200);
+
+		// explicit outputs-only still shows just the item (nothing consumes Iron Sword)
+		const outputs = await shownFor("/?iso=iron_sword&isodepth=1&isodir=down");
+		expect(outputs).toBeLessThan(def);
 	});
 
 	test("boots without console errors", async ({ page }) => {

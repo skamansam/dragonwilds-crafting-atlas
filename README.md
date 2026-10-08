@@ -118,7 +118,7 @@ can describe the whole view, not just a selection:
 | `regions` | region edges | `1`/`0` |
 | `possessions` | focus on owned items | `1`/`0` |
 | `iso` | isolate this item | an item slug (`iron_sword`) |
-| `isodir` | isolation direction | `up`, `down` or `both` |
+| `isodir` | isolation direction | `needs` (default), `down`, `up` or `both` |
 | `isodepth` | isolation depth | `all` or a number ≥ 1 |
 
 `?iso=iron_sword&isodir=up&isodepth=2&cats=food` opens that isolated two-level input tree with
@@ -136,7 +136,7 @@ unrelated params such as `?tour=robes` are preserved. The parameter list lives i
 | Action | Result |
 |---|---|
 | **Click a node** | Opens its codex panel (top-right): description, stats, all recipes & facilities, skill gates, what it unlocks when obtained, everything it is used to make |
-| **Shift+Click a node** | Isolates the crafting *tree* of that item — by default **outputs only** (what it enables); the panel's direction select adds inputs or restores the full both-way walk |
+| **Shift+Click a node** | Isolates the crafting *tree* of that item — by default **everything it requires** plus **one level** of what it enables; the panel's direction select switches to *outputs only*, *inputs only* or the full both-way walk |
 | **Hover a node** | Direct neighbours highlight |
 | **Breadcrumb** (top right) | Crafting lineage of the current selection; click any step to walk the chain |
 | **Minimap** (bottom right) | Tracks the explored region; click it to jump |
@@ -175,8 +175,9 @@ unrelated params such as `?tour=robes` are preserved. The parameter list lives i
   panels list what they unlock under **Unlocks when obtained**, and recipe cards learned this
   way show a gold chip naming the unlock item, so "why can't I craft this yet?" is answerable
   from both ends. (Skill levels grant recipes too — see a skill hub's **Level unlocks**.)
-- **Possessions** (header chip): mark items as **✓ Owned** in their panel — or tap the **☆**
-  right-aligned on any search result to mark that item's recipe owned in place — then flip the
+- **Possessions** (header chip): mark items with the **☆** beside their name in the panel (it
+  fills to **★**) — or tap the **☆** right-aligned on any search result to mark that item's
+  recipe owned in place — then flip the
   Possessions chip to see only what you can reach from what you have. The count badge next to
   the chip shows how many items you've marked; everything is persisted in your browser.
 
@@ -185,10 +186,13 @@ unrelated params such as `?tour=robes` are preserved. The parameter list lives i
 - **Requires ⤵** (panel button): highlights every transitive ingredient behind the selection.
 - **Enables ⤴** (panel button): the reverse — highlights everything the selection is used
   to make, directly or downstream ("what does this item allow me to craft?").
-- **Isolate direction**: the select beside **Isolate tree** picks the walk direction —
-  **outputs only** (default: "what does this enable?" — 89 nodes for Iron Bar instead of
-  the whole-map knot), **inputs only** ("what does this need?") or **up + down** (the full
-  both-way context, the old default). Persists; combines with the depth input.
+- **Isolate direction**: the select beside **Isolate tree** picks the walk —
+  **requires + 1 enable** (default: *everything* the item is made from at any depth, plus one
+  level of what it enables — "how do I make this, and what is it for"), **outputs only**
+  ("what does this enable?" — 89 nodes for Iron Bar instead of the whole-map knot),
+  **inputs only** ("what does this need?") or **up + down** (the full both-way context).
+  Only the last three use the depth input; the default walks the whole upstream. Persists as
+  `dw.isoDir` and rides in the URL as `?isodir=`.
 - **Found in** (panel section): where the item is found in the world — regions, gather method
   (mined / chopped / picked / farmed / fished / chest / dungeon / drops) and the tool when the
   wiki names one (e.g. Ash Tree → Bramblemead Valley, chopped with a logging axe). Mined from
@@ -198,8 +202,9 @@ unrelated params such as `?tour=robes` are preserved. The parameter list lives i
   plans and exports ignore them, their green spokes start hidden (**legend → LINKS →
   Region links** turns them on), and the hubs stay quiet until then. Regions are searchable too.
 - **Isolate tree** (panel button): shows only the subtree, auto-revealing every category.
-  The **depth input** beside it limits how many recipe steps to walk (default 3; empty = the
-  whole tree to the leaves).
+  The **depth input** beside it limits how many recipe steps the direction modes walk
+  (empty = the whole tree to the leaves); the default **requires + 1 enable** walk ignores it
+  and always shows the full upstream.
 - **Search**: fuzzy matching across all 1,900+ nodes with icon suggestions; **/** focuses it.
 - **Legend = the control surface**: everything that shapes what the map shows toggles from
   the top-left legend. **Crafts** — every item kind; **View** — **Dead ends** (items nothing
@@ -331,7 +336,9 @@ node scripts/build-location-checklists.mjs  # missing find spots → docs/checkl
 
 ### Editing the data in the app
 
-Corrections can be made in the page itself: open any item and press **✎ Edit data**.
+Corrections can be made in the page itself: open any item and press the **✎** beside its name
+(the edit form also owns the **Links** section, where makes/gives/found-in links are added and
+removed).
 They are kept in your browser only (`dw.edits`) and never change the shipped files.
 **⚙ → Your data edits** lists every difference against the bundled atlas, flags edits
 the dataset has since caught up with, and exports either your edits or the whole edited

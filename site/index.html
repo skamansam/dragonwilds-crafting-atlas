@@ -220,7 +220,11 @@
       <div class="panel-head">
         <div class="p-icon" id="panelIcon"></div>
         <div class="p-titlebox">
-          <div class="p-title" id="panelTitle"></div>
+          <div class="p-title-row">
+            <div class="p-title" id="panelTitle"></div>
+            <button id="btnEditData" class="p-edit" title="Correct this item's data — your changes are saved in this browser and never change the shipped files (⚙ → Your data edits)" aria-label="Edit this item's data">✎</button>
+            <button id="btnOwn" class="p-edit p-own" aria-pressed="false" title="Mark as owned (you have the recipe)" aria-label="Mark owned">☆</button>
+          </div>
           <div class="p-type" id="panelType"></div>
         </div>
         <button id="panelClose" title="Close" aria-label="Close panel">✕</button>
@@ -255,14 +259,18 @@
           </div>
           <div class="h-col">
             <h3>Owning things</h3>
-            <p><b>✓ Owned</b> — mark items you have in their panel. Flip the <b>Possessions</b>
-            chip to show only what you can reach from what you own. Counts persist in your browser.</p>
+            <p><b>☆ / ★</b> beside an item's name marks it owned (★ when you have it). Flip the
+            <b>Possessions</b> chip to show only what you can reach from what you own. Counts
+            persist in your browser. The <b>✎</b> next to it opens the item's <b>edit form</b> —
+            correct its fields and add its links there (⚙ → Your data edits).</p>
             <h3>Focus</h3>
-            <p><b>Shift+Click</b> isolates a crafting tree — <b>outputs only</b> by default (what
-            the item enables; the full both-way walk can swallow most of the map for hub
-            items). <b>Requires ⤵</b> highlights every ingredient behind an item. <b>Depth</b>
-            limits how far isolation walks (blank = all), and the <b>direction</b> select adds
-            <i>inputs only</i> or restores <i>up + down</i>. The <b>legend</b> (top left) is the
+            <p><b>Shift+Click</b> isolates a crafting tree — by default <b>everything the item
+            requires</b> at any depth <i>plus one level</i> of what it enables (that is "how do I
+            make this, and what is it for"). The <b>direction</b> select switches to
+            <i>outputs only</i> (what it enables — the full both-way walk can swallow most of the
+            map for hub items), <i>inputs only</i> or <i>up + down</i>; those three honour the
+            <b>Depth</b> box (blank = all). <b>Requires ⤵</b> highlights every ingredient behind
+            an item. The <b>legend</b> (top left) is the
             single control surface for what the map shows: every item kind, all link kinds,
             <b>Dead ends</b> (items nothing crafts) and <b>Possessions</b> (with your owned-item
             count) toggle there — <b>Show everything</b> and <b>↺ All — reset view</b> sit at the

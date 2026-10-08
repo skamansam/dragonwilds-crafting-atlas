@@ -245,6 +245,8 @@ try {
 } catch { /* corrupt storage → calm defaults */ }
 let selectedId = null;
 let isolatedRoot = null;
+// default isolate walk: everything it needs (full upstream) + 1 level of enables
+const DEFAULT_ISO_DIR = 'needs';
 let highlightId = null;
 let focusOwned = false;
 const owned = new Set(JSON.parse(localStorage.getItem('dw.owned') || '[]'));
@@ -698,7 +700,7 @@ function optionState() {
     regions: edgePrefs.regions ? '1' : '0',
     possessions: focusOwned ? '1' : '0',
     iso: isolatedRoot ? (slugIndex.toSlug.get(isolatedRoot) || null) : null,
-    isodir: dirEl ? dirEl.value : (urlOpt('isodir') || localStorage.getItem('dw.isoDir') || 'down'),
+    isodir: dirEl ? dirEl.value : (urlOpt('isodir') || localStorage.getItem('dw.isoDir') || DEFAULT_ISO_DIR),
     isodepth: depth || 'all',
   };
 }
@@ -2008,37 +2010,54 @@ function isolateTree(id, depthOverride = null) {
     : (dEl && dEl.value !== '' ? Math.max(1, parseInt(dEl.value, 10) || 3) : Infinity);
   if (dEl) storeOpt('isoDepth', dEl.value);
   isodepthOpt = raw === Infinity ? 'all' : String(raw); // keeps ?isodepth= truthful for syncUrl
-  // P4-3 direction-dominant walk, promoted to DEFAULT 'down' (outputs only) on
-  // 2026-09-24: the both-direction walk-to-leaves is a 1,408-node knot (72% of
-  // the map) for every hub item, while outputs-only is surgical (Iron Bar 89,
-  // Ash Logs 297) and matches the atlas' core question — "what do I need to
-  // craft this" / "what does this enable". A persisted dw.isoDir (any value,
-  // including 'both') always wins over the default.
+  // The DEFAULT walk ('needs') answers the atlas' core question: everything used
+  // to get to this item — the full upstream requires closure, however deep —
+  // plus exactly ONE level of what it enables ("1 connection out"). The plain
+  // direction modes below still honor the depth input: outputs-only is surgical
+  // (Iron Bar 89, Ash Logs 297) where the both-walk is a 1,408-node knot (72% of
+  // the map), and is what you pick to read "what does this enable".
   // precedence: a select present in the open panel wins (it mirrors the stored
-  // choice); otherwise the persisted pref; otherwise the promoted default.
+  // choice); otherwise the persisted pref; otherwise the default.
   const dirEl = document.getElementById('isoDir');
   const dir = dirEl ? dirEl.value
-    : (urlOpt('isodir') || localStorage.getItem('dw.isoDir') || 'down'); // both | down | up (?isodir= wins)
+    : (urlOpt('isodir') || localStorage.getItem('dw.isoDir') || DEFAULT_ISO_DIR); // needs | down | up | both (?isodir= wins)
   if (dirEl) storeOpt('isoDir', dir);
   isolatedRoot = id;
   resetHighlightState(); // a fresh isolation is the new visible-tree base
-  // breadth-first over recipe edges, up to `raw` steps (or until leaves),
-  // honouring the chosen direction
   const keep = new Map([[id, 0]]);
-  let frontier = [id];
-  let d = 0;
-  while (frontier.length && d < raw) {
-    const next = [];
-    for (const cur of frontier) {
+  if (dir === 'needs') {
+    // all requires: depth-first over every recipe input, no depth cap
+    const seen = new Set([id]);
+    const stack = [id];
+    while (stack.length) {
+      const cur = stack.pop();
       for (const e of D.edges) {
-        let nb = null;
-        if (dir !== 'up' && e.from === cur) nb = e.to;         // outputs: what this makes/enables
-        else if (dir !== 'down' && e.to === cur) nb = e.from;  // inputs: what this needs
-        if (nb !== null && !keep.has(nb)) { keep.set(nb, d + 1); next.push(nb); }
+        if (e.to !== cur || seen.has(e.from)) continue;
+        seen.add(e.from);
+        keep.set(e.from, 1);
+        stack.push(e.from);
       }
     }
-    frontier = next;
-    d++;
+    // exactly one recipe step out of the isolated item itself
+    for (const e of D.edges) if (e.from === id && !keep.has(e.to)) keep.set(e.to, 1);
+  } else {
+    // breadth-first over recipe edges, up to `raw` steps (or until leaves),
+    // honouring the chosen direction
+    let frontier = [id];
+    let d = 0;
+    while (frontier.length && d < raw) {
+      const next = [];
+      for (const cur of frontier) {
+        for (const e of D.edges) {
+          let nb = null;
+          if (dir !== 'up' && e.from === cur) nb = e.to;         // outputs: what this makes/enables
+          else if (dir !== 'down' && e.to === cur) nb = e.from;  // inputs: what this needs
+          if (nb !== null && !keep.has(nb)) { keep.set(nb, d + 1); next.push(nb); }
+        }
+      }
+      frontier = next;
+      d++;
+    }
   }
   cy.batch(() => {
     // auto-reveal every kind so the tree is fully visible regardless of filters
@@ -2058,8 +2077,10 @@ function isolateTree(id, depthOverride = null) {
   selectNode(id, { fly: false });
   setTimeout(() => cy.fit(undefined, 70), 60);
   syncUrl(); // the isolated tree is part of the shared view (?iso=)
-  const dirLabel = dir === 'down' ? 'outputs only' : dir === 'up' ? 'inputs only' : 'inputs + outputs';
-  toast(`Crafting tree of ${nodeById.get(id).name} · ${dirLabel} · depth ${raw === Infinity ? 'all' : raw} · ${keep.size - 1} items`);
+  const dirLabel = dir === 'needs' ? 'everything it needs + 1 level out'
+    : dir === 'down' ? 'outputs only' : dir === 'up' ? 'inputs only' : 'inputs + outputs';
+  const depthNote = dir === 'needs' ? '' : ` · depth ${raw === Infinity ? 'all' : raw}`;
+  toast(`Crafting tree of ${nodeById.get(id).name} · ${dirLabel}${depthNote} · ${keep.size - 1} items`);
 }
 
 /* ── P21/P22: progressive requires/enables — the buttons GROW the visible tree ── */
@@ -2775,6 +2796,58 @@ let editingNodeId = null; // node whose fields the codex is editing (null = read
 
 function nodePatchOf(id) { return dataEdits.nodes[id] || null; }
 
+/* ── the user's own links (P6-3) ──────────────────────────────────
+   Link editing lives in the ✎ Edit data form (it is a data change, like the
+   fields above it). The read view shows the same rows without the controls. */
+function linkCount(id) { return (dataEdits.links || []).filter(l => l.from === id || l.to === id).length; }
+
+function linkRowsHTML(id, editable) {
+  const links = dataEdits.links || [];
+  const rows = [...links.filter(l => l.from === id), ...links.filter(l => l.to === id)];
+  return rows.map(l => {
+    const other = l.from === id ? l.to : l.from;
+    const rm = editable
+      ? `<button class="ed-revert" data-unlink="${esc(l.from)}|${esc(l.to)}|${esc(l.rel)}" title="Remove this link">remove</button>`
+      : '';
+    return `<div class="edit-diff"><span class="ed-field">${esc(LINK_LABEL[l.rel] || l.rel)}</span><span class="ed-to link-jump" data-goto="${esc(other)}">${esc(l.from)} → ${esc(l.to)}</span>${rm}</div>`;
+  }).join('');
+}
+
+function linkAddFormHTML() {
+  return `<div class="link-add">
+      <select id="linkRel" title="The relationship from this item to the target">${Object.keys(LINK_LABEL).map(r => `<option value="${esc(r)}">${esc(LINK_LABEL[r])}</option>`).join('')}</select>
+      <input id="linkTarget" list="linkTargetList" placeholder="link to item…" aria-label="Link target item" />
+      <button class="btn" id="linkAdd">＋ Add link</button>
+    </div>`;
+}
+
+// wire the link rows + add form inside the ✎ edit form
+function wireLinkEditor(id, rerender) {
+  panelBody.querySelectorAll('[data-goto]').forEach(el => {
+    el.onclick = () => { selectNode(el.dataset.goto); };
+  });
+  panelBody.querySelectorAll('[data-unlink]').forEach(b => {
+    b.onclick = () => {
+      const [f, t, r] = b.dataset.unlink.split('|');
+      removeCustomLink(f, t, r);
+      updateEditsCount();
+      rerender();
+      toast('Link removed');
+    };
+  });
+  const lad = document.getElementById('linkAdd');
+  if (lad) lad.onclick = () => {
+    const rel = document.getElementById('linkRel').value;
+    const target = resolveNodeId(document.getElementById('linkTarget').value);
+    if (!target) { toast('No item by that name'); return; }
+    if (target === id) { toast('An item cannot link to itself'); return; }
+    if (!addCustomLink(id, target, rel)) { toast('That link already exists'); return; }
+    updateEditsCount();
+    rerender();
+    toast(`Linked: ${id} ${LINK_LABEL[rel] || rel} ${target}`);
+  };
+}
+
 function nodeEditorHTML(n) {
   const isEdited = !!nodePatchOf(n.id);
   const kinds = Object.keys(kindLabel).map(k =>
@@ -2794,6 +2867,10 @@ function nodeEditorHTML(n) {
     <label class="pe-field"><span>Wiki URL</span><input id="peWiki" type="text" value="${esc(n.wiki || '')}" placeholder="https://dragonwilds.runescape.wiki/w/…" /></label>
     <label class="pe-field"><span>Description <small>(one line each)</small></span><textarea id="peDesc" rows="3">${esc(desc)}</textarea></label>
     <label class="pe-field"><span>Stats <small>(one <code>key: value</code> per line)</small></span><textarea id="peStats" rows="3" placeholder="power: 12">${esc(stats)}</textarea></label>
+    <div class="p-label" style="margin-top:4px">Links${linkCount(n.id) ? ` (${linkCount(n.id)})` : ''}</div>
+    <div class="p-hint">Your own links — <b>makes</b>, <b>gives</b> or <b>found-in</b>. They draw an edge on the map (gold · teal · green) and are saved in this browser.</div>
+    ${linkRowsHTML(n.id, true)}
+    ${linkAddFormHTML()}
     <div class="p-actions">
       <button class="btn primary" id="peSave">Save</button>
       <button class="btn" id="peCancel">Cancel</button>
@@ -2855,6 +2932,7 @@ function renderNodeEditor(n) {
     persistEdits();
     location.reload(); // the node (and its edges) must leave the built graph
   };
+  wireLinkEditor(n.id, () => renderNodeEditor(n)); // links are edited here too (P6-3)
 }
 
 // push an edited node into the live graph: label, colour, kind filter, panel title
@@ -2903,7 +2981,7 @@ function renderEditsModal() {
   const changed = [], merged = [];
   for (const id of ids) (editFieldDiff(id).merged ? merged : changed).push(id);
   if (!ids.length && !links.length && !added.length && !removedIds.length) {
-    list.innerHTML = '<div class="edits-empty">No local edits yet. Open any item and press <b>✎ Edit data</b> to correct it, or add a link from the Links section.</div>';
+    list.innerHTML = '<div class="edits-empty">No local edits yet. Press the <b>✎</b> beside an item’s name to correct its data or add a link.</div>';
   } else {
     const head = merged.length
       ? `<div class="edits-note">✓ ${merged.length} of your edit${merged.length > 1 ? 's have' : ' has'} been added to the dataset — your value and the bundled value are now the same, so ${merged.length > 1 ? 'they' : 'it'} can be cleared.</div>`
@@ -3038,6 +3116,9 @@ function openPanel(id) {
         (inDegree.get(id) ? ` · made by ${inDegree.get(id)} recipe${inDegree.get(id) > 1 ? 's' : ''}` : '') +
         (outDegree.get(id) ? ` · used in ${outDegree.get(id)}` : ''));
   document.getElementById('panelIcon').innerHTML = iconImg(id);
+  // the ✎ beside the title opens this node's edit form (P6-1)
+  const bed = document.getElementById('btnEditData');
+  if (bed) bed.onclick = () => { editingNodeId = id; renderPanelBody(n); };
   renderPanelBody(n);
   panel.classList.add('open');
 }
@@ -3052,13 +3133,29 @@ function closePanel() {
 
 document.getElementById('panelClose').onclick = closePanel;
 
-function ownedBtnHTML(id) {
-  const has = owned.has(id);
-  return `<button class="btn ${has ? 'primary' : ''}" id="btnOwn" data-owned="${has}">${has ? '✓ Owned' : '☆ Mark owned'}</button>`;
+// the ☆ beside the title (grouped with ✎) — mark the item owned / unmark it
+function syncOwnedBtn(n) {
+  const b = document.getElementById('btnOwn');
+  if (!b) return;
+  if (n.kind === 'region') { b.hidden = true; return; } // region hubs are not craftables
+  const has = owned.has(n.id);
+  b.hidden = false;
+  b.textContent = has ? '★' : '☆';
+  b.classList.toggle('on', has);
+  b.setAttribute('aria-pressed', String(has));
+  b.title = has ? 'You own this — click to unmark' : 'Mark as owned (you have the recipe)';
+  b.setAttribute('aria-label', has ? 'Owned' : 'Mark owned');
 }
 
 function renderPanelBody(n) {
   const id = n.id;
+  syncOwnedBtn(n);
+  const bo = document.getElementById('btnOwn');
+  if (bo) bo.onclick = () => {
+    const has = toggleOwned(id);
+    renderPanelBody(n);
+    toast(has ? `Marked owned: ${n.name}` : `Unmarked: ${n.name}`);
+  };
   if (editingNodeId !== null && editingNodeId !== id) editingNodeId = null; // selection moved away
   if (editingNodeId === id) { renderNodeEditor(n); return; } // the ✎ edit view
   const recipesIn = D.recipes.filter(r => r.output === id);
@@ -3253,26 +3350,19 @@ function renderPanelBody(n) {
     }</div></div>`);
   }
 
-  // custom relationships (P6-3) — the user's own links, in and out
-  const outLinks = (dataEdits.links || []).filter(l => l.from === id);
-  const inLinks = (dataEdits.links || []).filter(l => l.to === id);
-  const linkRows = [...outLinks, ...inLinks].map(l =>
-    `<div class="edit-diff"><span class="ed-field">${esc(LINK_LABEL[l.rel] || l.rel)}</span><span class="ed-to link-jump" data-goto="${esc(l.from === id ? l.to : l.from)}">${esc(l.from)} → ${esc(l.to)}</span><button class="ed-revert" data-unlink="${esc(l.from)}|${esc(l.to)}|${esc(l.rel)}" title="Remove this link">remove</button></div>`).join('');
+  // custom relationships (P6-3) — the user's own links, in and out. Read-only
+  // here; add/remove them from the ✎ edit form (the ✎ beside the title).
+  const nLinks = linkCount(id);
   sections.push(`<div class="p-section">
-    <div class="p-label">Links${outLinks.length + inLinks.length ? ` (${outLinks.length + inLinks.length})` : ''}</div>
-    <div class="p-hint" style="margin-bottom:6px">Your own links — <b>makes</b>, <b>gives</b> or <b>found-in</b>. They draw an edge on the map (gold · teal · green) and are saved in this browser.</div>
-    ${linkRows}
-    <div class="link-add">
-      <select id="linkRel" title="The relationship from this item to the target">${Object.keys(LINK_LABEL).map(r => `<option value="${esc(r)}">${esc(LINK_LABEL[r])}</option>`).join('')}</select>
-      <input id="linkTarget" list="linkTargetList" placeholder="link to item…" aria-label="Link target item" />
-      <button class="btn" id="linkAdd">＋ Add link</button>
-    </div>
+    <div class="p-label">Links${nLinks ? ` (${nLinks})` : ''}</div>
+    <div class="p-hint" style="margin-bottom:6px">${nLinks
+      ? 'Your own links — <b>makes</b>, <b>gives</b> or <b>found-in</b>. They draw an edge on the map (gold · teal · green) and are saved in this browser. Add or remove them with the <b>✎</b> beside the title.'
+      : 'No custom links yet — add a <b>makes</b>, <b>gives</b> or <b>found-in</b> link with the <b>✎</b> beside the title.'}</div>
+    ${linkRowsHTML(id, false)}
   </div>`);
 
   // actions
   sections.push(`<div class="p-section p-actions">
-    ${ownedBtnHTML(id)}
-    <button class="btn" id="btnEditData" title="Correct this item's data — your changes are saved in this browser and never change the shipped files (⚙ → Your data edits)">✎ Edit data</button>
     <button class="btn" id="btnRequires" title="Highlight every ingredient this item is made from, directly or upstream">Requires ⤵</button>
     <button class="btn" id="btnEnables" title="Highlight everything this item is used to make, directly or downstream">Enables ⤴</button>
     <button class="btn" id="btnStepBack" title="Step the highlight back one level">Step back ⤵</button>
@@ -3280,8 +3370,9 @@ function renderPanelBody(n) {
     <button class="btn primary" id="btnIsolate">Isolate tree</button>
     <input id="isoDepth" type="number" min="1" step="1" placeholder="all" title="How many recipe steps up & down to include. Empty = the whole tree."
            style="width:74px;flex:0 0 auto" />
-    <select id="isoDir" title="Direction-dominant isolation: the full up+down walk can swallow nearly the whole map for hub items — outputs only (default) answers 'what does this enable', inputs only answers 'what does this need', up + down shows the full both-way context."
+    <select id="isoDir" title="What the isolated tree shows. Requires + 1 enable (default) walks the whole upstream — everything used to get here, no matter how deep — plus one level of what this item enables. Outputs only / inputs only / up + down use the depth box instead; the full up+down walk can swallow nearly the whole map for hub items."
             style="width:104px;flex:0 0 auto">
+      <option value="needs">requires + 1 enable</option>
       <option value="down">outputs only</option>
       <option value="up">inputs only</option>
       <option value="both">up + down</option>
@@ -3298,25 +3389,6 @@ function renderPanelBody(n) {
   panelBody.querySelectorAll('[data-goto]').forEach(el => {
     el.onclick = () => { selectNode(el.dataset.goto); };
   });
-  // custom link rows: remove buttons + the add form (P6-3)
-  panelBody.querySelectorAll('[data-unlink]').forEach(b => {
-    b.onclick = () => {
-      const [f, t, r] = b.dataset.unlink.split('|');
-      removeCustomLink(f, t, r);
-      renderPanelBody(nodeById.get(id));
-      toast('Link removed');
-    };
-  });
-  const lad = document.getElementById('linkAdd');
-  if (lad) lad.onclick = () => {
-    const rel = document.getElementById('linkRel').value;
-    const target = resolveNodeId(document.getElementById('linkTarget').value);
-    if (!target) { toast('No item by that name'); return; }
-    if (target === id) { toast('An item cannot link to itself'); return; }
-    if (!addCustomLink(id, target, rel)) { toast('That link already exists'); return; }
-    renderPanelBody(nodeById.get(id));
-    toast(`Linked: ${id} ${LINK_LABEL[rel] || rel} ${target}`);
-  };
   const bt = document.getElementById('btnRequires');
   if (bt) bt.onclick = () => showRequires(id);
   const bto = document.getElementById('btnEnables');
@@ -3325,8 +3397,6 @@ function renderPanelBody(n) {
   if (btb) btb.onclick = () => stepBackHighlight();
   const btr = document.getElementById('btnResetHighlight');
   if (btr) btr.onclick = () => clearHighlight();
-  const bed = document.getElementById('btnEditData');
-  if (bed) bed.onclick = () => { editingNodeId = id; renderPanelBody(n); };
   const bpt = document.getElementById('btnPathTo');
   if (bpt) bpt.onclick = () => armPath(id);
   const bpm = document.getElementById('btnPlanMode');
@@ -3373,16 +3443,10 @@ function renderPanelBody(n) {
     const dirEl = document.getElementById('isoDir');
     if (dirEl) {
       const saved = urlOpt('isodir') || localStorage.getItem('dw.isoDir');
-      dirEl.value = saved === 'down' || saved === 'up' || saved === 'both' ? saved : 'down'; // default: outputs only
+      dirEl.value = ['needs', 'down', 'up', 'both'].includes(saved) ? saved : DEFAULT_ISO_DIR;
       dirEl.onchange = () => { storeOpt('isoDir', dirEl.value); syncUrl(); };
     }
   }
-  const bo = document.getElementById('btnOwn');
-  if (bo) bo.onclick = () => {
-    const has = toggleOwned(id);
-    renderPanelBody(n);
-    toast(has ? `Marked owned: ${n.name}` : `Unmarked: ${n.name}`);
-  };
   // per-character skill level editor on a skill hub (TODO #24)
   const sli = document.getElementById('skillLevelInput');
   if (sli) {

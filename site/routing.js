@@ -108,7 +108,7 @@ window.DW_ROUTING = (() => {
     { name: 'regions', kind: 'bool' },
     { name: 'possessions', kind: 'bool' },
     { name: 'iso', kind: 'slug' },
-    { name: 'isodir', kind: 'enum', values: ['both', 'down', 'up'] },
+    { name: 'isodir', kind: 'enum', values: ['both', 'down', 'needs', 'up'] },
     { name: 'isodepth', kind: 'depth' },
   ];
   const OPTION_NAMES = OPTION_PARAMS.map(p => p.name);

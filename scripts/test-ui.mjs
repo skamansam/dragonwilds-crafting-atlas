@@ -193,6 +193,46 @@ async function secSmoke() {
   await page.keyboard.press('Escape');
   await page.waitForTimeout(400);
 
+  // the DEFAULT isolate walk (P6-follow-up): everything the item requires at any
+  // depth + exactly ONE level of what it enables — not outputs-only (which left
+  // freshly-crafted items looking like nothing happened)
+  await page.evaluate(() => localStorage.removeItem('dw.isoDir'));
+  await page.evaluate(() => window.selectNode('Iron Sword'));
+  await page.waitForTimeout(400);
+  ok('isolate direction defaults to requires + 1 enable', await page.$eval('#isoDir', el => el.value === 'needs'),
+    await page.$eval('#isoDir', el => el.value).catch(() => '(no select)'));
+  await page.evaluate(() => window.isolateTree('Iron Sword', null));
+  await page.waitForTimeout(1500);
+  const isoNeeds = await page.evaluate(() => {
+    const D = window.DW_DATA, c = window.__cy;
+    const root = 'Iron Sword';
+    // expected: full upstream closure + direct outputs of the root only
+    const want = new Set([root]);
+    const stack = [root];
+    while (stack.length) {
+      const cur = stack.pop();
+      for (const e of D.edges) if (e.to === cur && !want.has(e.from)) { want.add(e.from); stack.push(e.from); }
+    }
+    for (const e of D.edges) if (e.from === root) want.add(e.to);
+    const visible = c.nodes(':visible').map(n => n.id());
+    const secondLevelOut = [];
+    for (const e of D.edges) if (e.from !== root && want.has(e.from) && !want.has(e.to)) secondLevelOut.push(e.to);
+    const deepUp = [...want].filter(id => id !== root);
+    return {
+      want: want.size, visible: visible.length,
+      missing: [...want].filter(id => !visible.includes(id)).slice(0, 5),
+      extra: visible.filter(id => !want.has(id)).slice(0, 5),
+      deepUpMissing: deepUp.length > 0,
+      hiddenDownstream: secondLevelOut.filter(id => visible.includes(id)).length,
+    };
+  });
+  ok('isolate default shows the whole requires closure + 1 enable level',
+    isoNeeds.want === isoNeeds.visible && isoNeeds.missing.length === 0 && isoNeeds.extra.length === 0,
+    JSON.stringify(isoNeeds));
+  ok('isolate default stops after one level of enables', isoNeeds.hiddenDownstream === 0, JSON.stringify(isoNeeds));
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(600);
+
   const before = await page.evaluate(() => window.__cy.nodes(':visible').length);
   await page.evaluate(() => {
     [...document.querySelectorAll('#legend .lg-row')]
@@ -331,8 +371,36 @@ async function secEdits() {
   await page.keyboard.press('Enter');
   await page.waitForTimeout(600);
 
-  // custom relationships (P6-3): add a link from the panel, see it on the map
-  ok('panel has a Links add form', (await page.$('#linkAdd')) !== null);
+  // the ✎ sits beside the title (not in the actions block) with the edit tooltip
+  ok('edit ✎ sits beside the panel title', await page.$eval('#panelTitle', el =>
+    !!el.parentElement.querySelector('#btnEditData')));
+  ok('edit ✎ is icon-only with the edit tooltip', await page.$eval('#btnEditData', el =>
+    el.textContent.trim() === '✎' && /saved in this browser/.test(el.title)));
+  ok('owned ☆ sits beside the title, grouped with ✎', await page.$eval('#btnEditData', el =>
+    el.nextElementSibling && el.nextElementSibling.id === 'btnOwn'));
+  ok('owned ☆ is icon-only', await page.$eval('#btnOwn', el => el.textContent.trim() === '☆'));
+  await page.click('#btnOwn');
+  await page.waitForTimeout(300);
+  ok('owned ☆ flips to ★ in the header', await page.$eval('#btnOwn', el => el.textContent.trim() === '★'));
+  ok('owned ☆ writes the ledger', await page.evaluate(() =>
+    (JSON.parse(localStorage.getItem('dw.owned') || '[]')).includes('Iron Bar')));
+  await page.click('#btnOwn'); // unmark again — later sections expect a clean ledger
+  await page.waitForTimeout(300);
+  ok('owned ☆ unmarks', await page.$eval('#btnOwn', el => el.textContent.trim() === '☆'));
+
+  // the read view lists custom links but does not edit them (P6-3)
+  ok('read view shows a Links section', await page.$eval('#panelBody', el =>
+    [...el.querySelectorAll('.p-label')].some(l => l.textContent.startsWith('Links'))));
+  ok('read view has no link add form', (await page.$('#linkAdd')) === null);
+
+  ok('codex has an Edit data button', (await page.$('#btnEditData')) !== null);
+  await page.click('#btnEditData');
+  await page.waitForTimeout(200);
+  ok('edit form opens', (await page.$('#peName')) !== null);
+  ok('edit form carries the Links add form', (await page.$('#linkAdd')) !== null);
+  ok('edit form starts with no remove buttons', (await page.$$('[data-unlink]')).length === 0);
+
+  // custom relationships (P6-3): add a link from the edit form, see it on the map
   await page.selectOption('#linkRel', 'makes');
   await page.fill('#linkTarget', 'Ash Logs');
   await page.click('#linkAdd');
@@ -341,15 +409,11 @@ async function secEdits() {
     window.__cy.getElementById('usr:Iron Bar→Ash Logs:makes').nonempty()));
   ok('link persisted in the browser', await page.evaluate(() =>
     (JSON.parse(localStorage.getItem('dw.edits') || '{}').links || []).some(l => l.from === 'Iron Bar' && l.to === 'Ash Logs' && l.rel === 'makes')));
+  ok('edit form survives the link add', (await page.$('#peName')) !== null);
   await page.click('[data-unlink]');
   await page.waitForTimeout(500);
   ok('link removal drops the edge', await page.evaluate(() =>
     window.__cy.getElementById('usr:Iron Bar→Ash Logs:makes').empty()));
-
-  ok('codex has an Edit data button', (await page.$('#btnEditData')) !== null);
-  await page.click('#btnEditData');
-  await page.waitForTimeout(200);
-  ok('edit form opens', (await page.$('#peName')) !== null);
 
   // change the name + description and save
   const original = await page.$eval('#peName', el => el.value);
@@ -571,6 +635,10 @@ async function secLayouts() {
   // ⏱ P21/P22: highlight buttons GROW the visible tree — after an isolation (only
   // the subtree visible), Requires must REVEAL the hidden ingredients (the
   // old code only highlighted, so hidden nodes changed nothing on screen)
+  // pin the walk to outputs-only here: the default 'needs' walk already ships
+  // the complete upstream closure, so Requires would have nothing left to grow.
+  await page.evaluate(() => { localStorage.setItem('dw.isoDir', 'down'); window.selectNode('Bread'); });
+  await page.waitForTimeout(300);
   await page.evaluate(() => { window.isolateTree('Bread', 1); });
   await page.waitForTimeout(2500); // isolation reflow settles
   const isoShown = await page.evaluate(() => window.__cy.nodes(':visible').length);
