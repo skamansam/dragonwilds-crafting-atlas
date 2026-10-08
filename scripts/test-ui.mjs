@@ -79,6 +79,48 @@ async function clearStorage(keys) {
 const openSettings = () => page.evaluate(() => { document.getElementById('settingsBtn').click(); });
 const closeSettings = () => page.evaluate(() => { document.getElementById('settingsBtn').click(); });
 
+// Click a genuinely empty spot on the canvas so the tap reaches the background
+// (target === cy), not a node or an edge — otherwise the check would pass
+// without exercising the background-tap handler at all. The graph can be zoomed
+// past the viewport, so we sample points inside #cy and keep clear of every
+// visible node and of every edge (haystack edges are straight, so a point far
+// from the center-to-center segment is far from the drawn edge).
+async function tapEmptyCanvas() {
+  const pt = await page.evaluate(() => {
+    const cy = window.__cy;
+    const W = cy.width(), H = cy.height();
+    const nodes = cy.nodes(':visible').map(n => n.renderedPosition());
+    const segs = cy.edges(':visible').map(e => [e.source().renderedPosition(), e.target().renderedPosition()]);
+    const segDist = (px, py, a, b) => {
+      const dx = b.x - a.x, dy = b.y - a.y;
+      const len2 = dx * dx + dy * dy;
+      let t = len2 ? ((px - a.x) * dx + (py - a.y) * dy) / len2 : 0;
+      t = Math.max(0, Math.min(1, t));
+      return Math.hypot(px - (a.x + t * dx), py - (a.y + t * dy));
+    };
+    const host = document.getElementById('cy');
+    const r = host.getBoundingClientRect();
+    const NODE_CLEAR = 26, EDGE_CLEAR = 6;
+    for (let i = 0; i < 6000; i++) {
+      const x = 20 + Math.random() * (W - 40);
+      const y = 20 + Math.random() * (H - 40);
+      let ok = true;
+      for (const p of nodes) {
+        if (Math.abs(p.x - x) < NODE_CLEAR && Math.abs(p.y - y) < NODE_CLEAR &&
+            Math.hypot(p.x - x, p.y - y) < NODE_CLEAR) { ok = false; break; }
+      }
+      if (!ok) continue;
+      for (const s of segs) { if (segDist(x, y, s[0], s[1]) < EDGE_CLEAR) { ok = false; break; } }
+      if (!ok) continue;
+      const el = document.elementFromPoint(r.x + x, r.y + y);
+      if (el && host.contains(el)) return { x: r.x + x, y: r.y + y };
+    }
+    return null;
+  });
+  if (!pt) throw new Error('no empty canvas point found');
+  await page.mouse.click(pt.x, pt.y);
+}
+
 /* ── smoke ─────────────────────────────────────────────────────────────── */
 async function secSmoke() {
   console.log('smoke:');
@@ -100,6 +142,31 @@ async function secSmoke() {
   await page.click('#btnRequires');
   await page.waitForTimeout(500);
   ok('requires highlights', await page.evaluate(() => window.__cy.elements('.highlighted').length > 0));
+
+  // ⏱ P24: a blank-space click must NOT alter the graph — the requires highlight
+  // survives it (it used to call clearHighlight and restore the full map)
+  const tapState = () => page.evaluate(() => ({
+    highlighted: window.__cy.elements('.highlighted').length,
+    faded: window.__cy.elements('.faded').length,
+    visible: window.__cy.nodes(':visible').length,
+    anchorSelected: window.__cy.getElementById('Iron Bar').hasClass('sel'),
+    panelOpen: document.getElementById('panel').classList.contains('open'),
+  }));
+  const beforeTap = await tapState();
+  await tapEmptyCanvas();
+  await page.waitForTimeout(400);
+  const afterTap = await tapState();
+  ok('background tap keeps the requires highlight',
+    beforeTap.highlighted > 0 && afterTap.highlighted === beforeTap.highlighted,
+    `${beforeTap.highlighted} -> ${afterTap.highlighted} highlighted`);
+  ok('background tap keeps the faded rest of the map',
+    beforeTap.faded > 0 && afterTap.faded === beforeTap.faded,
+    `${beforeTap.faded} -> ${afterTap.faded} faded`);
+  ok('background tap keeps the same nodes visible',
+    afterTap.visible === beforeTap.visible, `${beforeTap.visible} -> ${afterTap.visible} visible`);
+  ok('background tap leaves the highlighted anchor selected', afterTap.anchorSelected,
+    `anchor .sel ${beforeTap.anchorSelected} -> ${afterTap.anchorSelected}`);
+  ok('background tap leaves the panel open', afterTap.panelOpen);
 
   // ⏱ P23: step-back button shrinks the highlight one level; reset clears it
   await page.click('#btnEnables'); // grow a second level (downward)

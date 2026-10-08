@@ -2559,7 +2559,14 @@ cy.on('tap', 'node', (evt) => {
   selectNode(id);
 });
 cy.on('tap', (evt) => {
-  if (evt.target === cy) { document.getElementById('welcome').classList.add('hidden'); closePanel(); clearHighlight(); }
+  if (evt.target !== cy) return;
+  document.getElementById('welcome').classList.add('hidden');
+  // A blank-space click must not alter the graph (P24): while a requires/enables
+  // highlight owns the view, leave it — and the panel — exactly as they are, so
+  // the highlighted tree the user was reading stays on screen. Otherwise a
+  // background click is just a deselect that closes the panel.
+  if (highlightRoot !== null) return;
+  closePanel();
 });
 
 let hoverTimer = null;
