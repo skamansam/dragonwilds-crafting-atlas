@@ -126,6 +126,18 @@ argument you are not prepared to have across ~15 files.
 - **Few dependencies.** Vendor a library into `site/vendor/` (no runtime CDN)
   and only after a real discussion — the app's whole value proposition is that
   it opens offline from a folder. New dev-only tooling is fine.
+- **`site/vendor/driver.js` carries one load-bearing detail.** The tour
+  overlay's dim-layer hole is the only SVG `<path>` the atlas ever writes, and
+  its rect is eased between the previous and the newly highlighted element's
+  rects. Keep that animation's `x<400` gate (in the minified `W`/`P` helpers):
+  it is what holds the eased ratio at λ < 1 so the interpolated rect always
+  stays *between* the two real rects — both non-negative by spec. Without the
+  gate a frame delayed past the window (a layout is running during several tour
+  steps) eases past the target, reaches a negative width and writes `h--<n>`
+  into the path, which Chrome rejects as `<path> attribute d: Expected number`.
+  The `tours` section of `scripts/test-ui.mjs` records every path write and
+  fails on one that is invalid, so re-vendoring without the gate fails loudly
+  rather than glitching quietly.
 - **UI**: follow DESIGN.md — tokens from `:root`, never hard-coded hex; the
   colour vocabulary (kind colours, edge kinds) is user-facing and repeated in
   the legend, panels and exports, so don't redefine it locally; animate only
@@ -158,7 +170,7 @@ argument you are not prepared to have across ~15 files.
 |---|---|---|
 | Gherkin (vitest + cucumber) | `npx vitest run` | Pure logic: highlight/frontier math, character state, routing slugs, the `?query` option parser, and the data-edit merge (`tests/features/edits-apply.*` driving `scripts/apply-edits-core.mjs`) |
 | Playwright e2e | `npx playwright test` | A few real browser flows, served by the config's `webServer` (`test-ui.mjs --serve-only`): boot, search → codex, isolate, requires-growth, layout completion, persisted settings, `?tour=` and `#/` deep links, `?iso=` on load, console cleanliness |
-| Acceptance suite | `node scripts/test-ui.mjs [section]` | The broad UI suite (~165 checks across `smoke`/`panel`/`undo`/`layouts`/`tours`/`route`/`options`/`edits`/`characters`). It serves `site/` itself; run one section while iterating, the whole thing before you land |
+| Acceptance suite | `node scripts/test-ui.mjs [section]` | The broad UI suite (~171 checks across `smoke`/`panel`/`undo`/`layouts`/`tours`/`route`/`options`/`edits`/`characters`). It serves `site/` itself; run one section while iterating, the whole thing before you land |
 | Lint | `npm run lint` | `biome check .` — compare against the baseline, don't chase it |
 
 All three layers are plain Node + a browser; nothing is compiled. When a check

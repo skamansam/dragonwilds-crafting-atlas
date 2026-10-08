@@ -78,6 +78,27 @@ async function clearStorage(keys) {
   await page.evaluate(ks => ks.forEach(k => localStorage.removeItem(k)), keys);
 }
 const openSettings = () => page.evaluate(() => { document.getElementById('settingsBtn').click(); });
+// Watch every SVG <path> the page writes. driver.js's tour overlay is the only
+// <path> the atlas draws (a hole in the dim layer, built from the highlighted
+// element's rect), and a delayed animation frame once made it overshoot into a
+// negative width — an invalid `d` that Chrome rejects with "<path> attribute d:
+// Expected number" and that the page-error gate below would then fail on. See
+// the tours section.
+async function watchSvgPaths() {
+  await page.evaluate(() => {
+    window.__paths = { writes: 0, bad: [] };
+    const orig = Element.prototype.setAttribute;
+    Element.prototype.setAttribute = function (name, value) {
+      if (name === 'd' && this.namespaceURI === 'http://www.w3.org/2000/svg') {
+        const s = String(value);
+        window.__paths.writes++;
+        if (/--|NaN|Infinity/.test(s)) window.__paths.bad.push(s.slice(0, 160));
+      }
+      return orig.call(this, name, value);
+    };
+  });
+}
+const pathWrites = () => page.evaluate(() => window.__paths || { writes: 0, bad: [] });
 const closeSettings = () => page.evaluate(() => { document.getElementById('settingsBtn').click(); });
 
 // Click a genuinely empty spot on the canvas so the tap reaches the background
@@ -896,6 +917,28 @@ async function secTours() {
   await page.waitForSelector('.driver-popover', { timeout: 15000 });
   ok('?tour= deep link auto-starts',
     (await page.$eval('.driver-popover-title', el => el.textContent)).includes('Ash Logs'));
+
+  // Overlay-path guard: the dim-layer hole is the only SVG path the app draws, and
+  // its rect is eased between two real element rects. Every mini-tour ends on a
+  // popover-only step (driver's 0×0 dummy element), i.e. the transition that
+  // shrinks the rect — exactly where an overshooting ease would go negative. Watch
+  // every write while the remaining tours run.
+  await watchSvgPaths();
+  const drive = async () => {
+    let n = 0;
+    while (await page.$('.driver-popover-next-btn') && n++ < 14) await next();
+    await page.waitForTimeout(600);
+  };
+  await drive(); // finish the deep-linked outputs tour
+  for (const name of ['inputs', 'robes']) {
+    await page.evaluate(n => window.DW_TOURS.start(n), name);
+    await page.waitForSelector('.driver-popover', { timeout: 10000 });
+    await drive();
+  }
+  const pw = await pathWrites();
+  ok('tour overlay never writes an invalid SVG path',
+    pw.bad.length === 0 && pw.writes > 20,
+    `${pw.writes} path writes${pw.bad.length ? ` — invalid: ${pw.bad[0]}` : ''}`);
 }
 
 /* ── route (hash deep links) ───────────────────────────────────────────── */

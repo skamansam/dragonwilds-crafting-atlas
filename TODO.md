@@ -118,7 +118,11 @@ thread-like construct?
    mystic Forge and Furnace are needed, but they do not show up in the graph. These should be there.
    Clicking again after those items are shown should reveal what is needed to make them, and on and on.
 
-[] We should keep track of graph state (layout, settings, owned items, etc.) according to cahracter. On startup, if there is not a character already saved,  we need to ask for it. If there is already saved data and no character, we ask if we want the
+[x] We should keep track of graph state (layout, settings, owned items, etc.) according to cahracter. On startup, if there is not a character already saved,  we need to ask for it. If there is already saved data and no character, we ask if we want the
 saved data stored with that character. The character should have the character's total level next to it, which is calculated
 by adding up the current level of all the skills. This measn for the base skill nodes, we need a way to keep track of the
 skill level for each base node.
+
+[x] We need to be able to edit the data in the app. The edits should be saved in the browser, then we should be able to save the data as  file. W e need a script that will update the data based on a saved file. For relationships, we should be able to search for the item to link to, along with the relationship. This is only for the node data so that it only shows makes or givves or whatever relationship and the node.
+
+
