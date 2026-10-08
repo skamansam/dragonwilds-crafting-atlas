@@ -89,6 +89,7 @@ redefine them locally.
 | Legend rows (check/toggle/swatch/action) | `.lg-row` + `.lg-check/.lg-swatch/.lg-only` |
 | Wide annotation tables | docs/checklists generators — prettier-aligned `\|` tables, `x` marks, Notes prose |
 | Toasts (with optional Undo) | `toastWithUndo` / `.toast-undo` — 5s life, gold border button |
+| Complexity callout (help + welcome) | `.h-note` / `#welcome .w-note` — gold-wash box, gold display label, the "it is necessarily complicated itself" note (same copy in both places) |
 
 Buttons: `.s-btn` vocabulary — default (quiet, `--line` border), `.gold`
 (primary), `.danger` (red hover). Icon-only buttons carry `title` +

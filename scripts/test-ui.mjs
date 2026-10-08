@@ -129,6 +129,21 @@ async function secSmoke() {
   const bootCnt = await page.evaluate(() => ({ nodes: window.__cy.nodes().length, data: window.DW_DATA.nodes.length }));
   ok('boot: cy nodes == dataset + region hubs', bootCnt.nodes >= bootCnt.data && bootCnt.nodes - bootCnt.data <= 7, `${bootCnt.nodes} vs ${bootCnt.data}`);
 
+  // the "necessarily complicated" note lives in the welcome card and in the
+  // help window, and the welcome card's button opens that help
+  ok('welcome card is on screen at boot', await page.$eval('#welcome', el => !el.classList.contains('hidden')));
+  ok('welcome card carries the complexity note', await page.$eval('#welcome .w-note', el =>
+    /necessarily complicated/i.test(el.textContent) && /online help/i.test(el.textContent)));
+  await page.click('#welcomeHelp');
+  await page.waitForTimeout(250);
+  ok('welcome note opens the online help', await page.$eval('#helpModal', el => !el.hidden));
+  ok('help window carries the same complexity note', await page.$eval('#helpModal .h-note', el =>
+    /necessarily complicated/i.test(el.textContent) && /guided tours/i.test(el.textContent)));
+  await page.click('#helpClose');
+  await page.waitForTimeout(250);
+  ok('help closes and leaves the welcome card standing', await page.evaluate(() =>
+    document.getElementById('helpModal').hidden && !document.getElementById('welcome').classList.contains('hidden')));
+
   await page.fill('#search', 'Iron Bar');
   await page.waitForTimeout(350);
   ok('search suggestions appear', await page.$$('.sug-item').then(a => a.length > 0));

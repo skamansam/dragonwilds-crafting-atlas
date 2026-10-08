@@ -3660,6 +3660,10 @@ function toggleHelp(force) {
   if (show) closeSuggestions();
 }
 document.getElementById('helpBtn').onclick = () => toggleHelp();
+// the welcome card's complexity note opens the same help window (the card stays
+// behind the modal — nothing is dismissed by asking for help)
+const welcomeHelpBtn = document.getElementById('welcomeHelp');
+if (welcomeHelpBtn) welcomeHelpBtn.onclick = () => toggleHelp(true);
 document.getElementById('helpClose').onclick = () => toggleHelp(false);
 helpModal.addEventListener('click', (e) => { if (e.target === helpModal) toggleHelp(false); });
 const editsModalEl = document.getElementById('editsModal');

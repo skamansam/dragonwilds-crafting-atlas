@@ -993,6 +993,9 @@ body.path-arming #panelBody { pointer-events: none; }
   box-shadow: var(--shadow);
   backdrop-filter: blur(10px);
   transition: opacity 0.4s, visibility 0.4s;
+  /* the card carries the stats, the complexity note and the contribute ask —
+     scroll inside it rather than overflowing the viewport on a short screen */
+  max-height: calc(100vh - 32px); overflow-y: auto; overscroll-behavior: contain;
 }
 #welcome.hidden { opacity: 0; visibility: hidden; }
 #welcome .w-rune { font-family: var(--font-display); font-size: 40px; font-weight: 900; color: var(--gold); text-shadow: 0 0 26px rgba(226,185,92,0.45); }
@@ -1009,6 +1012,24 @@ body.path-arming #panelBody { pointer-events: none; }
 }
 #welcome .w-stats { display: flex; gap: 22px; justify-content: center; margin-top: 16px; font-size: 12px; color: var(--faint); }
 #welcome .w-stats b { color: var(--gold); font-family: var(--font-display); font-size: 15px; display: block; }
+#welcome .w-note {
+  margin-top: 16px; padding: 10px 15px 11px; text-align: left;
+  border: 1px solid var(--gold-dim); border-radius: 8px;
+  background: rgba(226, 185, 92, 0.07);
+  font-size: 12.5px; color: var(--muted); line-height: 1.5;
+}
+#welcome .w-note .w-cta-label {
+  font-family: var(--font-display); font-size: 10.5px; font-weight: 700;
+  letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold); margin-bottom: 3px;
+}
+#welcome .w-note b { color: var(--ink); }
+#welcome .w-help {
+  display: block; margin-top: 9px; padding: 5px 12px; border-radius: 8px; cursor: pointer;
+  border: 1px solid var(--gold-dim); background: rgba(0, 0, 0, 0.3);
+  color: var(--gold-bright); font-family: inherit; font-size: 12px; font-weight: 700;
+}
+#welcome .w-help:hover { border-color: var(--gold); background: rgba(226, 185, 92, 0.14); }
+
 /* contribute CTA — solid gold so the help-wanted ask is unmissable
    (same gold-block language as the owned-count badge; dark-on-gold ≈ 10:1) */
 #welcome .w-contribute {
@@ -1090,6 +1111,15 @@ body.path-arming #panelBody { pointer-events: none; }
   border-bottom-width: 2px; border-radius: 6px; background: var(--bg2);
   color: var(--ink); font-size: 11.5px; font-family: inherit;
 }
+/* the "necessarily complicated" callout — help window + welcome card say the
+   same thing, in the same gold-wash language, so it reads as house policy */
+.help-card .h-note {
+  margin: 0 0 18px; padding: 11px 15px 12px;
+  border: 1px solid var(--gold-dim); border-radius: 12px;
+  background: rgba(226, 185, 92, 0.07);
+}
+.help-card .h-note p { margin: 0; color: var(--muted); font-size: 12.8px; line-height: 1.55; }
+.help-card .h-note b { color: var(--gold-bright); }
 .help-card .h-legal {
   margin-top: 18px; padding-top: 12px; border-top: 1px solid var(--line);
   text-align: center; color: var(--faint); font-size: 10.5px; line-height: 1.5;
