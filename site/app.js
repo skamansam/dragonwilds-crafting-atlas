@@ -96,7 +96,7 @@ try {
 } catch { /* corrupt storage → calm defaults */ }
 let selectedId = null;
 let isolatedRoot = null;
-let tracedId = null;
+let highlightId = null;
 let focusOwned = false;
 const owned = new Set(JSON.parse(localStorage.getItem('dw.owned') || '[]'));
 
@@ -164,7 +164,7 @@ const cy = cytoscape({
       },
     },
     {
-      selector: 'edge.sel, edge.traced',
+      selector: 'edge.sel, edge.highlighted',
       style: {
         'line-color': '#e2b95c',
         'target-arrow-color': '#e2b95c',
@@ -173,7 +173,7 @@ const cy = cytoscape({
       },
     },
     {
-      selector: 'node.sel, node.traced',
+      selector: 'node.sel, node.highlighted',
       style: {
         'border-color': '#f7dd9a',
         'border-width': 3,
@@ -267,7 +267,7 @@ for (const e of D.edges) {
 // Canonical Ashenfall regions become green hub nodes so the panel's "Found in"
 // rows can jump somewhere real. Built from DW_FOUND_IN at boot — they are NOT
 // part of data.json, so exports (GraphML/CyJS), the db counts and every D.edges
-// walk (plans, paths, traces, isolation, possessions) stay recipe-only.
+// walk (plans, paths, requires/enables highlights, isolation, possessions) stay recipe-only.
 const REGION_EDGE_COLOR = 'rgba(140,200,170,0.30)'; // soft green — geography, not crafting
 const REGION_EDGE_SWATCH = '#8cc8aa';
 // Full Ashenfall location list (wiki page order — same list as
@@ -1163,7 +1163,7 @@ function populate() {
       applyCategoryVisibility();
       applyEdgeVisibility();
       bootPopulating = false;
-      restoreTrace();
+      restoreHighlight();
     });
     refreshSkillLabels(); // per-character skill levels shown on the skill hubs (TODO #24)
     runLayout(currentLayout, { reflow: false }); // the boot layout — never gated by the auto-relayout option
@@ -1335,7 +1335,7 @@ lgDeadRow.querySelector('.lg-check').textContent = showOrphans ? '◆' : '◇';
 // with every item row off there was no way to recover short of a reload)
 let lgAllRow = null; // assigned after the LINKS section is built
 function showEverything() {
-  resetTraceState(); // full view supersedes any in-progress expansion
+  resetHighlightState(); // full view supersedes any in-progress expansion
   for (const k of Object.keys(kindColor)) activeCats.add(k);
   for (const k of Object.keys(lgRows)) lgSyncKind(k);
   showOrphans = true;
@@ -1808,7 +1808,7 @@ function selectNode(id, { fly = true, syncHash = true } = {}) {
   }
   const n = cy.getElementById(id);
   if (!n || n.length === 0) return;
-  cy.elements().removeClass('sel traced faded');
+  cy.elements().removeClass('sel highlighted faded');
   cy.getElementById(id).addClass('sel');
   if (fly) cy.animate({ center: { eles: n }, zoom: Math.max(cy.zoom(), 1.1) }, { duration: 420 });
   openPanel(id);
@@ -1818,11 +1818,11 @@ function selectNode(id, { fly = true, syncHash = true } = {}) {
 
 function clearIsolation() {
   isolatedRoot = null;
-  tracedId = null;
-  resetTraceState(); // an isolation is gone — any expansion grows from it no more
+  highlightId = null;
+  resetHighlightState(); // an isolation is gone — any expansion grows from it no more
   cy.batch(() => {
-    cy.nodes().removeClass('hidden traced').style({ opacity: '' });
-    cy.edges().removeClass('hidden traced').style({ opacity: '' });
+    cy.nodes().removeClass('hidden highlighted').style({ opacity: '' });
+    cy.edges().removeClass('hidden highlighted').style({ opacity: '' });
     applyCategoryVisibility();
   });
   document.getElementById('breadcrumb').classList.add('hidden');
@@ -1851,7 +1851,7 @@ function isolateTree(id, depthOverride = null) {
     : (urlOpt('isodir') || localStorage.getItem('dw.isoDir') || 'down'); // both | down | up (?isodir= wins)
   if (dirEl) storeOpt('isoDir', dir);
   isolatedRoot = id;
-  resetTraceState(); // a fresh isolation is the new visible-tree base
+  resetHighlightState(); // a fresh isolation is the new visible-tree base
   // breadth-first over recipe edges, up to `raw` steps (or until leaves),
   // honouring the chosen direction
   const keep = new Map([[id, 0]]);
@@ -1892,80 +1892,80 @@ function isolateTree(id, depthOverride = null) {
   toast(`Crafting tree of ${nodeById.get(id).name} · ${dirLabel} · depth ${raw === Infinity ? 'all' : raw} · ${keep.size - 1} items`);
 }
 
-/* ── P21/P22: progressive trace — trace buttons GROW the visible tree ── */
+/* ── P21/P22: progressive requires/enables — the buttons GROW the visible tree ── */
 // Old behaviour highlighted a full upstream/downstream closure; after an
 // isolation every highlighted node was hidden, so the buttons looked dead
-// (PLAN #21). New behaviour: the traced set SUPERSEDES visibility — it is
+// (PLAN #21). New behaviour: the highlighted set SUPERSEDES visibility — it is
 // revealed (hidden removed), and each further click expands the visible tree
 // by ONE recipe level from its frontier (PLAN #22, user-confirmed):
-//   makes (down) → what the shown nodes go on to make (Bread → its sandwiches…)
-//   inputs (up)  → what the shown nodes are made from
+//   Enables (down) → what the shown nodes go on to make (Bread → its sandwiches…)
+//   Requires (up)  → what the shown nodes are made from
 // State anchors on the clicked node and survives selection changes while the
-// direction stays the same; picking a node outside the traced set re-anchors.
-let traceRoot = null;        // node the trace was anchored on
-let traceDir = null;         // 'down' (makes) | 'up' (inputs)
-let traceLevels = new Map(); // id → depth from the anchor (0 = anchor)
-let traceDepth = 0;          // levels revealed so far
-let traceGrewFromIso = false; // whether the trace superseded an isolation (visual mode)
-function resetTraceState() {
-  traceRoot = null; traceDir = null; traceLevels = new Map(); traceDepth = 0;
-  traceGrewFromIso = false;
+// direction stays the same; picking a node outside the highlighted set re-anchors.
+let highlightRoot = null;        // node the highlight was anchored on
+let highlightDir = null;         // 'down' (enables) | 'up' (requires)
+let highlightLevels = new Map(); // id → depth from the anchor (0 = anchor)
+let highlightDepth = 0;          // levels revealed so far
+let highlightGrewFromIso = false; // whether the highlight superseded an isolation (visual mode)
+function resetHighlightState() {
+  highlightRoot = null; highlightDir = null; highlightLevels = new Map(); highlightDepth = 0;
+  highlightGrewFromIso = false;
 }
-function traceStep(id, dir) {
-  // re-anchor unless an active trace of the same direction already contains id
+function expandHighlight(id, dir) {
+  // re-anchor unless an active highlight of the same direction already contains id
   let reAnchored = false;
-  if (traceDir !== dir || traceRoot === null || !traceLevels.has(id)) {
-    traceRoot = id; traceDir = dir;
-    traceLevels = new Map([[id, 0]]);
-    traceDepth = 0;
+  if (highlightDir !== dir || highlightRoot === null || !highlightLevels.has(id)) {
+    highlightRoot = id; highlightDir = dir;
+    highlightLevels = new Map([[id, 0]]);
+    highlightDepth = 0;
     reAnchored = true;
   }
   // collect the next level: neighbours of the NEWEST frontier only.
   // Skill-gate spokes (skill → everything it unlocks, same D.edges list as
-  // recipe edges) must not join the walk: an upstream trace would otherwise
+  // recipe edges) must not join the walk: a Requires walk would otherwise
   // explode into a skill's ~200 unlock edges instead of recipe ingredients.
   const next = [];
-  for (const [nid, d] of traceLevels) {
-    if (d !== traceDepth) continue;
+  for (const [nid, d] of highlightLevels) {
+    if (d !== highlightDepth) continue;
     for (const e of D.edges) {
       const nb = dir === 'down' ? (e.from === nid ? e.to : null)
                                 : (e.to === nid ? e.from : null);
-      if (nb === null || traceLevels.has(nb)) continue;
+      if (nb === null || highlightLevels.has(nb)) continue;
       const src = dir === 'down' ? nid : nb; // the edge's ingredient side
       if (nodeById.get(src)?.kind === 'skill') continue;
-      // Facility-aware frontier (TODO #23): for upstream INPUT traces the recipe's
+      // Facility-aware frontier (TODO #23): for upstream Requires walks the recipe's
       // crafting station is a prerequisite at the same depth — collect it when the
-      // facility resolves to a station/tool node and isn't already traced. Downstream
-      // (makes) traces exclude facilities: e.facility is where the current item was
+      // facility resolves to a station/tool node and isn't already highlighted. Downstream
+      // (Enables) walks exclude facilities: e.facility is where the current item was
       // crafted, not where its products go on to be made (PLAN #23).
-      if (dir === 'up' && e.facility && !traceLevels.has(e.facility)) {
+      if (dir === 'up' && e.facility && !highlightLevels.has(e.facility)) {
         const fnode = nodeById.get(e.facility);
         if (fnode && (fnode.kind === 'station' || fnode.kind === 'tool')) {
-          traceLevels.set(e.facility, d + 1); next.push(e.facility);
+          highlightLevels.set(e.facility, d + 1); next.push(e.facility);
         }
       }
-      traceLevels.set(nb, d + 1); next.push(nb);
+      highlightLevels.set(nb, d + 1); next.push(nb);
     }
   }
   if (!next.length) {
-    const other = dir === 'down' ? 'Trace inputs' : 'Trace makes';
+    const other = dir === 'down' ? 'Requires' : 'Enables';
     toast(dir === 'down'
       ? `Nothing further downstream — everything ${nodeById.get(id).name} leads to is shown. Use ${other} to expand what these are made from.`
       : `Nothing further upstream — every ingredient of ${nodeById.get(id).name} is shown. Use ${other} to expand what they make.`);
     return;
   }
-  traceDepth++;
-  tracedId = id;
-  // P21: trace supersedes the current view — from an isolation it GROWS the
+  highlightDepth++;
+  highlightId = id;
+  // P21: a requires/enables highlight supersedes the current view — from an isolation it GROWS the
   // visible tree (P22: what was shown stays shown, the new level joins it);
-  // from the full map it keeps the classic highlight look (fade + traced)
-  // while revealing kind-hidden traced nodes. Either way an active isolation
-  // ends here — the trace is the new visible context.
+  // from the full map it keeps the classic highlight look (fade + highlighted)
+  // while revealing kind-hidden highlighted nodes. Either way an active isolation
+  // ends here — the highlight is the new visible context.
   // Re-anchoring: grewFromIso is true if this click started fresh from an
-  // isolation. Continuing an existing trace preserves the original value so
-  // traceBack() knows it was grown-from-iso (hide, not fade) on every level.
-  const grewFromIso = reAnchored ? isolatedRoot !== null : traceGrewFromIso;
-  traceGrewFromIso = grewFromIso;
+  // isolation. Continuing an existing highlight preserves the original value so
+  // stepBackHighlight() knows it was grown-from-iso (hide, not fade) on every level.
+  const grewFromIso = reAnchored ? isolatedRoot !== null : highlightGrewFromIso;
+  highlightGrewFromIso = grewFromIso;
   // hidden set BEFORE this click — every branch preserves it: the blanket
   // class strip must not leak the previous view's hidden nodes into view
   // (2nd click from a grown tree otherwise unhides the whole map)
@@ -1984,51 +1984,51 @@ function traceStep(id, dir) {
     }
     cy.nodes().forEach(n => {
       const nid = n.id();
-      n.removeClass('hidden faded traced');
-      if (!traceLevels.has(nid)) {
+      n.removeClass('hidden faded highlighted');
+      if (!highlightLevels.has(nid)) {
         if (preHiddenIds.has(nid)) n.addClass('hidden'); // stay hidden as before
         if (!grewFromIso && !preHiddenIds.has(nid)) n.addClass('faded'); // classic highlight look
       } else if (frontierSet.has(nid)) {
-        n.addClass('traced'); // gold = new this click
+        n.addClass('highlighted'); // gold = new this click
       }
     });
     cy.getElementById(id).addClass('sel');
     cy.edges().forEach(e => {
-      const s = traceLevels.get(e.source().id()), t = traceLevels.get(e.target().id());
+      const s = highlightLevels.get(e.source().id()), t = highlightLevels.get(e.target().id());
       // on-path edges connect consecutive levels in the walked direction
       const onPath = s !== undefined && t !== undefined && Math.abs(s - t) === 1;
-      if (onPath) { e.removeClass('hidden faded').addClass('traced'); return; }
-      e.removeClass('traced faded');
-      const bothInTrace = s !== undefined && t !== undefined;
+      if (onPath) { e.removeClass('hidden faded').addClass('highlighted'); return; }
+      e.removeClass('highlighted faded');
+      const bothInHighlight = s !== undefined && t !== undefined;
       if (!grewFromIso) {
-        // classic highlight look: the traced closure un-fades, everything else fades
-        if (!bothInTrace) e.addClass('faded');
-      } else if (!bothInTrace) {
-        e.addClass('hidden'); // grow mode: edges leaving the traced set stay out
+        // classic highlight look: the highlighted closure un-fades, everything else fades
+        if (!bothInHighlight) e.addClass('faded');
+      } else if (!bothInHighlight) {
+        e.addClass('hidden'); // grow mode: edges leaving the highlighted set stay out
       }
     });
   });
   if (reAnchored && grewFromIso) setTimeout(() => cy.fit(undefined, 70), 60);
   updateReadout();
-  const dirLabel = dir === 'down' ? 'makes' : 'inputs';
-  toast(`${nodeById.get(id).name} · ${dirLabel} level ${traceDepth}: +${next.length} nodes · ${traceLevels.size - 1} total shown — click again to expand further`);
-  saveTrace();
+  const dirLabel = dir === 'down' ? 'enables' : 'requires';
+  toast(`${nodeById.get(id).name} · ${dirLabel} level ${highlightDepth}: +${next.length} nodes · ${highlightLevels.size - 1} total shown — click again to expand further`);
+  saveHighlight();
 }
 
-function traceInputs(id) { traceStep(id, 'up'); }
+function showRequires(id) { expandHighlight(id, 'up'); }
 
-// forward trace (P4-2): everything this item feeds into — now progressive
-function traceOutputs(id) { traceStep(id, 'down'); }
+// Enables (P4-2): everything this item feeds into — progressive
+function showEnables(id) { expandHighlight(id, 'down'); }
 
-function clearTrace() {
-  tracedId = null;
-  const hadTrace = traceRoot !== null;
-  resetTraceState();
-  cy.elements().removeClass('faded traced');
-  saveTrace(); // removes the stored key since traceRoot is now null
-  // P22: trace now controls visibility (it supersedes isolation), so clearing
-  // it must restore the full map — otherwise traced-away nodes stay hidden
-  if (hadTrace) {
+function clearHighlight() {
+  highlightId = null;
+  const hadHighlight = highlightRoot !== null;
+  resetHighlightState();
+  cy.elements().removeClass('faded highlighted');
+  saveHighlight(); // removes the stored key since highlightRoot is now null
+  // P22: the highlight now controls visibility (it supersedes isolation), so clearing
+  // it must restore the full map — otherwise highlighted-away nodes stay hidden
+  if (hadHighlight) {
     cy.batch(() => {
       cy.nodes().removeClass('hidden').style({ opacity: '' });
       cy.edges().removeClass('hidden').style({ opacity: '' });
@@ -2038,54 +2038,54 @@ function clearTrace() {
   }
 }
 
-/* ── P23: traceBack — collapse the deepest level ───────────── */
-// Mirrors the unit-tested traceBack math: drop the deepest level from
-// traceLevels, decrement traceDepth. Visually the removed frontier goes back
+/* ── P23: stepBackHighlight — collapse the deepest level ───────────── */
+// Mirrors the unit-tested stepBackHighlight math: drop the deepest level from
+// highlightLevels, decrement highlightDepth. Visually the removed frontier goes back
 // to hidden (grow-from-iso mode) or faded (classic highlight mode); the new
-// frontier (depth === traceDepth) gets the .traced gold highlight. When
-// traceDepth reaches 0 — only the anchor remains — clearTrace() restores the
+// frontier (depth === highlightDepth) gets the .highlighted gold highlight. When
+// highlightDepth reaches 0 — only the anchor remains — clearHighlight() restores the
 // full map.
-function traceBack() {
-  if (traceRoot === null) return;
-  if (traceDepth === 0) {
-    clearTrace();
+function stepBackHighlight() {
+  if (highlightRoot === null) return;
+  if (highlightDepth === 0) {
+    clearHighlight();
     return;
   }
   // collect + drop the deepest level
   const removed = [];
-  for (const [nid, d] of traceLevels) {
-    if (d === traceDepth) { traceLevels.delete(nid); removed.push(nid); }
+  for (const [nid, d] of highlightLevels) {
+    if (d === highlightDepth) { highlightLevels.delete(nid); removed.push(nid); }
   }
   const removedSet = new Set(removed);
-  traceDepth--;
-  tracedId = traceRoot;
-  // new frontier = nodes at the new traceDepth
+  highlightDepth--;
+  highlightId = highlightRoot;
+  // new frontier = nodes at the new highlightDepth
   const frontierSet = new Set(
-    [...traceLevels.entries()].filter(([_, d]) => d === traceDepth).map(([id]) => id)
+    [...highlightLevels.entries()].filter(([_, d]) => d === highlightDepth).map(([id]) => id)
   );
-  // currently hidden (category-hidden or hidden-by-traced) — keep them hidden
+  // currently hidden (category-hidden or hidden-by-highlighted) — keep them hidden
   const preHiddenIds = new Set(cy.nodes('.hidden').map(n => n.id()));
   cy.batch(() => {
     cy.nodes().forEach(n => {
       const nid = n.id();
-      n.removeClass('hidden faded traced');
-      if (!traceLevels.has(nid)) {
-        if (traceGrewFromIso || preHiddenIds.has(nid)) n.addClass('hidden');
+      n.removeClass('hidden faded highlighted');
+      if (!highlightLevels.has(nid)) {
+        if (highlightGrewFromIso || preHiddenIds.has(nid)) n.addClass('hidden');
         else n.addClass('faded');
       } else if (frontierSet.has(nid)) {
-        n.addClass('traced');
+        n.addClass('highlighted');
       }
-      if (nid === traceRoot) n.addClass('sel');
+      if (nid === highlightRoot) n.addClass('sel');
     });
     cy.edges().forEach(e => {
-      const s = traceLevels.get(e.source().id()), t = traceLevels.get(e.target().id());
+      const s = highlightLevels.get(e.source().id()), t = highlightLevels.get(e.target().id());
       const onPath = s !== undefined && t !== undefined && Math.abs(s - t) === 1;
-      if (onPath) { e.removeClass('hidden faded').addClass('traced'); return; }
-      e.removeClass('traced faded');
-      const bothInTrace = s !== undefined && t !== undefined;
+      if (onPath) { e.removeClass('hidden faded').addClass('highlighted'); return; }
+      e.removeClass('highlighted faded');
+      const bothInHighlight = s !== undefined && t !== undefined;
       const touchesRemoved = removedSet.has(e.source().id()) || removedSet.has(e.target().id());
-      if (!bothInTrace || touchesRemoved) {
-        if (traceGrewFromIso) e.addClass('hidden');
+      if (!bothInHighlight || touchesRemoved) {
+        if (highlightGrewFromIso) e.addClass('hidden');
         else e.addClass('faded');
       } else {
         e.removeClass('hidden');
@@ -2093,58 +2093,63 @@ function traceBack() {
     });
   });
   updateReadout();
-  const dirLabel = traceDir === 'down' ? 'makes' : 'inputs';
-  toast(`${nodeById.get(traceRoot).name} · ${dirLabel} level ${traceDepth} — ${traceLevels.size - 1} total shown`);
-  saveTrace();
+  const dirLabel = highlightDir === 'down' ? 'enables' : 'requires';
+  toast(`${nodeById.get(highlightRoot).name} · ${dirLabel} level ${highlightDepth} — ${highlightLevels.size - 1} total shown`);
+  saveHighlight();
 }
 
-/* ── trace persistence (localStorage dw.trace) ────────────────── */
-function saveTrace() {
-  if (traceRoot === null) { localStorage.removeItem('dw.trace'); return; }
-  localStorage.setItem('dw.trace', JSON.stringify({
-    root: traceRoot, dir: traceDir, levels: Array.from(traceLevels.entries()), depth: traceDepth,
+/* ── highlight persistence (localStorage dw.highlight, migrated from dw.trace) ── */
+function saveHighlight() {
+  if (highlightRoot === null) { localStorage.removeItem('dw.highlight'); return; }
+  localStorage.setItem('dw.highlight', JSON.stringify({
+    root: highlightRoot, dir: highlightDir, levels: Array.from(highlightLevels.entries()), depth: highlightDepth,
   }));
 }
-function restoreTrace() {
-  const raw = localStorage.getItem('dw.trace');
+function restoreHighlight() {
+  let raw = localStorage.getItem('dw.highlight');
+  if (!raw) {
+    // migrate a pre-rename dw.trace key so saved highlight state survives the rename
+    const legacy = localStorage.getItem('dw.trace');
+    if (legacy) { localStorage.setItem('dw.highlight', legacy); localStorage.removeItem('dw.trace'); raw = legacy; }
+  }
   if (!raw) return;
   let parsed;
   try { parsed = JSON.parse(raw); } catch { return; }
   if (!parsed.root || !parsed.dir) return;
-  traceRoot = parsed.root; traceDir = parsed.dir;
-  traceLevels = new Map(parsed.levels || []);
-  traceDepth = parsed.depth || 0;
-  traceGrewFromIso = false;
-  if (traceLevels.size === 0) { localStorage.removeItem('dw.trace'); return; }
-  if (!nodeById.has(traceRoot)) { localStorage.removeItem('dw.trace'); return; }
-  // Verify every traced node is actually in the graph — stale IDs from an old
-  // dataset version must not render partial traces
-  for (const nid of traceLevels.keys()) {
-    if (!nodeById.has(nid)) { localStorage.removeItem('dw.trace'); return; }
+  highlightRoot = parsed.root; highlightDir = parsed.dir;
+  highlightLevels = new Map(parsed.levels || []);
+  highlightDepth = parsed.depth || 0;
+  highlightGrewFromIso = false;
+  if (highlightLevels.size === 0) { localStorage.removeItem('dw.highlight'); return; }
+  if (!nodeById.has(highlightRoot)) { localStorage.removeItem('dw.highlight'); return; }
+  // Verify every highlighted node is actually in the graph — stale IDs from an old
+  // dataset version must not render partial highlights
+  for (const nid of highlightLevels.keys()) {
+    if (!nodeById.has(nid)) { localStorage.removeItem('dw.highlight'); return; }
   }
-  tracedId = traceRoot;
+  highlightId = highlightRoot;
   const frontierSet = new Set(
-    [...traceLevels.entries()].filter(([_, d]) => d === traceDepth).map(([id]) => id)
+    [...highlightLevels.entries()].filter(([_, d]) => d === highlightDepth).map(([id]) => id)
   );
-  // nodes hidden by category/orphan filters before the trace — preserve that
+  // nodes hidden by category/orphan filters before the highlight — preserve that
   const preHiddenIds = new Set(cy.nodes('.hidden').map(n => n.id()));
   cy.batch(() => {
     cy.nodes().forEach(n => {
       const nid = n.id();
-      n.removeClass('hidden faded traced');
+      n.removeClass('hidden faded highlighted');
       if (preHiddenIds.has(nid)) n.addClass('hidden');
-      else if (traceLevels.has(nid)) {
-        if (frontierSet.has(nid)) n.addClass('traced');
+      else if (highlightLevels.has(nid)) {
+        if (frontierSet.has(nid)) n.addClass('highlighted');
       } else {
         n.addClass('faded');
       }
-      if (nid === traceRoot) n.addClass('sel');
+      if (nid === highlightRoot) n.addClass('sel');
     });
     cy.edges().forEach(e => {
-      const s = traceLevels.get(e.source().id()), t = traceLevels.get(e.target().id());
+      const s = highlightLevels.get(e.source().id()), t = highlightLevels.get(e.target().id());
       const onPath = s !== undefined && t !== undefined && Math.abs(s - t) === 1;
-      if (onPath) { e.removeClass('hidden faded').addClass('traced'); return; }
-      e.removeClass('traced faded');
+      if (onPath) { e.removeClass('hidden faded').addClass('highlighted'); return; }
+      e.removeClass('highlighted faded');
       if (!(s !== undefined && t !== undefined)) e.addClass('faded');
     });
   });
@@ -2395,7 +2400,7 @@ function clearPath() {
   lastPath = null;
   disarmPath();
   hidePathbar();
-  cy.elements().removeClass('faded traced');
+  cy.elements().removeClass('faded highlighted');
   writeRoute(selectedId ? [selectedId] : []); // the trail is gone, the selection stays
 }
 
@@ -2416,10 +2421,10 @@ function runPath(a, b, multi = false) {
   cy.batch(() => {
     cy.elements().addClass('faded');
     for (const s of steps) {
-      cy.getElementById(s.from).removeClass('faded').addClass('traced');
-      cy.getElementById(s.to).removeClass('faded').addClass('traced');
+      cy.getElementById(s.from).removeClass('faded').addClass('highlighted');
+      cy.getElementById(s.to).removeClass('faded').addClass('highlighted');
       const eid = s.e.from + '→' + s.e.to + ':' + s.e.qty + (s.e.variant ? ':' + s.e.variant : '');
-      cy.getElementById(eid).removeClass('faded').addClass('traced');
+      cy.getElementById(eid).removeClass('faded').addClass('highlighted');
     }
   });
   const fromTxt = multi
@@ -2553,7 +2558,7 @@ cy.on('tap', 'node', (evt) => {
   selectNode(id);
 });
 cy.on('tap', (evt) => {
-  if (evt.target === cy) { document.getElementById('welcome').classList.add('hidden'); closePanel(); clearTrace(); }
+  if (evt.target === cy) { document.getElementById('welcome').classList.add('hidden'); closePanel(); clearHighlight(); }
 });
 
 let hoverTimer = null;
@@ -2561,7 +2566,7 @@ let hovered = null;
 cy.on('mouseover', 'node', (evt) => {
   clearTimeout(hoverTimer);
   hoverTimer = setTimeout(() => {
-    if (tracedId || isolatedRoot) return;
+    if (highlightId || isolatedRoot) return;
     hovered = evt.target;
     evt.target.neighborhood().union(evt.target).addClass('hoverN');
   }, 100);
@@ -2817,10 +2822,10 @@ function renderPanelBody(n) {
   // actions
   sections.push(`<div class="p-section p-actions">
     ${ownedBtnHTML(id)}
-    <button class="btn" id="btnTrace">Trace inputs</button>
-    <button class="btn" id="btnTraceOut" title="Highlight everything this item is used to make, directly or downstream">Trace makes ⤴</button>
-    <button class="btn" id="btnTraceBack" title="Step the trace back one level">Trace back ⤵</button>
-    <button class="btn" id="btnResetTrace" title="Clear trace highlights">Reset trace</button>
+    <button class="btn" id="btnRequires" title="Highlight every ingredient this item is made from, directly or upstream">Requires ⤵</button>
+    <button class="btn" id="btnEnables" title="Highlight everything this item is used to make, directly or downstream">Enables ⤴</button>
+    <button class="btn" id="btnStepBack" title="Step the highlight back one level">Step back ⤵</button>
+    <button class="btn" id="btnResetHighlight" title="Clear the requires/enables highlight">Reset</button>
     <button class="btn primary" id="btnIsolate">Isolate tree</button>
     <input id="isoDepth" type="number" min="1" step="1" placeholder="all" title="How many recipe steps up & down to include. Empty = the whole tree."
            style="width:74px;flex:0 0 auto" />
@@ -2842,14 +2847,14 @@ function renderPanelBody(n) {
   panelBody.querySelectorAll('[data-goto]').forEach(el => {
     el.onclick = () => { selectNode(el.dataset.goto); };
   });
-  const bt = document.getElementById('btnTrace');
-  if (bt) bt.onclick = () => traceInputs(id);
-  const bto = document.getElementById('btnTraceOut');
-  if (bto) bto.onclick = () => traceOutputs(id);
-  const btb = document.getElementById('btnTraceBack');
-  if (btb) btb.onclick = () => traceBack();
-  const btr = document.getElementById('btnResetTrace');
-  if (btr) btr.onclick = () => clearTrace();
+  const bt = document.getElementById('btnRequires');
+  if (bt) bt.onclick = () => showRequires(id);
+  const bto = document.getElementById('btnEnables');
+  if (bto) bto.onclick = () => showEnables(id);
+  const btb = document.getElementById('btnStepBack');
+  if (btb) btb.onclick = () => stepBackHighlight();
+  const btr = document.getElementById('btnResetHighlight');
+  if (btr) btr.onclick = () => clearHighlight();
   const bpt = document.getElementById('btnPathTo');
   if (bpt) bpt.onclick = () => armPath(id);
   const bpm = document.getElementById('btnPlanMode');
@@ -3127,7 +3132,7 @@ document.addEventListener('keydown', (e) => {
   if (e.target === searchInput || e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
   if (e.key === '/') { e.preventDefault(); searchInput.focus(); searchInput.select(); }
   else if (e.key === '?') { e.preventDefault(); toggleHelp(); }
-  else if (e.key === 'Escape') { if (pathArming) { disarmPath(); toast('Path query cancelled'); } if (lastPath) clearPath(); if (isolatedRoot) clearIsolation(); closePanel(); clearTrace(); }
+  else if (e.key === 'Escape') { if (pathArming) { disarmPath(); toast('Path query cancelled'); } if (lastPath) clearPath(); if (isolatedRoot) clearIsolation(); closePanel(); clearHighlight(); }
   else if (e.key === 'f' || e.key === 'F') cy.fit(undefined, 60);
 });
 

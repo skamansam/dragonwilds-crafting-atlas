@@ -27,7 +27,7 @@ export const STATE_KEYS = [
 	"layout", "dens", "animate", "savedLayouts", "worker", "autoRelayout",
 	"showMatEdges", "showSkillEdges", "showRegionEdges", "legendKinds",
 	"showOrphans", "owned", "planMode", "planUseOwned", "wpProgress",
-	"isoDepth", "isoDir", "trace", "force",
+	"isoDepth", "isoDir", "highlight", "force",
 ];
 
 /* ── a localStorage stand-in ──────────────────────────────────────── */

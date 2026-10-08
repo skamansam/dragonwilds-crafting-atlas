@@ -2,10 +2,10 @@
  * Playwright end-to-end suite for the Crafting Atlas.
  *
  * Complements the two other layers:
- *   - tests/features/*.feature  — Gherkin/vitest: the browser-free trace math
+ *   - tests/features/*.feature  — Gherkin/vitest: the browser-free highlight math
  *   - scripts/test-ui.mjs       — the broad permanent acceptance suite (82 checks)
  * This suite drives the real UI in a real browser for the core flows a user hits
- * first: boot, search → codex, isolate, progressive trace, layout selection,
+ * first: boot, search → codex, isolate, progressive highlight, layout selection,
  * persisted settings, guided-tour deep links, URL deep links, URL graph
  * options, and a clean console.
  *
@@ -88,7 +88,7 @@ test.describe("Crafting Atlas", () => {
 			.toBe(true);
 	});
 
-	test("trace inputs grows the isolated tree", async ({ page }) => {
+	test("requires grows the isolated tree", async ({ page }) => {
 		await boot(page);
 		await page.evaluate(() => {
 			(window as unknown as { isolateTree(id: string, d: number): void }).isolateTree("Bread", 1);
@@ -100,7 +100,7 @@ test.describe("Crafting Atlas", () => {
 		await page.evaluate(() => {
 			const w = window as unknown as { selectNode(id: string): void };
 			w.selectNode("Bread");
-			document.getElementById("btnTrace")!.click();
+			document.getElementById("btnRequires")!.click();
 		});
 		await expect
 			.poll(
@@ -168,12 +168,12 @@ test.describe("Crafting Atlas", () => {
 		await page.goto("/#/ash_logs/iron_sword");
 		await expect(page.locator("#panelTitle")).toHaveText("Iron Sword", { timeout: 120_000 });
 		await expect(page.locator("#pathbar")).toBeVisible();
-		const traced = await page.evaluate(
+		const highlighted = await page.evaluate(
 			() =>
-				(window as unknown as { __cy: { edges(s: string): { length: number } } }).__cy.edges(".traced")
+				(window as unknown as { __cy: { edges(s: string): { length: number } } }).__cy.edges(".highlighted")
 					.length
 		);
-		expect(traced).toBeGreaterThanOrEqual(2);
+		expect(highlighted).toBeGreaterThanOrEqual(2);
 	});
 
 	test("selecting an item writes its slug into the URL", async ({ page }) => {

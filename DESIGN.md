@@ -3,7 +3,7 @@
 The durable visual system of the site. Everything here is harvested from the
 shipped code (`site/style.css`, `site/index.html`) — when adding UI, follow this
 file; when this file and the code disagree, the code wins and this file should
-be updated. Mode: **Operate** — visitors complete tasks (find items, trace
+be updated. Mode: **Operate** — visitors complete tasks (find items, explore
 recipes, plan what to craft); scanability and consistency outrank expression.
 
 ## World & point of view

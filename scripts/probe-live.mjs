@@ -201,7 +201,7 @@ if (!only || only === 'pf3') {
   const pathState = await page.evaluate(() => {
     const label = [...document.querySelectorAll('#panelBody .p-label')].map(l => l.innerText.split('\n')[0]).find(t => t.includes('Path from'));
     const steps = [...document.querySelectorAll('#panelBody .path-step')].length;
-    return { label, steps, traced: window.__cy.elements('.traced').length };
+    return { label, steps, highlighted: window.__cy.elements('.highlighted').length };
   });
   console.log('owned path result:', JSON.stringify(pathState));
   await page.screenshot({ path: 'cache/shots2/pf3-path.png' });
@@ -242,16 +242,16 @@ if (!only || only === 'pf') {
   const pathState = await page.evaluate(() => {
     const body = document.getElementById('panelBody');
     const steps = [...body.querySelectorAll('.path-step')].map(r => r.innerText.replace(/\s+/g, ' ').trim());
-    const traced = window.__cy.elements('.traced').length;
+    const highlighted = window.__cy.elements('.highlighted').length;
     const faded = window.__cy.elements('.faded').length;
-    return { steps, traced, faded, armingOff: !document.body.classList.contains('path-arming') };
+    return { steps, highlighted, faded, armingOff: !document.body.classList.contains('path-arming') };
   });
   console.log('path Ash Logs→Iron Sword:', JSON.stringify(pathState, null, 1));
   await page.screenshot({ path: 'cache/shots2/pf-path.png' });
   // 3) Esc clears everything
   await page.keyboard.press('Escape');
   await page.waitForTimeout(400);
-  const cleared = await page.evaluate(() => ({ traced: window.__cy.elements('.traced').length, arming: document.body.classList.contains('path-arming') }));
+  const cleared = await page.evaluate(() => ({ highlighted: window.__cy.elements('.highlighted').length, arming: document.body.classList.contains('path-arming') }));
   console.log('after Esc:', JSON.stringify(cleared));
   // 4) Path-to via search box: arm from Copper Ore, pick Iron Sword through search
   await page.evaluate(() => { window.__cy.getElementById('Copper Ore').emit('tap', {}); });
@@ -269,7 +269,7 @@ if (!only || only === 'pf') {
   const viaSearch = await page.evaluate(() => {
     const steps = [...document.querySelectorAll('#panelBody .path-step')].length;
     const ph = document.getElementById('search').placeholder;
-    return { traced: window.__cy.elements('.traced').length, steps, placeholderReset: ph.includes('Search items') };
+    return { highlighted: window.__cy.elements('.highlighted').length, steps, placeholderReset: ph.includes('Search items') };
   });
   console.log('path Copper Ore→Iron Sword via search:', JSON.stringify(viaSearch));
   await page.screenshot({ path: 'cache/shots2/pf-path-search.png' });
@@ -424,7 +424,7 @@ if (!only || only === 'p18') {
     text: document.getElementById('pathbarText').textContent,
     result: document.body.classList.contains('path-result'),
     armingOff: !document.body.classList.contains('path-arming'),
-    traced: window.__cy.elements('.traced').length,
+    highlighted: window.__cy.elements('.highlighted').length,
   }));
   console.log('pathbar resolved:', JSON.stringify(resolved));
   await page.screenshot({ path: 'cache/shots2/p18-resolved.png' });
@@ -432,7 +432,7 @@ if (!only || only === 'p18') {
   // Esc clears the bar entirely
   await page.keyboard.press('Escape');
   await page.waitForTimeout(300);
-  const cleared = await page.evaluate(() => ({ hidden: document.getElementById('pathbar').classList.contains('hidden'), traced: window.__cy.elements('.traced').length }));
+  const cleared = await page.evaluate(() => ({ hidden: document.getElementById('pathbar').classList.contains('hidden'), highlighted: window.__cy.elements('.highlighted').length }));
   console.log('pathbar after Esc:', JSON.stringify(cleared));
 
   // ✕ cancel button also clears while armed

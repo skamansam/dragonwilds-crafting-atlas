@@ -1,6 +1,6 @@
 Feature: Per-character graph state and skill levels
   Every character keeps its own graph state — the chosen layout, the graph and
-  legend settings, the owned-item ledger, plans and traces — plus one level per
+  legend settings, the owned-item ledger, plans and highlights — plus one level per
   skill. The total shown beside a character's name is the sum of all its skill
   levels. The atlas asks for a character once and then remembers.
 

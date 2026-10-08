@@ -9,7 +9,7 @@
 //                                         # (playwright.config.ts uses this as its webServer)
 //
 // Sections:
-//   smoke    boot, search, panel content, trace, isolate, legend filter toggle
+//   smoke    boot, search, panel content, highlight, isolate, legend filter toggle
 //   panel    owned marks, possessions mode, path-to, facility links
 //   undo     ⚙ panel opens/persists; re-layout-off toast gains an Undo button
 //   layouts  algorithm select (in ⚙) switches layout; density buttons behave
@@ -97,23 +97,23 @@ async function secSmoke() {
   ok('panel shows a facility (Furnace)', /furnace/i.test(body));
   ok('panel shows Iron Ore', /iron ore/i.test(body));
 
-  await page.click('#btnTrace');
+  await page.click('#btnRequires');
   await page.waitForTimeout(500);
-  ok('trace inputs highlights', await page.evaluate(() => window.__cy.elements('.traced').length > 0));
+  ok('requires highlights', await page.evaluate(() => window.__cy.elements('.highlighted').length > 0));
 
-  // ⏱ P23: traceBack button steps the trace back one level; reset clears it
-  await page.click('#btnTraceOut'); // grow a second level (downward)
+  // ⏱ P23: step-back button shrinks the highlight one level; reset clears it
+  await page.click('#btnEnables'); // grow a second level (downward)
   await page.waitForTimeout(500);
-  const depth2 = await page.evaluate(() => window.__cy.elements('.traced').length);
-  ok('trace out grows the frontier', depth2 > 0);
-  await page.click('#btnTraceBack');
+  const depth2 = await page.evaluate(() => window.__cy.elements('.highlighted').length);
+  ok('enables grows the frontier', depth2 > 0);
+  await page.click('#btnStepBack');
   await page.waitForTimeout(500);
-  const depth1 = await page.evaluate(() => window.__cy.elements('.traced').length);
-  ok('traceBack shrinks the frontier by one level', depth1 < depth2,
-    `depth ${depth2} -> ${depth1} traced elements`);
-  await page.click('#btnResetTrace');
+  const depth1 = await page.evaluate(() => window.__cy.elements('.highlighted').length);
+  ok('step back shrinks the highlight by one level', depth1 < depth2,
+    `depth ${depth2} -> ${depth1} highlighted elements`);
+  await page.click('#btnResetHighlight');
   await page.waitForTimeout(500);
-  ok('reset trace removes all highlights', await page.evaluate(() => window.__cy.elements('.traced').length === 0));
+  ok('reset removes all highlights', await page.evaluate(() => window.__cy.elements('.highlighted').length === 0));
 
   await page.keyboard.press('Escape'); // close panel
   await page.waitForTimeout(300);
@@ -335,29 +335,29 @@ async function secLayouts() {
     return !!el && el.textContent !== t1;
   }, lastLayoutText1), await page.$eval('#lastLayout', el => el.textContent).catch(() => '(absent)'));
 
-  // ⏱ P21/P22: trace buttons GROW the visible tree — after an isolation (only
-  // the subtree visible), Trace inputs must REVEAL the traced ingredients (the
+  // ⏱ P21/P22: highlight buttons GROW the visible tree — after an isolation (only
+  // the subtree visible), Requires must REVEAL the hidden ingredients (the
   // old code only highlighted, so hidden nodes changed nothing on screen)
   await page.evaluate(() => { window.isolateTree('Bread', 1); });
   await page.waitForTimeout(2500); // isolation reflow settles
   const isoShown = await page.evaluate(() => window.__cy.nodes(':visible').length);
-  await page.evaluate(() => { window.selectNode('Bread'); document.getElementById('btnTrace').click(); });
+  await page.evaluate(() => { window.selectNode('Bread'); document.getElementById('btnRequires').click(); });
   await page.waitForTimeout(600);
-  const afterTrace = await page.evaluate(() => window.__cy.nodes(':visible').length);
-  ok('trace inputs reveals hidden nodes (grows the isolated tree)', afterTrace > isoShown,
-    `isolation ${isoShown} -> trace ${afterTrace} nodes`);
-  await page.evaluate(() => { document.getElementById('btnTrace').click(); });
+  const afterRequires = await page.evaluate(() => window.__cy.nodes(':visible').length);
+  ok('requires reveals hidden nodes (grows the isolated tree)', afterRequires > isoShown,
+    `isolation ${isoShown} -> requires ${afterRequires} nodes`);
+  await page.evaluate(() => { document.getElementById('btnRequires').click(); });
   await page.waitForTimeout(600);
-  const afterTrace2 = await page.evaluate(() => window.__cy.nodes(':visible').length);
-  ok('second trace click expands one more level (cumulative)', afterTrace2 > afterTrace,
-    `${afterTrace} -> ${afterTrace2} nodes`);
-  // ⏱ P23: traceBack after growth should shrink the visible trace by one level
-  await page.evaluate(() => { document.getElementById('btnTraceBack').click(); });
+  const afterRequires2 = await page.evaluate(() => window.__cy.nodes(':visible').length);
+  ok('second requires click expands one more level (cumulative)', afterRequires2 > afterRequires,
+    `${afterRequires} -> ${afterRequires2} nodes`);
+  // ⏱ P23: step back after growth should shrink the visible highlight by one level
+  await page.evaluate(() => { document.getElementById('btnStepBack').click(); });
   await page.waitForTimeout(600);
-  const afterTraceBack = await page.evaluate(() => window.__cy.nodes(':visible').length);
-  ok('traceBack shrinks the isolated+traced tree by one level', afterTraceBack < afterTrace2,
-    `depth ${afterTrace2} -> ${afterTraceBack} visible nodes`);
-  // cleanup: Esc clears trace + isolation; re-show everything for the dagre section
+  const afterStepBack = await page.evaluate(() => window.__cy.nodes(':visible').length);
+  ok('step back shrinks the isolated+highlighted tree by one level', afterStepBack < afterRequires2,
+    `depth ${afterRequires2} -> ${afterStepBack} visible nodes`);
+  // cleanup: Esc clears highlight + isolation; re-show everything for the dagre section
   await page.keyboard.press('Escape');
   await page.evaluate(() => window.showEverything());
   await page.waitForTimeout(6500); // settle the restore reflow
@@ -599,11 +599,11 @@ async function secRoute() {
   await boot('#/ash_logs/iron_sword');
   const path = await page.evaluate(() => ({
     title: document.getElementById('panelTitle').textContent,
-    traced: window.__cy.edges('.traced').length,
+    highlighted: window.__cy.edges('.highlighted').length,
     bar: !document.getElementById('pathbar').classList.contains('hidden'),
   }));
   ok('#/ash_logs/iron_sword opens the target panel', path.title === 'Iron Sword', path.title);
-  ok('#/ash_logs/iron_sword draws the gold trail', path.traced >= 2, `${path.traced} traced edges`);
+  ok('#/ash_logs/iron_sword draws the gold trail', path.highlighted >= 2, `${path.highlighted} highlighted edges`);
   ok('#/ash_logs/iron_sword shows the path bar', path.bar);
 
   // selecting an item writes its slug back into the address bar
@@ -638,7 +638,7 @@ async function secCharacters() {
   const CLEAR = ['dw.characters', 'dw.charPrompted', 'dw.layout', 'dw.owned',
     'dw.legendKinds', 'dw.showOrphans', 'dw.dens', 'dw.animate', 'dw.savedLayouts',
     'dw.worker', 'dw.autoRelayout', 'dw.showMatEdges', 'dw.showSkillEdges',
-    'dw.showRegionEdges', 'dw.isoDepth', 'dw.isoDir', 'dw.trace', 'dw.planMode',
+    'dw.showRegionEdges', 'dw.isoDepth', 'dw.isoDir', 'dw.highlight', 'dw.planMode',
     'dw.planUseOwned', 'dw.wpProgress', 'dw.force'];
   const waitBoot = async () => {
     await page.waitForFunction(() => window.__cy && window.__cy.nodes().length > 0, null, { timeout: 120000, polling: 500 });

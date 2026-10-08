@@ -182,8 +182,8 @@ unrelated params such as `?tour=robes` are preserved. The parameter list lives i
 
 ### Focus tools
 
-- **Trace inputs** (panel button): highlights every transitive ingredient behind the selection.
-- **Trace makes ⤴** (panel button): the reverse — highlights everything the selection is used
+- **Requires ⤵** (panel button): highlights every transitive ingredient behind the selection.
+- **Enables ⤴** (panel button): the reverse — highlights everything the selection is used
   to make, directly or downstream ("what does this item allow me to craft?").
 - **Isolate direction**: the select beside **Isolate tree** picks the walk direction —
   **outputs only** (default: "what does this enable?" — 89 nodes for Iron Bar instead of
@@ -334,16 +334,16 @@ node scripts/build-location-checklists.mjs  # missing find spots → docs/checkl
 Three layers, no build step:
 
 ```bash
-npx vitest run              # Gherkin/cucumber — trace math, persistence, collapse, facilities, URL routing
+npx vitest run              # Gherkin/cucumber — highlight math, persistence, collapse, facilities, URL routing
 npx playwright test         # Playwright e2e — boots site/ via scripts/test-ui.mjs --serve-only
 node scripts/test-ui.mjs    # broad acceptance suite (serves site/ itself)
 ```
 
 Every scenario is Gherkin (`tests/features/*.feature`) with its step definitions
 beside it (`tests/features/*.spec.ts`), driving the shared pure helpers in
-`tests/lib/trace-math.ts` and `tests/lib/routing.ts` — the latter covers both the
+`tests/lib/highlight-math.ts` and `tests/lib/routing.ts` — the latter covers both the
 slug/hash rules and the query-string option parser. The Playwright specs in
-`tests/e2e/` cover the core browser flows (boot, search → codex, isolate, trace,
+`tests/e2e/` cover the core browser flows (boot, search → codex, isolate, highlight,
 layout selection, persisted settings, guided-tour deep links, URL deep links,
 URL graph options, console cleanliness); `scripts/test-ui.mjs` adds a `route`
 section for the hash deep links (selection, path, in-place hash edits, unknown

@@ -39,7 +39,7 @@
     try { if (typeof window.showEverything === 'function') window.showEverything(); } catch (e) { /* noop */ }
     try {
       const c = cy();
-      if (c) c.batch(() => c.elements().removeClass(['hidden', 'traced', 'faded']));
+      if (c) c.batch(() => c.elements().removeClass(['hidden', 'highlighted', 'faded']));
     } catch (e) { /* noop */ }
     clearSearch();
   }
@@ -119,7 +119,7 @@
         },
         {
           element: '#breadcrumb',
-          popover: { title: 'Lineage & the plan', description: 'The breadcrumb traces how you got here; the panel\'s <b>plan</b> button cycles from-nothing → from-owned → a checkable waypoint checklist.' },
+          popover: { title: 'Lineage & the plan', description: 'The breadcrumb shows how you got here; the panel\'s <b>plan</b> button cycles from-nothing → from-owned → a checkable waypoint checklist.' },
         },
         {
           element: '#helpBtn',
@@ -146,7 +146,7 @@
         },
         {
           element: '#breadcrumb',
-          popover: { title: '4 · Isolate the tree', description: 'Shift+Click the node (or the panel\'s <b>Isolate tree</b> button) to show only what the robes are made of — the breadcrumb above traces the lineage.' },
+          popover: { title: '4 · Isolate the tree', description: 'Shift+Click the node (or the panel\'s <b>Isolate tree</b> button) to show only what the robes are made of — the breadcrumb above shows the lineage.' },
           action: () => isolateTree('Dark Mage Robes'),
         },
         {
@@ -165,11 +165,11 @@
         },
         {
           element: '#cy',
-          popover: { title: '2 · Trace makes ⤴', description: 'The panel\'s <b>Trace makes ⤴</b> button highlights every item Ash Logs reach — planks, bows, stations, and on up the tree.' },
-          action: () => { try { document.getElementById('btnTraceOut').click(); } catch (e) { /* noop */ } },
+          popover: { title: '2 · Enables ⤴', description: 'The panel\'s <b>Enables ⤴</b> button highlights every item Ash Logs reach — planks, bows, stations, and on up the tree.' },
+          action: () => { try { document.getElementById('btnEnables').click(); } catch (e) { /* noop */ } },
         },
         {
-          popover: { title: '✦ Downstream, mapped', description: 'Use it to judge what a material is worth hoarding for. <b>Trace inputs</b> does the mirror image (what went into a thing). Each click adds a level; <b>Trace back</b> (⤡) steps one level off, and <b>Clear</b> wipes it all.' },
+          popover: { title: '✦ Downstream, mapped', description: 'Use it to judge what a material is worth hoarding for. <b>Requires ⤵</b> does the mirror image (what went into a thing). Each click adds a level; <b>Step back ⤵</b> removes one level, and <b>Reset</b> wipes it all.' },
         },
       ],
     },
@@ -184,11 +184,11 @@
         },
         {
           element: '#cy',
-          popover: { title: '2 · Trace inputs', description: '<b>Trace inputs</b> highlights every ingredient behind it — ore, bricks, bars — so you can gather before you build.' },
-          action: () => { try { document.getElementById('btnTrace').click(); } catch (e) { /* noop */ } },
+          popover: { title: '2 · Requires ⤵', description: '<b>Requires ⤵</b> highlights every ingredient behind it — ore, bricks, bars — so you can gather before you build.' },
+          action: () => { try { document.getElementById('btnRequires').click(); } catch (e) { /* noop */ } },
         },
         {
-          popover: { title: '✦ Costed', description: 'Pair it with the plan button\'s <b>waypoint checklist</b> to actually work through the build. Each <b>Trace inputs</b> click adds a level; <b>Trace back</b> (⤡) steps one level off, <b>Trace makes</b> (⤴) reverses direction, and <b>Clear</b> wipes the whole trace. (Traces clear when the tour closes.)' },
+          popover: { title: '✦ Costed', description: 'Pair it with the plan button\'s <b>waypoint checklist</b> to actually work through the build. Each <b>Requires ⤵</b> click adds a level; <b>Step back ⤵</b> removes one level, <b>Enables ⤴</b> reverses direction, and <b>Reset</b> wipes the whole highlight. (Highlights clear when the tour closes.)' },
         },
       ],
     },

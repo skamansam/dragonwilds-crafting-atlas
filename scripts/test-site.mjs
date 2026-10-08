@@ -41,10 +41,10 @@ await page.screenshot({ path: shots + '/03-panel-ironbar.png' });
 const bodyText = await page.$eval('#panelBody', el => el.innerText);
 console.log('panel mentions Furnace:', /Furnace/i.test(bodyText), '| mentions Iron Ore:', /Iron Ore/.test(bodyText));
 
-// 4. trace inputs
-const traceBtn = await page.$('#btnTrace');
-if (traceBtn) { await traceBtn.click(); await page.waitForTimeout(500); }
-await page.screenshot({ path: shots + '/04-trace.png' });
+// 4. requires
+const requiresBtn = await page.$('#btnRequires');
+if (requiresBtn) { await requiresBtn.click(); await page.waitForTimeout(500); }
+await page.screenshot({ path: shots + '/04-highlight.png' });
 
 // 5. isolate tree (shift-click simulation via button)
 const isoBtn = await page.$('#btnIsolate');

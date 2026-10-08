@@ -2,7 +2,7 @@
    DRAGONWILDS ✦ CRAFTING ATLAS — per-character state (TODO #24)
 
    Every character keeps its OWN graph state — the chosen layout, the ⚙ and
-   legend settings, the owner ledger, plans and traces — plus one level per
+   legend settings, the owner ledger, plans and highlights — plus one level per
    skill. The level shown next to a character's name is the total: the sum of
    all its skill levels.
 
@@ -30,7 +30,7 @@
     'layout', 'dens', 'animate', 'savedLayouts', 'worker', 'autoRelayout',
     'showMatEdges', 'showSkillEdges', 'showRegionEdges', 'legendKinds',
     'showOrphans', 'owned', 'planMode', 'planUseOwned', 'wpProgress',
-    'isoDepth', 'isoDir', 'trace', 'force',
+    'isoDepth', 'isoDir', 'highlight', 'force',
   ];
 
   const store = () => window.localStorage;
@@ -73,6 +73,16 @@
     return n || 'Adventurer';
   }
 
+  // rename migration: a character's saved state may still carry the old `trace`
+  // key (snapshotted before the trace→highlight rename) — move it so it survives
+  function migrateStateObj(state) {
+    if (state && Object.hasOwn(state, 'trace') && !Object.hasOwn(state, 'highlight')) {
+      state.highlight = state.trace;
+      delete state.trace;
+    }
+    return state;
+  }
+
   function emptyStore() { return { active: null, chars: [] }; }
 
   function normalizeStore(raw, names) {
@@ -86,7 +96,7 @@
         id: String(c.id),
         name: cleanName(c.name),
         skills: normSkills(c.skills, names),
-        state: c.state && typeof c.state === 'object' ? c.state : null,
+        state: migrateStateObj(c.state && typeof c.state === 'object' ? c.state : null),
         createdAt: Number(c.createdAt) || 0,
       });
     }
@@ -216,6 +226,16 @@
 
   function promptShown(s) { return (s || store()).getItem(PROMPTED_KEY) === '1'; }
   function markPrompted(s) { try { (s || store()).setItem(PROMPTED_KEY, '1'); } catch { /* blocked */ } }
+
+  // rename migration: move a legacy live `dw.trace` key to `dw.highlight` so the
+  // active character's saved highlight state is not lost.
+  try {
+    const st = store();
+    if (st.getItem('dw.trace') !== null && st.getItem('dw.highlight') === null) {
+      st.setItem('dw.highlight', st.getItem('dw.trace'));
+    }
+    st.removeItem('dw.trace');
+  } catch { /* blocked */ }
 
   window.DW_CHARACTERS = {
     KEY, PROMPTED_KEY, STATE_KEYS, SKILL_MIN, SKILL_MAX,
