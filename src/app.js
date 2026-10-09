@@ -43,6 +43,7 @@ import {
 import {
   initLayoutWorker, workerOn, workerSupports, runWorkerLayout, supersedeWorker, workerRunToken,
 } from './layout-worker-client.js';
+import { toast, toastWithUndo, upgradeToastWithUndo } from './toast.js';
 
 const D = window.DW_DATA;
 
@@ -809,34 +810,9 @@ let lastSpacing = null; // spacing of the most recent live layout run
 // src/layout-snapshots.js (Phase 2c); savedLayouts and curatedLayouts moved with
 // them and are cached there.
 
-// One-shot Undo hook for settings flips (⚙ panel): toastWithUndo() arms a
-// restore callback, and the next runLayout (or an explicit call) upgrades the
-// visible toast with an Undo button. Lets "did I mean to do that?" flips —
-// re-layout on graph change, Possessions focus — be reversed in one click.
-let pendingSettingUndo = null;
-function toastWithUndo(msg, undo) {
-  pendingSettingUndo = undo;
-  toast(msg);
-}
-// swaps the live toast's text for text + an Undo button (the toast itself is
-// pointer-events:none — only the button re-enables pointer events)
-function upgradeToastWithUndo() {
-  const undo = pendingSettingUndo;
-  if (!undo) return;
-  pendingSettingUndo = null;
-  setTimeout(() => {
-    const t = document.getElementById('toast');
-    if (!t || !t.classList.contains('show')) return; // already dismissed
-    t.innerHTML = '';
-    const span = document.createElement('span');
-    span.textContent = t.dataset.msg || '';
-    const btn = document.createElement('button');
-    btn.className = 'toast-undo';
-    btn.textContent = 'Undo';
-    btn.onclick = () => { clearTimeout(toastTimer); t.classList.remove('show'); undo(); };
-    t.append(span, btn);
-  }, 0);
-}
+// toast() / toastWithUndo() / upgradeToastWithUndo() live in src/toast.js
+// (Phase 2c). runLayout below still calls upgradeToastWithUndo() when a run
+// starts, so a settings flip's Undo button lands on the toast the flip caused.
 function runLayout(preset = currentLayout, { skipSaved = false, forceMain = false, reflow = true, visibleOnly = false } = {}) {
   // auto-relayout off: skip automatic graph-change reflows, but explicit user
   // layout requests (algorithm select, density slider/✕, force/anim/saved
@@ -1688,18 +1664,7 @@ if (densSlider) {
 }
 syncForceToggleUI();
 
-/* ── toast ───────────────────────────────────────────────────── */
-let toastTimer = null;
-function toast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.dataset.msg = msg; // upgradeToastWithUndo rebuilds from this (textContent is wiped by the rebuild)
-  t.classList.add('show');
-  clearTimeout(toastTimer);
-  // toasts that will gain an Undo button live longer — a click target that
-  // disappears in 1.8s is not an affordance
-  toastTimer = setTimeout(() => t.classList.remove('show'), pendingSettingUndo ? 5000 : 1800);
-}
+/* ── toast (moved to src/toast.js) ───────────────────────────── */
 
 /* ── welcome stats ───────────────────────────────────────────── */
 document.getElementById('welcomeStats').innerHTML = `
