@@ -31,6 +31,10 @@ import {
   initHighlight, resetHighlightState, forgetHighlight, restoreHighlight, highlightActive,
   hasHighlight, showRequires, showEnables, stepBackHighlight, clearHighlight,
 } from './highlight.js';
+import {
+  initLayoutProgress, markLayoutStart, layoutElapsed, lastLayout,
+  startProgressBar, stopProgressBar, startLayoutPill, stopLayoutPill, recordLayoutDone,
+} from './layout-progress.js';
 
 const D = window.DW_DATA;
 
@@ -754,107 +758,11 @@ function setLayoutIndicator(on, label) {
   if (on) layoutIndTimer = setTimeout(() => ind.classList.remove('on'), animateOn ? 90000 : 25000); // safety net (spread/avsdf take 40-70s)
 }
 
-/* ── layout progress bar ─────────────────────────────────────── */
-// Deterministic layouts (elk/dagre/…) can't report progress, so the bar is
-// time-calibrated: an exponential moving average of finished runs predicts the
-// duration, the bar fills at the predicted pace and decelerates into the last
-// 5% — a smooth lie that ends exactly when the layout does.
-const PROGRESS_MS = {
-  'elk-layered-wide': 11000, 'elk-layered': 10000, cise: 52000, spread: 32000,
-  'd3-force': 18000, avsdf: 14000, euler: 11000, cola: 10000,
-  'cose-bilkent': 4500, fcose: 4500, dagre: 6000, 'dagre-lr': 6000,
-  tidytree: 4000, 'tidytree-lr': 4000, klay: 15000,
-};
-const runTimes = {}; // preset -> EMA of observed durations (ms)
-let layoutT0 = 0;   // ⏱ start of the in-flight layout — feeds the last-layout readout
-let progressTimer = null;
-let progressT0 = 0;
-let progressPredictedMs = 0;
-function setProgress(pct) {
-  const fill = document.getElementById('layoutIndBarFill');
-  if (!fill) return;
-  // scaleX instead of width — animating width thrashes layout; transform doesn't
-  fill.style.transform = `scaleX(${(Math.min(100, Math.max(0, pct)) / 100).toFixed(4)})`;
-}
-function startProgressBar(preset) {
-  const bar = document.getElementById('layoutIndBar');
-  if (!bar) return;
-  const observed = runTimes[preset];
-  progressPredictedMs = observed || PROGRESS_MS[preset] || 12000;
-  progressT0 = performance.now();
-  bar.classList.add('on');
-  setProgress(2);
-  clearInterval(progressTimer);
-  progressTimer = setInterval(() => {
-    const el = performance.now() - progressT0;
-    const lin = el / progressPredictedMs;                       // linear pace
-    const pct = lin < 0.95 ? 2 + lin * 93 : 95 + Math.min(4, (lin - 0.95) * 4); // decelerate into the last 5%
-    setProgress(pct);
-  }, 120);
-}
-function stopProgressBar(preset, finished) {
-  clearInterval(progressTimer);
-  progressTimer = null;
-  const bar = document.getElementById('layoutIndBar');
-  if (bar) bar.classList.remove('on');
-  setProgress(0);
-  if (preset && finished) { // first run seeds the table, later runs smooth via EMA
-    const ms = performance.now() - progressT0;
-    if (ms > 250 && ms < 120000) runTimes[preset] = runTimes[preset] ? runTimes[preset] * 0.6 + ms * 0.4 : ms;
-  }
-}
-
-/* ── P: last-layout timer ────────────────────────────────────── */
-// Every completed layout records its wall-clock duration and the node count it
-// arranged; the header (next to the algorithm name) shows "last layout: 11.8s ·
-// 1,414 nodes". Reused for the live elapsed counter in the Arranging pill.
-let lastLayoutMs = 0;      // ms the last completed layout took (wall clock)
-let lastLayoutNodes = 0;   // node count it arranged
-let lastLayoutAt = 0;      // epoch ms when it finished (for a "· 4s ago" suffix)
-let layoutPillTimer = null; // live elapsed ticker inside the Arranging pill
-function startLayoutPill() {
-  // tick the Arranging pill so slow layouts show elapsed time as they run,
-  // keeping the algorithm name: "Arranging · elk (worker) · 3.4s"
-  const t0 = performance.now();
-  stopLayoutPill();
-  const el = document.getElementById('layoutIndText');
-  const base = el && el.textContent ? el.textContent.replace(/…$/, '').trim() : 'Arranging';
-  layoutPillTimer = setInterval(() => {
-    if (!el) { stopLayoutPill(); return; }
-    const ms = performance.now() - t0;
-    if (ms > 120000) { stopLayoutPill(); return; } // safety net ran long ago — stop ticking
-    el.textContent = `${base} · ${fmtLayoutDur(ms)}`;
-  }, 250);
-}
-function stopLayoutPill() {
-  clearInterval(layoutPillTimer);
-  layoutPillTimer = null;
-}
-function recordLayoutDone(ms, nodeCount) {
-  // superseded in-flight runs must not overwrite a real completion's timing
-  if (ms > 0) { lastLayoutMs = ms; lastLayoutNodes = nodeCount; lastLayoutAt = Date.now(); }
-  stopLayoutPill();
-  updateReadout();
-}
-function setLayoutMetaDuration() {
-  // append/refresh the "last layout: 11.8s · 1,414 nodes · 4s ago" span
-  const meta = document.getElementById('layoutMeta');
-  if (!meta || lastLayoutMs <= 0) return;
-  const ago = lastLayoutAt ? Math.round((Date.now() - lastLayoutAt) / 1000) : 0;
-  const n = lastLayoutNodes > 0 ? ` · ${lastLayoutNodes.toLocaleString()} nodes` : '';
-  let el = document.getElementById('lastLayout');
-  if (!el) {
-    el = document.createElement('span');
-    el.id = 'lastLayout';
-    meta.appendChild(el);
-  }
-  el.innerHTML = `last layout: <b>${fmtLayoutDur(lastLayoutMs)}</b>${n}` +
-    (ago >= 2 ? ` · <span class="ago">${ago < 60 ? ago + 's ago' : Math.round(ago / 60) + 'm ago'}</span>` : '');
-}
-// refresh the "…s ago" suffix without re-rendering everything else
-setInterval(() => {
-  if (lastLayoutAt && !layoutRunning && document.getElementById('lastLayout')) setLayoutMetaDuration();
-}, 5000);
+/* ── layout progress + last-layout timing ──────────────────────
+   The Arranging pill's progress bar and the header's "last layout: …" readout
+   live in src/layout-progress.js (extracted in Phase 2c). app.js only marks the
+   start of a run and reports its completion — the module owns the timers, the
+   run-time EMA and the DOM. */
 
 let activeLayout = null;
 let savedLayouts = null;      // algo -> { x, y } map from public/layouts/manifest.js (P1.5-3)
@@ -1221,7 +1129,7 @@ function runLayout(preset = currentLayout, { skipSaved = false, forceMain = fals
     });
     layoutRunning = false;
     stopProgressBar(null, false); // saved path never fires layoutstop — stop the bar here
-    recordLayoutDone(performance.now() - layoutT0, cy.nodes(':visible').length); // ⏱ counts too
+    recordLayoutDone(layoutElapsed(), cy.nodes(':visible').length); // ⏱ counts too
     setLayoutIndicator(false, `${usingCustomPositions ? 'custom' : usingCuratedPositions ? 'curated' : 'saved'} · ${preset}`); // brief flash
     setTimeout(() => { if (!layoutRunning) setLayoutIndicator(false); }, 1200);
     hideVeil();
@@ -1242,7 +1150,7 @@ function runLayout(preset = currentLayout, { skipSaved = false, forceMain = fals
     delete wOpts.eles; // the visible-only subset is passed separately — a cytoscape collection can't be postMessage'd (it would blow up the JSON clone and drop every other option)
     setLayoutIndicator(true, `Arranging · ${opts.name} (worker)…`);
     startProgressBar(preset);
-    layoutT0 = performance.now(); // ⏱ last-layout readout
+    markLayoutStart(); // ⏱ last-layout readout
     startLayoutPill(); // live elapsed in the pill
     const jobToken = workerRunSeq; // already bumped (and the previous job cancelled) at the top of this run
     runWorkerLayout(preset, wOpts, 120000, visibleOnly ? cy.elements(':visible') : null).then(res => {
@@ -1260,7 +1168,7 @@ function runLayout(preset = currentLayout, { skipSaved = false, forceMain = fals
         layoutRunning = false;
         setLayoutIndicator(false);
         stopProgressBar(preset, true); // worker durations feed the same EMA
-        recordLayoutDone(performance.now() - layoutT0, (visibleOnly ? cy.nodes(':visible') : cy.nodes()).length); // ⏱ header readout
+        recordLayoutDone(layoutElapsed(), (visibleOnly ? cy.nodes(':visible') : cy.nodes()).length); // ⏱ header readout
         hideVeil();
         if (!isolatedRoot) cy.fit(undefined, 60);
         updateReadout();
@@ -1281,7 +1189,7 @@ function runLayout(preset = currentLayout, { skipSaved = false, forceMain = fals
   }
   setLayoutIndicator(true, `Arranging · ${opts.name}${FORCE_LAYOUTS.has(preset) ? (forceDir ? ' · force' : ' · spread') : ''}…`);
   startProgressBar(preset); // live progress in the Arranging pill (time-calibrated)
-  layoutT0 = performance.now(); // ⏱ last-layout readout — starts at the same point
+  markLayoutStart(); // ⏱ last-layout readout — starts at the same point
   startLayoutPill(); // live elapsed in the pill
   // snapshot positions so we can detect algorithms that silently no-op
   // (e.g. elk-radial needs a rooted/tree graph — degenerate on the full DAG).
@@ -1301,7 +1209,7 @@ function runLayout(preset = currentLayout, { skipSaved = false, forceMain = fals
     usingSavedPositions = false;
     setLayoutIndicator(false);
     stopProgressBar(preset, true); // record duration → EMA refines the bar each run
-    recordLayoutDone(performance.now() - layoutT0, cy.nodes(':visible').length); // ⏱ header readout
+    recordLayoutDone(layoutElapsed(), cy.nodes(':visible').length); // ⏱ header readout
     hideVeil();
     if (!isolatedRoot) cy.fit(undefined, 60);
     updateReadout();
@@ -1753,8 +1661,9 @@ function updateReadout() {
     // P: last-layout duration + the node count it arranged — the header-level
     // answer to "why is relayout slow" (the count shows a plain reflow still
     // arranges ~1,400 nodes with default filters, not just the selection)
-    const dur = lastLayoutMs > 0
-      ? `<span id="lastLayout">last layout: <b>${fmtLayoutDur(lastLayoutMs)}</b>${lastLayoutNodes > 0 ? ` · ${lastLayoutNodes.toLocaleString()} nodes` : ''}</span>`
+    const { ms: lastMs, nodes: lastNodes } = lastLayout();
+    const dur = lastMs > 0
+      ? `<span id="lastLayout">last layout: <b>${fmtLayoutDur(lastMs)}</b>${lastNodes > 0 ? ` · ${lastNodes.toLocaleString()} nodes` : ''}</span>`
       : '';
     meta.innerHTML =
       `<span><b>${visible.toLocaleString()}</b> nodes shown · <b>${shownLinks.toLocaleString()}</b> links shown</span>` +
@@ -3231,6 +3140,11 @@ document.addEventListener('keydown', (e) => {
 /* ── minimap ──────────────────────────────────────────────────────
    The canvas overview + click-to-centre live in src/minimap.js. */
 initMinimap({ cy, nodeColor });
+
+/* ── layout progress + timing ────────────────────────────────────
+   The progress bar / last-layout readout live in src/layout-progress.js; hand
+   it the two things it needs from the app. */
+initLayoutProgress({ isRunning: () => layoutRunning, updateReadout });
 
 /* ── characters (TODO #24) ───────────────────────────────────────
    The character UI (header control, startup prompt, skill-level editor) now
