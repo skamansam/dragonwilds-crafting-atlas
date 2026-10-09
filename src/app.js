@@ -44,6 +44,9 @@ import {
   initLayoutWorker, workerOn, workerSupports, runWorkerLayout, supersedeWorker, workerRunToken,
 } from './layout-worker-client.js';
 import { toast, toastWithUndo, upgradeToastWithUndo } from './toast.js';
+import {
+  initPossessions, owned, persistOwned, toggleOwned, applyPossessions,
+} from './possessions.js';
 
 const D = window.DW_DATA;
 
@@ -183,7 +186,8 @@ let isolatedRoot = null;
 // default isolate walk: everything it needs (full upstream) + 1 level of enables
 const DEFAULT_ISO_DIR = 'needs';
 let focusOwned = false;
-const owned = new Set(JSON.parse(localStorage.getItem('dw.owned') || '[]'));
+// the owned-items ledger lives in src/possessions.js (Phase 2c) and is imported
+// here as a live Set — the panel, search stars, plans and path all mutate it
 
 /* ── cytoscape setup ─────────────────────────────────────────── */
 const cy = cytoscape({
@@ -1674,87 +1678,14 @@ document.getElementById('welcomeStats').innerHTML = `
   <div><b>${D.skills.length}</b>skills</div>`;
 
 /* ═══════════════════════════════════════════════════════════════
-   POSSESSIONS — mark what you have, walk the atlas as unlocked
+   POSSESSIONS (moved to src/possessions.js in Phase 2c)
    ═══════════════════════════════════════════════════════════════ */
-
-function persistOwned() {
-  localStorage.setItem('dw.owned', JSON.stringify([...owned]));
-  ownedCountEl.textContent = owned.size;
-  ownedCountEl.classList.toggle('has', owned.size > 0);
-}
-const ownedCountEl = document.getElementById('ownedCount');
-
-// Toggle one item's owned mark and repaint — shared by the node panel and the
-// search box's right-aligned favourite stars. Returns the new owned state.
-function toggleOwned(id) {
-  if (owned.has(id)) owned.delete(id); else owned.add(id);
-  persistOwned();
-  applyPossessions();
-  return owned.has(id);
-}
-
-function propagateReach() {
-  // walk forward from owned nodes through recipe + skill edges
-  const reach = new Set();
-  const stack = [...owned];
-  while (stack.length) {
-    const cur = stack.pop();
-    if (reach.has(cur)) continue;
-    reach.add(cur);
-    for (const e of D.edges) {
-      if (e.from === cur && !reach.has(e.to)) stack.push(e.to);
-    }
-  }
-  return reach;
-}
-
-// Owned emphasis that does NOT depend on Possessions mode (owned-items TODO):
-// every owned node wears a gold ring, an edge with two owned endpoints is gold,
-// and the next thing an owned item enables is teal. Possessions mode still adds
-// the reach/dim treatment on top.
-function applyOwnedMarks() {
-  cy.nodes().forEach(n => { n.toggleClass('ownedMark', owned.has(n.id())); });
-  cy.edges().forEach(e => {
-    const s = owned.has(e.source().id());
-    const t = owned.has(e.target().id());
-    e.toggleClass('ownedEdge', s && t);
-    e.toggleClass('ownedEnable', s && !t);
-  });
-}
-
-function applyPossessions() {
-  applyOwnedMarks();
-  if (!focusOwned) {
-    cy.batch(() => {
-      cy.nodes().removeClass('locked reachable');
-      cy.edges().removeClass('locked reachable');
-      applyCategoryVisibility();
-    });
-    updateReadout();
-    scheduleReflow();
-    if (!isolatedRoot) fitSoon();
-    return;
-  }
-  const reach = propagateReach();
-  cy.batch(() => {
-    cy.nodes().forEach(n => {
-      const id = n.id();
-      n.removeClass('locked reachable');
-      if (owned.has(id)) n.addClass('reachable');
-      else if (reach.has(id)) n.addClass('reachable');
-      else if (!n.hasClass('hidden')) n.addClass('locked');
-    });
-    cy.edges().forEach(e => {
-      e.removeClass('locked reachable');
-      const s = e.source().id(), t = e.target().id();
-      if (reach.has(t) && (owned.has(s) || reach.has(s))) e.addClass('reachable');
-      else if (!e.source().hasClass('hidden') && !e.target().hasClass('hidden')) e.addClass('locked');
-    });
-    applyCategoryVisibility();
-  });
-  updateReadout();
-  scheduleReflow();
-}
+initPossessions({
+  cy,
+  focusOwned: () => focusOwned,
+  isolatedRoot: () => isolatedRoot,
+  applyCategoryVisibility, updateReadout, scheduleReflow, fitSoon,
+});
 
 /* ── selection / isolation / panel ──────────────────────────── */
 
