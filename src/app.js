@@ -40,6 +40,9 @@ import {
   loadCustomLayouts, loadSavedLayouts, loadCuratedLayouts, isSaneSnapshot,
   doCustomSave, shareSnapshot,
 } from './layout-snapshots.js';
+import {
+  initLayoutWorker, workerOn, workerSupports, runWorkerLayout, supersedeWorker, workerRunToken,
+} from './layout-worker-client.js';
 
 const D = window.DW_DATA;
 
@@ -775,87 +778,22 @@ let usingCustomPositions = false; // density-slider 💾 snapshot (P3-1b)
 let usingCuratedPositions = false; // shared curated snapshot (public/layouts/curated.js)
 const savedToggleOn = () => { const t = document.getElementById('savedToggle'); return !t || t.checked; };
 
-/* ── P1-2 worker spike: background layout thread ─────────────── */
-// public/layout-worker.js builds a headless cytoscape with every vendor extension
-// loaded and runs the layout there, returning { id → {x,y} }. The main thread
-// stays free to animate/pan while physics chews. Off by default (spike); the
-// saved-positions path above is instant anyway, so the worker only matters for
-// live recomputes (density slider, non-elk presets).
-let layoutWorker = null;
-let workerJobId = 0;
-let workerRunSeq = 0;   // runLayout-generation token — stale worker results are dropped
+/* ── P1-2 worker spike: background layout thread ───────────────
+   The toggle, the lazily-built Worker (public/layout-worker.js — headless
+   cytoscape with every vendor extension loaded), the capability probe and the
+   supersede-safe job dispatch live in src/layout-worker-client.js (Phase 2c);
+   app.js only asks whether the worker is on and hands it a job. */
 let layoutRunSeq = 0;   // main-thread supersede token — a superseded async layout must not write positions
-const workerJobs = new Map(); // jobId → resolve, for in-flight (supersede-safe) jobs
-// Drag-storm control (density slider): a superseded worker job is CANCELLED
-// (layout.stop() in the worker) instead of running to completion — the worker is
-// single-threaded, so stale jobs would otherwise queue ahead of the live one.
-const workerToggleEl = document.getElementById('workerToggle');
-// default ON since the P1-2 spike graduated (2026-09-24): the probe verified 18/18
-// capability + bit-for-bit fidelity, and jank measurements showed worst-frame 83→33ms.
-// Workers that can't spin up (file://, ancient browsers) fall back transparently.
-if (workerToggleEl) workerToggleEl.checked = urlBool('worker', localStorage.getItem('dw.worker') !== '0');
-if (workerToggleEl) workerToggleEl.onchange = () => {
-  storeOpt('worker', workerToggleEl.checked ? '1' : '0');
-  syncUrl();
-  toast(workerToggleEl.checked
-    ? 'Worker layout on — heavy layouts compute in a background thread'
-    : 'Worker layout off — layouts run on the main thread again');
-  if (!workerToggleEl.checked && activeLayout === 'worker-stale') activeLayout = null;
-};
-function workerOn() { return !!(workerToggleEl && workerToggleEl.checked && typeof Worker !== 'undefined'); }
-function getLayoutWorker() {
-  if (layoutWorker) return layoutWorker;
-  try {
-    layoutWorker = new Worker('layout-worker.js');
-    layoutWorker.onmessage = e => {
-      const m = e.data || {};
-      if (m.type === 'capabilities') { workerCaps = m.algos; return; }
-      if (m.type === 'done') {
-        const r = workerJobs.get(m.jobId);
-        if (r) { workerJobs.delete(m.jobId); r(m); } // late results for superseded jobs land nowhere
-      }
-    };
-    layoutWorker.onerror = e => {
-      for (const [, r] of workerJobs) r({ type: 'error', message: e.message || 'worker error' });
-      workerJobs.clear();
-      try { layoutWorker.terminate(); } catch {}
-      layoutWorker = null;
-    };
-  } catch { layoutWorker = null; }
-  return layoutWorker;
-}
-let workerCaps = null;
-let workerActiveJobId = null; // most recent in-flight worker job (cancel target)
-function workerSupports(preset) {
-  if (workerCaps === null) return true; // probe not back yet — attempt anyway
-  return workerCaps.includes(LAYOUTS[preset] ? LAYOUTS[preset]().name : preset);
-}
-// pre-warm the worker (and its capability probe) when the toggle is on
-if (workerOn()) getLayoutWorker().postMessage({ type: 'ping' });
-async function runWorkerLayout(preset, opts, timeoutMs = 120000, eles = null) {
-  const w = getLayoutWorker();
-  if (!w) return { type: 'error', message: 'worker unavailable' };
-  const jobId = ++workerJobId;
-  workerActiveJobId = jobId; // the job a future supersede should cancel
-  // eles: optional visible-only subset (graph-change reflows) — hidden nodes
-  // must not anchor the physics
-  const nodes = (eles ? eles.nodes() : cy.nodes()).map(n => ({ data: { id: n.id() }, position: { x: n.position().x, y: n.position().y } }));
-  const edges = (eles ? eles.edges() : cy.edges()).map(e => ({ data: { source: e.source().id(), target: e.target().id() } }));
-  // functions (d3-force's linkId accessor) can't cross postMessage — strip them;
-  // the worker re-injects the standard accessor for d3-force
-  let safeOpts;
-  try { safeOpts = JSON.parse(JSON.stringify(opts, (k, v) => typeof v === 'function' ? undefined : v)); }
-  catch { safeOpts = { name: opts.name }; }
-  return Promise.race([
-    new Promise(resolve => {
-      workerJobs.set(jobId, resolve);
-      w.postMessage({ type: 'layout', jobId, preset, opts: safeOpts, nodes, edges });
-    }),
-    new Promise(resolve => setTimeout(() => {
-      if (workerJobs.has(jobId)) { workerJobs.delete(jobId); resolve({ type: 'error', message: 'worker timed out' }); }
-    }, timeoutMs)),
-  ]);
-}
+initLayoutWorker({
+  cy,
+  LAYOUTS,
+  toast,
+  storeOpt,
+  syncUrl,
+  urlBool,
+  // the toggle was switched off — a worker-stale marker must not outlive it
+  onWorkerOff: () => { if (activeLayout === 'worker-stale') activeLayout = null; },
+});
 
 /* ── layout snapshots + density (moved to src/layout-snapshots.js) ──
    The 💾 / curated / bundled snapshot tiers, the density value (and the
@@ -917,11 +855,7 @@ function runLayout(preset = currentLayout, { skipSaved = false, forceMain = fals
   //  · null activeLayout BEFORE stop(): stop() may emit layoutstop
   //    synchronously, and that must not be mistaken for a completion
   const myRunSeq = ++layoutRunSeq;
-  ++workerRunSeq;
-  if (workerActiveJobId !== null) {
-    try { getLayoutWorker().postMessage({ type: 'cancel', jobId: workerActiveJobId }); } catch {}
-    workerActiveJobId = null;
-  }
+  const jobToken = supersedeWorker(); // bump the worker generation + cancel its in-flight job, if any
   const prevLayout = activeLayout;
   activeLayout = null;
   if (prevLayout) { try { prevLayout.stop(); } catch {} }
@@ -1078,9 +1012,8 @@ function runLayout(preset = currentLayout, { skipSaved = false, forceMain = fals
     startProgressBar(preset);
     markLayoutStart(); // ⏱ last-layout readout
     startLayoutPill(); // live elapsed in the pill
-    const jobToken = workerRunSeq; // already bumped (and the previous job cancelled) at the top of this run
     runWorkerLayout(preset, wOpts, 120000, visibleOnly ? cy.elements(':visible') : null).then(res => {
-      if (jobToken !== workerRunSeq) return; // superseded — drop the stale result
+      if (jobToken !== workerRunToken()) return; // superseded — drop the stale result
       if (res && res.type === 'done' && isSaneSnapshot(res.positions)) {
         usingSavedPositions = false; usingCustomPositions = false; usingCuratedPositions = false;
         const placed = visibleOnly ? cy.nodes(':visible') : cy.nodes();
