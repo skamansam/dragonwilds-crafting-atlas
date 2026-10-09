@@ -2,7 +2,7 @@
  * Cucumber/Gherkin spec for per-character state (TODO #24).
  *
  * Every step drives the helpers in tests/lib/characters.ts, which mirror the
- * shipped rules in site/characters.js. The real page keeps the roster in
+ * shipped rules in src/characters.js. The real page keeps the roster in
  * localStorage and stores each character's graph state in the live `dw.*` keys;
  * these scenarios run the same logic over a fake in-memory storage.
  *

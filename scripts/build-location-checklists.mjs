@@ -1,5 +1,5 @@
 // Builds docs/checklists/*.md — hand-annotation tables for items whose location
-// is missing or incomplete in site/found-in.js, so a human can play through,
+// is missing or incomplete in public/found-in.js, so a human can play through,
 // note where things are actually found, and hand the data back.
 //
 // Two files:
@@ -27,17 +27,17 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 
-// site/data.json — strict JSON dataset (nodes/edges/skills)
-const D = JSON.parse(fs.readFileSync(path.join(ROOT, 'site/data.json'), 'utf8'));
+// public/data.json — strict JSON dataset (nodes/edges/skills)
+const D = JSON.parse(fs.readFileSync(path.join(ROOT, 'public/data.json'), 'utf8'));
 
-// site/found-in.js — window.DW_FOUND_IN = { itemId: [{ region, method, tool }] }
+// public/found-in.js — window.DW_FOUND_IN = { itemId: [{ region, method, tool }] }
 const fctx = { window: {} };
 vm: {
   // eslint-disable-next-line no-undef
   const vmmod = await import('node:vm');
   fctx.vm = vmmod; // not needed by the file, but harmless
   vmmod.createContext(fctx);
-  vmmod.runInContext(fs.readFileSync(path.join(ROOT, 'site/found-in.js'), 'utf8'), fctx);
+  vmmod.runInContext(fs.readFileSync(path.join(ROOT, 'public/found-in.js'), 'utf8'), fctx);
 }
 const FI = fctx.window.DW_FOUND_IN || {};
 

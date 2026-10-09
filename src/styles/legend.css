@@ -1,0 +1,90 @@
+/* ── legend additions ─────────────────────────────────────── */
+.lg-check { width: 14px; text-align: center; color: var(--gold); flex: none; }
+.lg-badge {
+  margin-left: auto; min-width: 20px; text-align: center;
+  font-size: 11px; font-weight: 700; color: var(--bg0);
+  background: var(--muted); border-radius: 9px; padding: 1px 6px;
+}
+.lg-badge.has { background: var(--gold); }
+.lg-row.attention .lg-check { animation: lgPulse 1.2s ease-in-out infinite; }
+@keyframes lgPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+.lg-hint.left { text-align: left; margin: 2px 0 6px; }
+.legend .lg-row:hover { color: var(--ink); }
+.legend .lg-row.off { opacity: 0.35; }
+
+/* "only" solo-filter affordance on the kind rows — revealed on row hover */
+.lg-only {
+  font-size: 9px; font-weight: 700; letter-spacing: 0.05em;
+  color: var(--faint); border: 1px solid var(--line); border-radius: 4px;
+  padding: 0 4px; line-height: 1.5; flex: none; cursor: pointer;
+  opacity: 0; transition: opacity 0.15s;
+}
+.legend .lg-row:hover .lg-only { opacity: 1; }
+.lg-only:hover { color: var(--gold-bright); border-color: var(--gold-dim); }
+.legend .lg-swatch { width: 10px; height: 10px; border-radius: 3px; flex: none; }
+
+/* ── breadcrumb ─────────────────────────────────────────────── */
+.breadcrumb {
+  position: absolute; top: 14px; right: 16px; z-index: 25;
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 12px;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
+  backdrop-filter: blur(8px);
+  font-size: 12.5px; color: var(--muted);
+  max-width: 44vw; overflow: hidden;
+  transition: opacity 0.25s;
+}
+.breadcrumb.hidden { display: none; }
+.breadcrumb a { color: var(--gold); text-decoration: none; cursor: pointer; }
+.breadcrumb a:hover { color: var(--gold-bright); text-decoration: underline; }
+
+/* ── path-to bar (armed path query, TODO #18) ────────────────── */
+.pathbar {
+  position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
+  z-index: 26;
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 14px;
+  background: var(--panel); border: 1px solid var(--gold-dim); border-radius: 999px;
+  backdrop-filter: blur(8px);
+  color: var(--gold-bright); font-size: 12.5px; font-weight: 700;
+  letter-spacing: 0.02em;
+  box-shadow: 0 0 18px rgba(226, 185, 92, 0.18);
+  max-width: 60vw; white-space: nowrap; overflow: hidden;
+  animation: pathbar-pulse 1.6s ease-in-out infinite;
+}
+.pathbar.hidden { display: none; }
+.pathbar .pb-rune { font-size: 15px; }
+.pathbar #pathbarText { overflow: hidden; text-overflow: ellipsis; }
+.pathbar .p-clear { font-size: 10.5px; padding: 2px 8px; }
+@keyframes pathbar-pulse {
+  0%, 100% { box-shadow: 0 0 12px rgba(226, 185, 92, 0.14); }
+  50% { box-shadow: 0 0 22px rgba(226, 185, 92, 0.32); }
+}
+body.path-result .pathbar { animation: none; border-color: var(--line); color: var(--ink); box-shadow: none; }
+.breadcrumb .sep { color: var(--faint); }
+
+/* ── loading veil ───────────────────────────────────────────── */
+#veil {
+  position: fixed; inset: 0; z-index: 200;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 18px;
+  background: radial-gradient(800px 500px at 50% 40%, #141926 0%, var(--bg0) 70%);
+  transition: opacity 0.5s ease, visibility 0.5s;
+}
+#veil.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+.veil-rune {
+  font-family: var(--font-display); font-weight: 900; font-size: 44px;
+  color: var(--gold);
+  text-shadow: 0 0 30px rgba(226, 185, 92, 0.5);
+  animation: runepulse 2s ease-in-out infinite;
+}
+@keyframes runepulse {
+  0%, 100% { opacity: 0.55; transform: scale(0.97); }
+  50% { opacity: 1; transform: scale(1.02); }
+}
+.veil-text {
+  font-family: var(--font-display); letter-spacing: 0.3em; font-size: 12px;
+  color: var(--muted); text-transform: uppercase;
+}
+.veil-sub { font-size: 12px; color: var(--faint); }
+

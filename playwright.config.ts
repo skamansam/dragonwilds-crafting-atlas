@@ -12,8 +12,8 @@ export default defineConfig({
 	reporter: [["list"], ["html", { open: "never" }]],
 	use: {
 		// baseURL lets tests use relative paths (page.goto("/")). The site is served
-		// either from the Vite dev server (npm run dev), the in-process server
-		// (scripts/test-ui.mjs --serve-only on :8491), or BASE_URL for a deployment.
+		// by the Vite dev server against the src/ sources (npm run dev, or the
+		// webServer below on :8491), or by BASE_URL for a deployment.
 		baseURL: process.env.BASE_URL || "http://localhost:8491",
 		viewport: { width: 1600, height: 950 },
 		// The app uses localStorage keys starting with "dw." — isolate per test
@@ -30,13 +30,15 @@ export default defineConfig({
 		// Only Chromium — the app uses Cytoscape which is browser-agnostic,
 		// and the existing suite only runs Chromium.
 	],
-	// Serve the site from an in-process server if BASE_URL isn't set
+	// Boot the Vite dev server against the sources unless BASE_URL points at a
+	// deployment. The dev base is "/", so the suite never has to know the Pages
+	// sub-path the production build is served under.
 	webServer: process.env.BASE_URL
 		? undefined
 		: {
-				command: "node scripts/test-ui.mjs --serve-only 2>/dev/null || npx vite preview --port 8491",
+				command: "npx vite --port 8491 --strictPort",
 				url: "http://localhost:8491",
-				timeout: 30000,
+				timeout: 60000,
 				reuseExistingServer: true,
 		  },
 });

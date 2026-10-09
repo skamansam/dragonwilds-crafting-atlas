@@ -1,5 +1,5 @@
 /**
- * Shared highlight math — replicated pure functions from site/app.js
+ * Shared highlight math — replicated pure functions from src/app.js
  * expandHighlight() and stepBackHighlight(). Used by the cucumber spec files so
  * the Gherkin scenarios test the same logic the live app runs.
  */
@@ -8,7 +8,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 // Load the production dataset for realistic edge cases
-const dataPath = resolve(process.cwd(), "site", "data.json");
+const dataPath = resolve(process.cwd(), "public", "data.json");
 const D = JSON.parse(readFileSync(dataPath, "utf8"));
 const nodeById = new Map(D.nodes.map((n) => [n.id, n]));
 

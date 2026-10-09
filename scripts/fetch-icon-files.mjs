@@ -1,9 +1,9 @@
-// Downloads all referenced icons into site/icons/ and rewrites data.js icon URLs to local paths.
+// Downloads all referenced icons into public/icons/ and rewrites data.js icon URLs to local paths.
 import fs from 'node:fs';
 import path from 'node:path';
 import { USER_AGENT, RATE_MS, sleep } from './wiki-config.mjs';
 
-const ICONS = new URL('../site/icons/', import.meta.url).pathname;
+const ICONS = new URL('../public/icons/', import.meta.url).pathname;
 fs.mkdirSync(ICONS, { recursive: true });
 
 const dataPath = new URL('../cache/final-dataset.json', import.meta.url).pathname;
@@ -45,7 +45,7 @@ for (const s of d.spells) if (s.icon && map.has(s.icon)) s.icon = map.get(s.icon
 for (const s of d.skills) if (s.icon && map.has(s.icon)) s.icon = map.get(s.icon);
 
 fs.writeFileSync(dataPath, JSON.stringify(d, null, 1));
-fs.writeFileSync(new URL('../site/data.json', import.meta.url).pathname, JSON.stringify(d, null, 1));
-fs.writeFileSync(new URL('../site/data.js', import.meta.url).pathname,
+fs.writeFileSync(new URL('../public/data.json', import.meta.url).pathname, JSON.stringify(d, null, 1));
+fs.writeFileSync(new URL('../public/data.js', import.meta.url).pathname,
   'window.DW_DATA = ' + JSON.stringify(d) + ';');
 console.log('done. data.js rewritten with local icon paths');

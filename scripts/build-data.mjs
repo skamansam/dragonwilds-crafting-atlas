@@ -1,4 +1,4 @@
-// Builds site/data.js — the complete dataset used by the explorer website.
+// Builds public/data.js — the complete dataset used by the explorer website.
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -151,15 +151,15 @@ const dataset = {
   skills,
   skillLevelForItem,
 };
-fs.mkdirSync(new URL('../site/', import.meta.url).pathname, { recursive: true });
-fs.writeFileSync(new URL('../site/data.js', import.meta.url).pathname,
+fs.mkdirSync(new URL('../public/', import.meta.url).pathname, { recursive: true });
+fs.writeFileSync(new URL('../public/data.js', import.meta.url).pathname,
   'window.DW_DATA = ' + JSON.stringify(dataset) + ';');
 fs.writeFileSync(new URL('../cache/final-dataset.json', import.meta.url).pathname, JSON.stringify(dataset, null, 1));
 // strict-JSON copy for consumers that can't eval data.js (scripts, desktop tools);
 // fetch-icon-files.mjs rewrites both once icons are localized — keep them in lockstep
-fs.writeFileSync(new URL('../site/data.json', import.meta.url).pathname, JSON.stringify(dataset, null, 1));
+fs.writeFileSync(new URL('../public/data.json', import.meta.url).pathname, JSON.stringify(dataset, null, 1));
 
 console.log('nodes:', nodes.length);
 console.log('spells:', spells.length, 'skills:', skills.length);
-const sizes = fs.statSync(new URL('../site/data.js', import.meta.url).pathname).size;
+const sizes = fs.statSync(new URL('../public/data.js', import.meta.url).pathname).size;
 console.log('data.js size:', (sizes / 1024 / 1024).toFixed(2), 'MB');

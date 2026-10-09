@@ -6,7 +6,7 @@ Feature: Highlight math (frontier, expansion, collapse, serialization)
   Background:
     Given the Crafting Atlas is loaded
 
-  # frontier collection (site/app.js expandHighlight → collectFrontier)
+  # frontier collection (src/app.js expandHighlight → collectFrontier)
   Scenario: Upstream frontier collects a recipe's ingredients
     Given a highlight anchored on "Iron Bar"
     When I collect the upstream frontier

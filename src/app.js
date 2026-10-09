@@ -3,117 +3,38 @@
    ═══════════════════════════════════════════════════════════════ */
 'use strict';
 
+/* Sibling modules, imported rather than picked up from <script> order so the
+   dependency is explicit and bundling is deterministic. Each mirrors itself
+   onto window.DW_* for the test harness. window.DW_DATA / DW_FOUND_IN /
+   DW_LAYOUTS / DW_CURATED stay globals: they are generated data files served
+   verbatim from public/ and are cheap to leave unbundled. */
+import './routing.js';
+import './characters.js';
+import './tours.js';
+import { esc, fmtLayoutDur, parseStats, fmtEditVal, fuzzyScore, highlight } from './util.js';
+import {
+  charActive, charSkillSectionHTML, refreshSkillLabels, refreshCharUI, initCharactersUI,
+} from './characters-ui.js';
+import { initMinimap } from './minimap.js';
+import {
+  initPlans, planState, cyclePlanMode, planFromNothing, planChecklist, wpRecord, wpSave, wpReset,
+} from './plans.js';
+import {
+  initPath, armPath, armPathOwned, clearPath, disarmPath, runPath,
+  pathStepsHTML, pathArmed, getLastPath, tryPathTarget,
+} from './path.js';
+import {
+  LINK_RELS, LINK_LABEL, dataEdits, addedNodeIds, bundledNodes, snapshotNodeFields,
+  persistEdits, applyEditsToData, editFieldDiff, customEdgeId, customEdgeElement,
+} from './edits.js';
+import {
+  initHighlight, resetHighlightState, forgetHighlight, restoreHighlight, highlightActive,
+  hasHighlight, showRequires, showEnables, stepBackHighlight, clearHighlight,
+} from './highlight.js';
+
 const D = window.DW_DATA;
 
-/* ── in-app data edits (P6-1) ────────────────────────────────────
-   Corrections made in the codex are kept as a small overlay in localStorage
-   (key `dw.edits`, app-wide — a data correction is not per-character graph
-   state) and applied to the bundled dataset the moment it loads, so every
-   derived structure below (lookups, degrees, colours, filters) sees the edited
-   values. The shipped `site/data.*` files are never touched; PLAN §3 P6 adds
-   relationship editing, export and scripts/apply-edits.mjs. */
-const EDITS_KEY = 'dw.edits';
-// custom relationships the user adds from a node's codex (P6-3): the link goes
-// current → target with the chosen relationship
-const LINK_RELS = ['makes', 'gives', 'found-in'];
-const LINK_LABEL = { makes: 'makes', gives: 'gives', 'found-in': 'found in' };
-function loadEdits() {
-  try {
-    const raw = JSON.parse(localStorage.getItem(EDITS_KEY) || 'null');
-    if (raw && typeof raw === 'object' && raw.nodes && typeof raw.nodes === 'object') {
-      return {
-        nodes: raw.nodes,
-        links: Array.isArray(raw.links) ? raw.links : [],
-        added: raw.added && typeof raw.added === 'object' ? raw.added : {},
-        removed: Array.isArray(raw.removed) ? raw.removed : [],
-      };
-    }
-  } catch { /* corrupt storage → clean slate */ }
-  return { nodes: {}, links: [], added: {}, removed: [] };
-}
-function persistEdits() {
-  try {
-    const hasNodes = Object.keys(dataEdits.nodes).length;
-    const hasLinks = (dataEdits.links || []).length;
-    const hasAdded = Object.keys(dataEdits.added || {}).length;
-    const hasRemoved = (dataEdits.removed || []).length;
-    if (hasNodes || hasLinks || hasAdded || hasRemoved) localStorage.setItem(EDITS_KEY, JSON.stringify(dataEdits));
-    else localStorage.removeItem(EDITS_KEY); // nothing left → drop the key entirely
-  } catch { /* storage blocked/full */ }
-}
-// ids the user created (P6-2) — kept visible even with no links (they are never orphans)
-const addedNodeIds = new Set();
-function emptyNode(id, spec) {
-  return {
-    id, name: spec.name || id, kind: spec.kind || 'other', itemType: spec.itemType || null,
-    icon: null, wiki: spec.wiki || null, description: spec.description || [], stats: spec.stats || {},
-    weight: null, stacklimit: null, repaircost: null, catalogue: null, pageid: null,
-  };
-}
-// The editable fields of a node, and the pristine (bundled) values for every
-// node the overlay touches — kept so the edits window can show a real diff
-// between this browser and the shipped atlas (P6-1b).
-const EDIT_FIELDS = ['name', 'kind', 'itemType', 'wiki', 'description', 'stats'];
-const bundledNodes = new Map(); // id -> bundled field values, captured before any overlay
 
-function snapshotNodeFields(n) {
-  const base = {};
-  for (const f of EDIT_FIELDS) base[f] = n[f];
-  return base;
-}
-// overlay the saved node patches onto the live dataset (the id field stays the key)
-function applyEditsToData(data, edits) {
-  // hide/remove whole nodes first (P6-2) so patches and links skip them
-  const removed = new Set(edits.removed || []);
-  if (removed.size) {
-    data.nodes = data.nodes.filter(n => !removed.has(n.id));
-    data.edges = data.edges.filter(e => !removed.has(e.from) && !removed.has(e.to));
-  }
-  for (const [id, patch] of Object.entries(edits.nodes || {})) {
-    const n = data.nodes.find(x => x.id === id);
-    if (!n || !patch || typeof patch !== 'object') continue;
-    bundledNodes.set(id, snapshotNodeFields(n));
-    Object.assign(n, patch);
-  }
-  // user-created nodes (P6-2) — always shown, never treated as orphan drops
-  for (const [id, spec] of Object.entries(edits.added || {})) {
-    if (!id || data.nodes.some(n => n.id === id)) continue;
-    data.nodes.push(emptyNode(id, spec || {}));
-    addedNodeIds.add(id);
-  }
-  // custom relationships (P6-3) join the edge list before degrees/filters are built
-  for (const l of (edits.links || [])) {
-    if (!l || !l.from || !l.to || !LINK_RELS.includes(l.rel)) continue;
-    if (!data.nodes.some(n => n.id === l.from) || !data.nodes.some(n => n.id === l.to)) continue;
-    data.edges.push({ from: l.from, to: l.to, qty: null, facility: null, skill: null, xp: null, blueprint: null, variant: null, deprecated: false, source: 'user', rel: l.rel });
-  }
-  return data;
-}
-// the fields where this browser differs from the bundle ([] = your edit is now
-// identical to the shipped data, i.e. it has been merged upstream)
-function editFieldDiff(id) {
-  const patch = dataEdits.nodes[id];
-  const base = bundledNodes.get(id);
-  if (!patch || !base) return { rows: [], merged: false };
-  const rows = [];
-  for (const f of EDIT_FIELDS) {
-    if (patch[f] === undefined) continue;
-    if (JSON.stringify(patch[f] ?? null) !== JSON.stringify(base[f] ?? null)) {
-      rows.push({ field: f, from: base[f], to: patch[f] });
-    }
-  }
-  return { rows, merged: rows.length === 0 };
-}
-
-/* ── custom relationships (P6-3) ─────────────────────────────────── */
-function customEdgeId(from, to, rel) { return `usr:${from}→${to}:${rel}`; }
-function customEdgeElement(e) {
-  return {
-    group: 'edges',
-    data: { id: customEdgeId(e.from, e.to, e.rel), source: e.from, target: e.to, meta: e, rel: e.rel },
-    classes: 'customLink',
-  };
-}
 // resolve a typed name to a node id (exact match first, then case-insensitive)
 function resolveNodeId(name) {
   const n = String(name || '').trim();
@@ -151,7 +72,6 @@ linkTargetList.id = 'linkTargetList';
 linkTargetList.innerHTML = D.nodes.map(n => `<option value="${esc(n.name)}"></option>`).join('');
 document.body.appendChild(linkTargetList);
 
-const dataEdits = loadEdits();
 applyEditsToData(D, dataEdits);
 
 // Found-in annotations (P4-1), generated by scripts/build-found-in.mjs.
@@ -163,7 +83,7 @@ const nodeById = new Map();
 for (const n of D.nodes) nodeById.set(n.id, n);
 
 /* URL identity: one snake_case slug per item ("Iron Sword" → iron_sword).
-   site/routing.js owns the slug rules and the collision-safe slug ⇄ id map;
+   src/routing.js owns the slug rules and the collision-safe slug ⇄ id map;
    the node ids above stay the display names they always were so snapshots,
    tours, found-in and the tests keep working unchanged. */
 const routing = window.DW_ROUTING;
@@ -220,15 +140,17 @@ const kindColor = {
   implicit: '#6d6a5e',
   other:    '#8a8577',
   region:   '#7fc9a6',
+  quest:    '#d9a13f',
+  mount:    '#c9a0e0',
 };
 const kindLabel = {
   weapon: 'Weapons', armour: 'Armour', tool: 'Tools', station: 'Stations',
   ammo: 'Ammo', trinket: 'Trinkets', food: 'Food', potion: 'Potions',
   drink: 'Drinks', material: 'Materials', resource: 'Resources',
   spell: 'Spells', skill: 'Skills', implicit: 'Uncatalogued', other: 'Other',
-  region: 'Regions',
+  region: 'Regions', quest: 'Quests', mount: 'Mounts',
 };
-const kindGlyph = { station: '⌂', resource: '⛰', implicit: '?', spell: '✦', skill: '★', region: '⌖' };
+const kindGlyph = { station: '⌂', resource: '⛰', implicit: '?', spell: '✦', skill: '★', region: '⌖', quest: '❖', mount: '⚑' };
 
 function nodeColor(n) { return kindColor[n.kind] || kindColor.other; }
 
@@ -247,7 +169,6 @@ let selectedId = null;
 let isolatedRoot = null;
 // default isolate walk: everything it needs (full upstream) + 1 level of enables
 const DEFAULT_ISO_DIR = 'needs';
-let highlightId = null;
 let focusOwned = false;
 const owned = new Set(JSON.parse(localStorage.getItem('dw.owned') || '[]'));
 
@@ -377,6 +298,21 @@ const cy = cytoscape({
       selector: 'edge.customLink[rel = "found-in"]',
       style: { 'line-color': '#7fc9a6', 'target-arrow-color': '#7fc9a6', 'line-style': 'dotted' },
     },
+    // owned items stand out at all times, not only in Possessions mode: a gold
+    // ring, plus the two owned-path colours — gold when both ends are owned,
+    // teal for the next thing an owned item enables (owned-items TODO)
+    {
+      selector: 'node.ownedMark',
+      style: { 'border-width': 5, 'border-color': '#f7dd9a', 'overlay-color': 'rgba(247,221,154,0.40)', 'overlay-padding': 5 },
+    },
+    {
+      selector: 'edge.ownedEdge',
+      style: { 'line-color': '#f7dd9a', 'target-arrow-color': '#f7dd9a', width: 3, 'z-index': 95 },
+    },
+    {
+      selector: 'edge.ownedEnable',
+      style: { 'line-color': '#58c9b9', 'target-arrow-color': '#58c9b9', 'line-style': 'dashed', width: 2.4, 'z-index': 94 },
+    },
     {
       selector: '.faded',
       style: { opacity: 0.08, 'text-opacity': 0.06 },
@@ -440,10 +376,16 @@ for (const e of D.edges) {
 // walk (plans, paths, requires/enables highlights, isolation, possessions) stay recipe-only.
 const REGION_EDGE_COLOR = 'rgba(140,200,170,0.30)'; // soft green — geography, not crafting
 const REGION_EDGE_SWATCH = '#8cc8aa';
+const QUEST_EDGE_COLOR = 'rgba(217,161,63,0.36)';  // gold — the story spine (region → quest → reward)
+const QUEST_EDGE_SWATCH = '#d9a13f';
+const MOUNT_EDGE_COLOR = 'rgba(201,160,224,0.40)'; // violet — a quest unlocking a mount
+const MOUNT_EDGE_SWATCH = '#c9a0e0';
 // Full Ashenfall location list (wiki page order — same list as
 // scripts/build-exports.mjs and the hand-annotation checklists). Hubs only
-// materialize for regions that found-in data actually names, so this can grow
-// ahead of the data without adding empty nodes.
+// materialize for regions that found-in data names OR a quest is set in, so
+// this can grow ahead of the data without adding empty nodes. Brynmoor and
+// Scorned Wilderness only ever appear as quest regions — the location prose
+// never names them.
 const CANON_REGIONS = [
   'Temple Woods', 'Bramblemead Valley', 'Whispering Swamp', 'Ghornfell',
   'Fractured Plains', 'Bloodblight Swamp', 'Stormtouched Highlands',
@@ -453,7 +395,30 @@ const CANON_REGIONS = [
   'The Courtyard', 'The Nexus', 'The Library', 'The Grand Hall', 'The Garrison',
   'The Pastures', 'The Menagerie', 'The Bastion', 'Umbral Sands',
   'Alcarrid Oasis', 'Dunes of Uzzer', 'Manafem Plains', 'The Burning Spire',
+  'Brynmoor', 'Scorned Wilderness',
 ];
+
+/* ── quest layer (P7) ──────────────────────────────────────────
+   Quests and mounts come from two generated overlays — public/quests.js
+   (scripts/build-quests.mjs, the wiki's Quests page) and public/mounts.js
+   (scripts/build-mounts.mjs, the Mount page). Both are guarded: a missing file
+   just means no quest layer, exactly like found-in.js. Quest nodes are
+   synthesized at boot (they are NOT in data.json), so plans, paths and recipe
+   counts stay item-only. */
+const questData = window.DW_QUESTS || null;
+const mountData = window.DW_MOUNTS || null;
+const mountById = new Map(Object.entries((mountData && mountData.mounts) || {}));
+const questById = new Map();    // quest name → record
+const regionQuests = new Map(); // region → [quest name]
+for (const name of ((questData && questData.order) || [])) {
+  const q = questData.quests[name];
+  if (!q) continue;
+  questById.set(name, q);
+  for (const region of q.regions || []) {
+    if (!regionQuests.has(region)) regionQuests.set(region, []);
+    regionQuests.get(region).push(name);
+  }
+}
 const regionMembers = new Map(); // region → Map(item → Set(method))
 if (foundIn.size) {
   for (const [itemId, list] of foundIn) {
@@ -465,26 +430,79 @@ if (foundIn.size) {
       members.get(itemId).add(f.method || 'other');
     }
   }
-  for (const [region, members] of regionMembers) {
-    const deg = members.size;
-    nodeById.set(region, { id: region, name: region, kind: 'region' }); // searchable + openable
-    registerSlug(region, region);
+}
+for (const region of CANON_REGIONS) {
+  const members = regionMembers.get(region) || new Map();
+  const quests = regionQuests.get(region) || [];
+  if (!members.size && !quests.length) continue;
+  nodeById.set(region, { id: region, name: region, kind: 'region' }); // searchable + openable
+  registerSlug(region, region);
+  const bits = [];
+  if (members.size) bits.push(`${members.size} annotated find${members.size > 1 ? 's' : ''}`);
+  if (quests.length) bits.push(`${quests.length} quest${quests.length > 1 ? 's' : ''}`);
+  eles.push({
+    group: 'nodes',
+    data: {
+      id: region,
+      label: region,
+      borderColor: kindColor.region,
+      nodeSize: 26 + Math.min(20, (members.size + quests.length) * 0.35),
+      meta: { kind: 'region', deg: members.size, quests: quests.length, description: `Region of Ashenfall — ${bits.join(' · ')}` },
+    },
+    classes: 'noIcon',
+  });
+  for (const item of members.keys()) {
+    eles.push({
+      group: 'edges',
+      data: { id: region + ' ⌖ ' + item, source: region, target: item, meta: { region: true }, lineColor: REGION_EDGE_COLOR },
+      classes: 'regionEdge',
+    });
+  }
+}
+if (questById.size) {
+  for (const [name, q] of questById) {
+    const rewards = q.rewards || [];
+    nodeById.set(name, { id: name, name, kind: 'quest', description: [q.whereToStart] });
+    registerSlug(name, name);
     eles.push({
       group: 'nodes',
       data: {
-        id: region,
-        label: region,
-        borderColor: kindColor.region,
-        nodeSize: 26 + Math.min(20, deg * 0.35),
-        meta: { kind: 'region', deg, description: `Region of Ashenfall — ${deg} annotated find${deg > 1 ? 's' : ''}` },
+        id: name,
+        label: name,
+        borderColor: kindColor.quest,
+        nodeSize: 22 + Math.min(18, ((q.regions || []).length + rewards.length) * 1.6),
+        meta: { kind: 'quest', tier: q.tier, deg: rewards.length, description: [q.whereToStart] },
       },
       classes: 'noIcon',
     });
-    for (const item of members.keys()) {
+    // region → quest (the wiki's Region/area column; "Brynmoor/Ghornfell" is two edges)
+    for (const region of q.regions || []) {
+      if (!nodeById.has(region) || nodeById.get(region).kind !== 'region') continue;
       eles.push({
         group: 'edges',
-        data: { id: region + ' ⌖ ' + item, source: region, target: item, meta: { region: true }, lineColor: REGION_EDGE_COLOR },
-        classes: 'regionEdge',
+        data: { id: region + ' ✧ ' + name, source: region, target: name, meta: { quest: true, region: true }, lineColor: QUEST_EDGE_COLOR },
+        classes: 'questEdge',
+      });
+    }
+    // quest → reward item (the wiki's unique-rewards tables)
+    for (const r of rewards) {
+      eles.push({
+        group: 'edges',
+        data: { id: name + ' ✧ ' + r.item, source: name, target: r.item, meta: { quest: true, reward: true, post: r.post, during: r.during }, lineColor: QUEST_EDGE_COLOR },
+        classes: 'questEdge',
+      });
+    }
+  }
+  // quest → mount: the Mount page's requirements column names the quests each
+  // variant (and each base mount) needs. Violet, same legend row as quest links.
+  for (const [mountId, m] of mountById) {
+    if (!nodeById.has(mountId)) continue;
+    for (const quest of m.quests || []) {
+      if (!questById.has(quest)) continue;
+      eles.push({
+        group: 'edges',
+        data: { id: quest + ' ✧ ' + mountId, source: quest, target: mountId, meta: { quest: true, mount: true }, lineColor: MOUNT_EDGE_COLOR },
+        classes: 'questEdge mountEdge',
       });
     }
   }
@@ -651,11 +669,12 @@ function urlOpt(name) { return urlOpts.values.has(name) ? urlOpts.values.get(nam
 function urlBool(name, stored) { const v = urlOpt(name); return v === null ? stored : v === '1'; }
 function urlNum(name, stored) { const v = urlOpt(name); return v === null ? stored : Number(v); }
 
-// storage key suffix → the ?param that governs it (see site/routing.js)
+// storage key suffix → the ?param that governs it (see src/routing.js)
 const OPT_PARAM_OF_KEY = {
   layout: 'layout', animate: 'anim', savedLayouts: 'saved', worker: 'worker',
   dens: 'dens', autoRelayout: 'auto', legendKinds: 'cats', showOrphans: 'orphans',
   showMatEdges: 'links', showSkillEdges: 'skilllinks', showRegionEdges: 'regions',
+  showQuestEdges: 'questlinks',
   isoDepth: 'isodepth', isoDir: 'isodir', force: 'force',
 };
 // the ONE place option prefs are persisted, so the URL rule can't be forgotten
@@ -698,6 +717,7 @@ function optionState() {
     links: edgePrefs.materials ? '1' : '0',
     skilllinks: edgePrefs.skills ? '1' : '0',
     regions: edgePrefs.regions ? '1' : '0',
+    questlinks: edgePrefs.quests ? '1' : '0',
     possessions: focusOwned ? '1' : '0',
     iso: isolatedRoot ? (slugIndex.toSlug.get(isolatedRoot) || null) : null,
     isodir: dirEl ? dirEl.value : (urlOpt('isodir') || localStorage.getItem('dw.isoDir') || DEFAULT_ISO_DIR),
@@ -792,9 +812,6 @@ let lastLayoutMs = 0;      // ms the last completed layout took (wall clock)
 let lastLayoutNodes = 0;   // node count it arranged
 let lastLayoutAt = 0;      // epoch ms when it finished (for a "· 4s ago" suffix)
 let layoutPillTimer = null; // live elapsed ticker inside the Arranging pill
-function fmtLayoutDur(ms) {
-  return (ms / 1000).toFixed(ms < 10000 ? 2 : 1) + 's';
-}
 function startLayoutPill() {
   // tick the Arranging pill so slow layouts show elapsed time as they run,
   // keeping the algorithm name: "Arranging · elk (worker) · 3.4s"
@@ -840,14 +857,14 @@ setInterval(() => {
 }, 5000);
 
 let activeLayout = null;
-let savedLayouts = null;      // algo -> { x, y } map from site/layouts/manifest.js (P1.5-3)
+let savedLayouts = null;      // algo -> { x, y } map from public/layouts/manifest.js (P1.5-3)
 let usingSavedPositions = false;
 let usingCustomPositions = false; // density-slider 💾 snapshot (P3-1b)
-let usingCuratedPositions = false; // shared curated snapshot (site/layouts/curated.js)
+let usingCuratedPositions = false; // shared curated snapshot (public/layouts/curated.js)
 const savedToggleOn = () => { const t = document.getElementById('savedToggle'); return !t || t.checked; };
 
 /* ── P1-2 worker spike: background layout thread ─────────────── */
-// site/layout-worker.js builds a headless cytoscape with every vendor extension
+// public/layout-worker.js builds a headless cytoscape with every vendor extension
 // loaded and runs the layout there, returning { id → {x,y} }. The main thread
 // stays free to animate/pan while physics chews. Off by default (spike); the
 // saved-positions path above is instant anyway, so the worker only matters for
@@ -986,7 +1003,7 @@ function loadSavedLayouts() {
   savedLayouts = window.DW_LAYOUTS || {};
   return savedLayouts;
 }
-// curated snapshots shipped with the site (site/layouts/curated.js, merged by
+// curated snapshots shipped with the site (public/layouts/curated.js, merged by
 // scripts/merge-snapshots.mjs) — the layer between a visitor's own 💾
 // snapshots and the bundled manifest
 let curatedLayouts = null;
@@ -1325,9 +1342,11 @@ function populate() {
       // orphan = no crafting edges (region spokes don't rescue drop-only items);
       // region nodes themselves are hubs, never orphans
       cy.nodes().forEach(n => {
+        const kind = n.data('meta').kind;
+        // region hubs and quests are story scaffolding, never dead ends
+        if (kind === 'region' || kind === 'quest') { n.removeClass('orphan'); return; }
         const craftDeg = n.degree(false) - n.connectedEdges('.regionEdge').length;
-        if (n.data('meta').kind === 'region') n.removeClass('orphan');
-        else if (craftDeg === 0 && !addedNodeIds.has(n.id())) n.addClass('orphan'); // user-made nodes always show
+        if (craftDeg === 0 && !addedNodeIds.has(n.id())) n.addClass('orphan'); // user-made nodes always show
       });
       bootPopulating = true; // applyCategoryVisibility's reflow must not double-run the boot layout
       applyCategoryVisibility();
@@ -1409,6 +1428,9 @@ const edgePrefs = {
   materials: urlBool('links', localStorage.getItem('dw.showMatEdges') !== '0'), // recipe links (default ON, persisted)
   skills: urlBool('skilllinks', localStorage.getItem('dw.showSkillEdges') === '1'), // default OFF first load
   regions: urlBool('regions', localStorage.getItem('dw.showRegionEdges') === '1'), // default OFF first load
+  // quest links (P7) are the default VIEW this time (the quest layer is the
+  // map's spine, not a side-layer): region → quest → reward, plus quest → mount
+  quests: urlBool('questlinks', localStorage.getItem('dw.showQuestEdges') !== '0'),
 }; // toggle via the legend's LINKS rows (retired header chips kept in sync)
 function applyEdgeVisibility() {
   cy.batch(() => {
@@ -1416,6 +1438,10 @@ function applyEdgeVisibility() {
       if (e.hasClass('regionEdge')) {
         e.source().toggleClass('regionMuted', !edgePrefs.regions); // quiet hubs until the green links are on
         e.toggleClass('hidden', !edgePrefs.regions || e.source().hasClass('hidden') || e.target().hasClass('hidden'));
+        continue;
+      }
+      if (e.hasClass('questEdge')) {
+        e.toggleClass('hidden', !edgePrefs.quests || e.source().hasClass('hidden') || e.target().hasClass('hidden'));
         continue;
       }
       const isSkill = SKILL_NAMES.has(e.source().id());
@@ -1526,10 +1552,13 @@ function showEverything() {
   edgePrefs.regions = true;
   storeOpt('showRegionEdges', '1');
   lgRegionRow.classList.remove('off');
+  edgePrefs.quests = true;
+  storeOpt('showQuestEdges', '1');
+  lgQuestRow.classList.remove('off');
   if (lgAllRow) lgAllRow.classList.remove('attention');
   applyCategoryVisibility();
   applyEdgeVisibility();
-  toast('Everything is showing — items, dead ends and all link kinds');
+  toast('Everything is showing — items, quests, dead ends and all link kinds');
 }
 lgMakeRow({
   cls: 'lg-action',
@@ -1612,6 +1641,21 @@ const lgRegionRow = lgMakeRow({
     applyEdgeVisibility();
   },
 });
+// quest links (P7) — gold region → quest → reward spokes plus the violet
+// quest → mount unlocks (one row: they are the same layer). Default ON.
+const lgQuestRow = lgMakeRow({
+  cls: 'lg-line',
+  swatch: `<span class="lg-swatch line" style="background:linear-gradient(90deg,${QUEST_EDGE_SWATCH} 0 55%,${MOUNT_EDGE_SWATCH} 55% 100%)"></span>`,
+  label: 'Quest links',
+  on: edgePrefs.quests,
+  onclick: () => {
+    edgePrefs.quests = !edgePrefs.quests;
+    storeOpt('showQuestEdges', edgePrefs.quests ? '1' : '0');
+    lgQuestRow.classList.toggle('off', !edgePrefs.quests);
+    applyEdgeVisibility();
+  },
+});
+lgQuestRow.title = 'Region → quest → reward (gold) and quest → mount (violet) — the story layer from the wiki\'s Quests and Mount pages';
 // ↺ All lives here now (was a header chip) — resets to the calm first-load view
 lgAllRow = lgMakeRow({
   cls: 'lg-action',
@@ -1931,7 +1975,22 @@ function propagateReach() {
   return reach;
 }
 
+// Owned emphasis that does NOT depend on Possessions mode (owned-items TODO):
+// every owned node wears a gold ring, an edge with two owned endpoints is gold,
+// and the next thing an owned item enables is teal. Possessions mode still adds
+// the reach/dim treatment on top.
+function applyOwnedMarks() {
+  cy.nodes().forEach(n => { n.toggleClass('ownedMark', owned.has(n.id())); });
+  cy.edges().forEach(e => {
+    const s = owned.has(e.source().id());
+    const t = owned.has(e.target().id());
+    e.toggleClass('ownedEdge', s && t);
+    e.toggleClass('ownedEnable', s && !t);
+  });
+}
+
 function applyPossessions() {
+  applyOwnedMarks();
   if (!focusOwned) {
     cy.batch(() => {
       cy.nodes().removeClass('locked reachable');
@@ -1990,8 +2049,7 @@ function selectNode(id, { fly = true, syncHash = true } = {}) {
 
 function clearIsolation() {
   isolatedRoot = null;
-  highlightId = null;
-  resetHighlightState(); // an isolation is gone — any expansion grows from it no more
+  forgetHighlight(); // an isolation is gone — any expansion grows from it no more
   cy.batch(() => {
     cy.nodes().removeClass('hidden highlighted').style({ opacity: '' });
     cy.edges().removeClass('hidden highlighted').style({ opacity: '' });
@@ -2083,593 +2141,25 @@ function isolateTree(id, depthOverride = null) {
   toast(`Crafting tree of ${nodeById.get(id).name} · ${dirLabel}${depthNote} · ${keep.size - 1} items`);
 }
 
-/* ── P21/P22: progressive requires/enables — the buttons GROW the visible tree ── */
-// Old behaviour highlighted a full upstream/downstream closure; after an
-// isolation every highlighted node was hidden, so the buttons looked dead
-// (PLAN #21). New behaviour: the highlighted set SUPERSEDES visibility — it is
-// revealed (hidden removed), and each further click expands the visible tree
-// by ONE recipe level from its frontier (PLAN #22, user-confirmed):
-//   Enables (down) → what the shown nodes go on to make (Bread → its sandwiches…)
-//   Requires (up)  → what the shown nodes are made from
-// State anchors on the clicked node and survives selection changes while the
-// direction stays the same; picking a node outside the highlighted set re-anchors.
-let highlightRoot = null;        // node the highlight was anchored on
-let highlightDir = null;         // 'down' (enables) | 'up' (requires)
-let highlightLevels = new Map(); // id → depth from the anchor (0 = anchor)
-let highlightDepth = 0;          // levels revealed so far
-let highlightGrewFromIso = false; // whether the highlight superseded an isolation (visual mode)
-function resetHighlightState() {
-  highlightRoot = null; highlightDir = null; highlightLevels = new Map(); highlightDepth = 0;
-  highlightGrewFromIso = false;
-}
-function expandHighlight(id, dir) {
-  // re-anchor unless an active highlight of the same direction already contains id
-  let reAnchored = false;
-  if (highlightDir !== dir || highlightRoot === null || !highlightLevels.has(id)) {
-    highlightRoot = id; highlightDir = dir;
-    highlightLevels = new Map([[id, 0]]);
-    highlightDepth = 0;
-    reAnchored = true;
-  }
-  // collect the next level: neighbours of the NEWEST frontier only.
-  // Skill-gate spokes (skill → everything it unlocks, same D.edges list as
-  // recipe edges) must not join the walk: a Requires walk would otherwise
-  // explode into a skill's ~200 unlock edges instead of recipe ingredients.
-  const next = [];
-  for (const [nid, d] of highlightLevels) {
-    if (d !== highlightDepth) continue;
-    for (const e of D.edges) {
-      const nb = dir === 'down' ? (e.from === nid ? e.to : null)
-                                : (e.to === nid ? e.from : null);
-      if (nb === null || highlightLevels.has(nb)) continue;
-      const src = dir === 'down' ? nid : nb; // the edge's ingredient side
-      if (nodeById.get(src)?.kind === 'skill') continue;
-      // Facility-aware frontier (TODO #23): for upstream Requires walks the recipe's
-      // crafting station is a prerequisite at the same depth — collect it when the
-      // facility resolves to a station/tool node and isn't already highlighted. Downstream
-      // (Enables) walks exclude facilities: e.facility is where the current item was
-      // crafted, not where its products go on to be made (PLAN #23).
-      if (dir === 'up' && e.facility && !highlightLevels.has(e.facility)) {
-        const fnode = nodeById.get(e.facility);
-        if (fnode && (fnode.kind === 'station' || fnode.kind === 'tool')) {
-          highlightLevels.set(e.facility, d + 1); next.push(e.facility);
-        }
-      }
-      highlightLevels.set(nb, d + 1); next.push(nb);
-    }
-  }
-  if (!next.length) {
-    const other = dir === 'down' ? 'Requires' : 'Enables';
-    toast(dir === 'down'
-      ? `Nothing further downstream — everything ${nodeById.get(id).name} leads to is shown. Use ${other} to expand what these are made from.`
-      : `Nothing further upstream — every ingredient of ${nodeById.get(id).name} is shown. Use ${other} to expand what they make.`);
-    return;
-  }
-  highlightDepth++;
-  highlightId = id;
-  // P21: a requires/enables highlight supersedes the current view — from an isolation it GROWS the
-  // visible tree (P22: what was shown stays shown, the new level joins it);
-  // from the full map it keeps the classic highlight look (fade + highlighted)
-  // while revealing kind-hidden highlighted nodes. Either way an active isolation
-  // ends here — the highlight is the new visible context.
-  // Re-anchoring: grewFromIso is true if this click started fresh from an
-  // isolation. Continuing an existing highlight preserves the original value so
-  // stepBackHighlight() knows it was grown-from-iso (hide, not fade) on every level.
-  const grewFromIso = reAnchored ? isolatedRoot !== null : highlightGrewFromIso;
-  highlightGrewFromIso = grewFromIso;
-  // hidden set BEFORE this click — every branch preserves it: the blanket
-  // class strip must not leak the previous view's hidden nodes into view
-  // (2nd click from a grown tree otherwise unhides the whole map)
-  const preHiddenIds = new Set(cy.nodes('.hidden').map(n => n.id()));
-  isolatedRoot = null;
-  document.getElementById('breadcrumb').classList.add('hidden');
-  const frontierSet = new Set(next);
-  cy.batch(() => {
-    if (grewFromIso) {
-      // auto-reveal every kind so the grown tree supersedes the filters — the
-      // same courtesy isolateTree extends to the isolation
-      for (const k of Object.keys(kindLabel)) { activeCats.add(k); lgSyncKind(k); }
-      document.querySelectorAll('.chip[data-cat]').forEach(c => c.classList.add('on'));
-      showOrphans = false;
-      document.getElementById('orphansChip').classList.remove('on');
-    }
-    cy.nodes().forEach(n => {
-      const nid = n.id();
-      n.removeClass('hidden faded highlighted');
-      if (!highlightLevels.has(nid)) {
-        if (preHiddenIds.has(nid)) n.addClass('hidden'); // stay hidden as before
-        if (!grewFromIso && !preHiddenIds.has(nid)) n.addClass('faded'); // classic highlight look
-      } else if (frontierSet.has(nid)) {
-        n.addClass('highlighted'); // gold = new this click
-      }
-    });
-    cy.getElementById(id).addClass('sel');
-    cy.edges().forEach(e => {
-      const s = highlightLevels.get(e.source().id()), t = highlightLevels.get(e.target().id());
-      // on-path edges connect consecutive levels in the walked direction
-      const onPath = s !== undefined && t !== undefined && Math.abs(s - t) === 1;
-      if (onPath) { e.removeClass('hidden faded').addClass('highlighted'); return; }
-      e.removeClass('highlighted faded');
-      const bothInHighlight = s !== undefined && t !== undefined;
-      if (!grewFromIso) {
-        // classic highlight look: the highlighted closure un-fades, everything else fades
-        if (!bothInHighlight) e.addClass('faded');
-      } else if (!bothInHighlight) {
-        e.addClass('hidden'); // grow mode: edges leaving the highlighted set stay out
-      }
-    });
-  });
-  if (reAnchored && grewFromIso) setTimeout(() => cy.fit(undefined, 70), 60);
-  updateReadout();
-  const dirLabel = dir === 'down' ? 'enables' : 'requires';
-  toast(`${nodeById.get(id).name} · ${dirLabel} level ${highlightDepth}: +${next.length} nodes · ${highlightLevels.size - 1} total shown — click again to expand further`);
-  saveHighlight();
-}
 
-function showRequires(id) { expandHighlight(id, 'up'); }
+// the planner engine lives in src/plans.js — hand it the live ledger + id map
+initPlans({ owned, nodeById });
 
-// Enables (P4-2): everything this item feeds into — progressive
-function showEnables(id) { expandHighlight(id, 'down'); }
-
-function clearHighlight() {
-  highlightId = null;
-  const hadHighlight = highlightRoot !== null;
-  resetHighlightState();
-  cy.elements().removeClass('faded highlighted');
-  saveHighlight(); // removes the stored key since highlightRoot is now null
-  // P22: the highlight now controls visibility (it supersedes isolation), so clearing
-  // it must restore the full map — otherwise highlighted-away nodes stay hidden
-  if (hadHighlight) {
-    cy.batch(() => {
-      cy.nodes().removeClass('hidden').style({ opacity: '' });
-      cy.edges().removeClass('hidden').style({ opacity: '' });
-      applyCategoryVisibility();
-    });
-    fitSoon();
-  }
-}
-
-/* ── P23: stepBackHighlight — collapse the deepest level ───────────── */
-// Mirrors the unit-tested stepBackHighlight math: drop the deepest level from
-// highlightLevels, decrement highlightDepth. Visually the removed frontier goes back
-// to hidden (grow-from-iso mode) or faded (classic highlight mode); the new
-// frontier (depth === highlightDepth) gets the .highlighted gold highlight. When
-// highlightDepth reaches 0 — only the anchor remains — clearHighlight() restores the
-// full map.
-function stepBackHighlight() {
-  if (highlightRoot === null) return;
-  if (highlightDepth === 0) {
-    clearHighlight();
-    return;
-  }
-  // collect + drop the deepest level
-  const removed = [];
-  for (const [nid, d] of highlightLevels) {
-    if (d === highlightDepth) { highlightLevels.delete(nid); removed.push(nid); }
-  }
-  const removedSet = new Set(removed);
-  highlightDepth--;
-  highlightId = highlightRoot;
-  // new frontier = nodes at the new highlightDepth
-  const frontierSet = new Set(
-    [...highlightLevels.entries()].filter(([_, d]) => d === highlightDepth).map(([id]) => id)
-  );
-  // currently hidden (category-hidden or hidden-by-highlighted) — keep them hidden
-  const preHiddenIds = new Set(cy.nodes('.hidden').map(n => n.id()));
-  cy.batch(() => {
-    cy.nodes().forEach(n => {
-      const nid = n.id();
-      n.removeClass('hidden faded highlighted');
-      if (!highlightLevels.has(nid)) {
-        if (highlightGrewFromIso || preHiddenIds.has(nid)) n.addClass('hidden');
-        else n.addClass('faded');
-      } else if (frontierSet.has(nid)) {
-        n.addClass('highlighted');
-      }
-      if (nid === highlightRoot) n.addClass('sel');
-    });
-    cy.edges().forEach(e => {
-      const s = highlightLevels.get(e.source().id()), t = highlightLevels.get(e.target().id());
-      const onPath = s !== undefined && t !== undefined && Math.abs(s - t) === 1;
-      if (onPath) { e.removeClass('hidden faded').addClass('highlighted'); return; }
-      e.removeClass('highlighted faded');
-      const bothInHighlight = s !== undefined && t !== undefined;
-      const touchesRemoved = removedSet.has(e.source().id()) || removedSet.has(e.target().id());
-      if (!bothInHighlight || touchesRemoved) {
-        if (highlightGrewFromIso) e.addClass('hidden');
-        else e.addClass('faded');
-      } else {
-        e.removeClass('hidden');
-      }
-    });
-  });
-  updateReadout();
-  const dirLabel = highlightDir === 'down' ? 'enables' : 'requires';
-  toast(`${nodeById.get(highlightRoot).name} · ${dirLabel} level ${highlightDepth} — ${highlightLevels.size - 1} total shown`);
-  saveHighlight();
-}
-
-/* ── highlight persistence (localStorage dw.highlight, migrated from dw.trace) ── */
-function saveHighlight() {
-  if (highlightRoot === null) { localStorage.removeItem('dw.highlight'); return; }
-  localStorage.setItem('dw.highlight', JSON.stringify({
-    root: highlightRoot, dir: highlightDir, levels: Array.from(highlightLevels.entries()), depth: highlightDepth,
-  }));
-}
-function restoreHighlight() {
-  let raw = localStorage.getItem('dw.highlight');
-  if (!raw) {
-    // migrate a pre-rename dw.trace key so saved highlight state survives the rename
-    const legacy = localStorage.getItem('dw.trace');
-    if (legacy) { localStorage.setItem('dw.highlight', legacy); localStorage.removeItem('dw.trace'); raw = legacy; }
-  }
-  if (!raw) return;
-  let parsed;
-  try { parsed = JSON.parse(raw); } catch { return; }
-  if (!parsed.root || !parsed.dir) return;
-  highlightRoot = parsed.root; highlightDir = parsed.dir;
-  highlightLevels = new Map(parsed.levels || []);
-  highlightDepth = parsed.depth || 0;
-  highlightGrewFromIso = false;
-  if (highlightLevels.size === 0) { localStorage.removeItem('dw.highlight'); return; }
-  if (!nodeById.has(highlightRoot)) { localStorage.removeItem('dw.highlight'); return; }
-  // Verify every highlighted node is actually in the graph — stale IDs from an old
-  // dataset version must not render partial highlights
-  for (const nid of highlightLevels.keys()) {
-    if (!nodeById.has(nid)) { localStorage.removeItem('dw.highlight'); return; }
-  }
-  highlightId = highlightRoot;
-  const frontierSet = new Set(
-    [...highlightLevels.entries()].filter(([_, d]) => d === highlightDepth).map(([id]) => id)
-  );
-  // nodes hidden by category/orphan filters before the highlight — preserve that
-  const preHiddenIds = new Set(cy.nodes('.hidden').map(n => n.id()));
-  cy.batch(() => {
-    cy.nodes().forEach(n => {
-      const nid = n.id();
-      n.removeClass('hidden faded highlighted');
-      if (preHiddenIds.has(nid)) n.addClass('hidden');
-      else if (highlightLevels.has(nid)) {
-        if (frontierSet.has(nid)) n.addClass('highlighted');
-      } else {
-        n.addClass('faded');
-      }
-      if (nid === highlightRoot) n.addClass('sel');
-    });
-    cy.edges().forEach(e => {
-      const s = highlightLevels.get(e.source().id()), t = highlightLevels.get(e.target().id());
-      const onPath = s !== undefined && t !== undefined && Math.abs(s - t) === 1;
-      if (onPath) { e.removeClass('hidden faded').addClass('highlighted'); return; }
-      e.removeClass('highlighted faded');
-      if (!(s !== undefined && t !== undefined)) e.addClass('faded');
-    });
-  });
-  updateReadout();
-}
-
-/* ── "From nothing" planner + two-node path query ───────────── */
-
-// Recipes indexed by output, in wiki order (first non-deprecated = primary)
-const recipesByOut = (() => {
-  const m = new Map();
-  for (const r of D.recipes) { if (!m.has(r.output)) m.set(r.output, []); m.get(r.output).push(r); }
-  return m;
-})();
-
-// Walk the (primary) recipe tree of `id` down to raw materials, multiplying
-// quantities. Collects: leaf mats, stations needed, skills (+levels), and — for
-// the waypoint checklist — every non-owned item on the remaining tree with its
-// craft/gather quantity. When plans start from the ledger (owned/waypoint
-// modes), owned items satisfy subtrees: their quantities land in `have` instead
-// of `mats`, and subtree expansion stops there.
-let planMode = localStorage.getItem('dw.planMode')
-  || (localStorage.getItem('dw.planUseOwned') !== '0' ? 'owned' : 'nothing'); // nothing | owned | waypoint
-
-function walkPlan(id, useOwned) {
-  const mats = new Map();       // material name -> qty still needed for one craft
-  const have = new Map();       // material name -> qty already owned (owned mode)
-  const stations = new Set();   // station names used anywhere up the tree
-  const skillLv = new Map();    // skill name -> required level
-  const needed = new Map();     // item -> { qty, kind: 'gather'|'craft'|'build', facility?, skill? }
-  const inPath = new Set();     // cycle guard
-
-  const primary = x => {
-    const rs = recipesByOut.get(x);
-    if (!rs || !rs.length) return null;
-    return rs.find(r => !r.deprecated) || rs[0];
-  };
-
-  const visit = (x, mult) => {
-    if (useOwned && owned.has(x)) { have.set(x, (have.get(x) || 0) + mult); return 0; }
-    if (inPath.has(x)) { mats.set(x, (mats.get(x) || 0) + mult); return 0; }
-    const r = primary(x);
-    if (!r) {
-      mats.set(x, (mats.get(x) || 0) + mult);
-      const n = needed.get(x);
-      needed.set(x, { qty: (n ? n.qty : 0) + mult, kind: 'gather' });
-      return 0;
-    }
-    if (r.facility && nodeById.get(r.facility) && nodeById.get(r.facility).kind === 'station') stations.add(r.facility);
-    if (r.skill) skillLv.set(r.skill, Math.max(skillLv.get(r.skill) || 1, 1));
-    for (const g of (D.skillLevelForItem[x] || [])) skillLv.set(g.skill, Math.max(skillLv.get(g.skill) || 1, g.level || 1));
-    inPath.add(x);
-    const crafts = Math.max(1, Math.ceil(mult / (r.outputQty || 1)));
-    let best = 0;
-    for (const i of r.inputs) best = Math.max(best, visit(i.name, crafts * i.qty) + 1);
-    inPath.delete(x);
-    const n = needed.get(x);
-    needed.set(x, { qty: (n ? n.qty : 0) + crafts, kind: 'craft', facility: r.facility || null, skill: r.skill || null });
-    return best;
-  };
-
-  const depth = visit(id, 1);
-  const rootOwned = useOwned && owned.has(id);
-  if (rootOwned) needed.delete(id);
-  return { mats, have, stations, skillLv, depth, rootOwned, needed, primary };
-}
-
-function planFromNothing(id) {
-  const useOwned = planMode !== 'nothing' && owned.size > 0;
-  const w = walkPlan(id, useOwned);
-  const { mats, have, depth, rootOwned } = w;
-  // raw/gatherable root: it would just list itself as its own material — no plan
-  // (unless you own it, in which case the plan is "done")
-  if (!w.primary(id) && !rootOwned) return null;
-  if (!mats.size && !have.size && !rootOwned) return null;
-  const allOwned = rootOwned || (!mats.size && have.size > 0);
-
-  // critical chain: follow the input with the longest upstream depth, root -> leaf.
-  // With the ledger in play, the chain stops at the first owned anchor (that's where work resumes).
-  function subDepth(x, seen) { // memo-free longest depth (primary-recipe trees are small)
-    if (seen.has(x)) return 0;
-    seen.add(x);
-    const r = w.primary(x);
-    if (!r) return 0;
-    let m = 0;
-    for (const i of r.inputs) m = Math.max(m, subDepth(i.name, seen) + 1);
-    return m;
-  }
-  const chain = [];
-  let cur = id, guard = 0;
-  while (cur && guard++ < 64) {
-    chain.push(cur);
-    if (useOwned && owned.has(cur)) break; // owned anchor: progress starts here
-    const r = w.primary(cur);
-    if (!r || !r.inputs.length) break;
-    let bestD = -1, bestIn = null;
-    for (const i of r.inputs) {
-      const d = subDepth(i.name, new Set());
-      if (d > bestD) { bestD = d; bestIn = i.name; }
-    }
-    cur = bestIn;
-  }
-  return { mats, have, stations: w.stations, skillLv: w.skillLv, chain, depth, allOwned, useOwned };
-}
-
-// Waypoint checklist (PF-4): the remaining work as an ordered, checkable list
-// from your possessions to the target. Kahn topological order over the needed
-// items (inputs before outputs; gathers float to the top), with un-owned
-// stations injected as "build" steps ahead of the crafts that use them.
-// Per-target progress for the waypoint checklist (persisted): remembers the
-// first step count seen for a target and how many check-off/uncheck/re-plan
-// cycles happened since. `wpReset(id)` clears it.
-function wpRecord(id) {
-  const all = JSON.parse(localStorage.getItem('dw.wpProgress') || '{}');
-  if (!all[id]) all[id] = { total: null, done: 0, replans: 0 };
-  return all[id];
-}
-function wpSave(id, rec) {
-  const all = JSON.parse(localStorage.getItem('dw.wpProgress') || '{}');
-  all[id] = rec;
-  localStorage.setItem('dw.wpProgress', JSON.stringify(all));
-}
-function wpReset(id) {
-  const all = JSON.parse(localStorage.getItem('dw.wpProgress') || '{}');
-  delete all[id];
-  localStorage.setItem('dw.wpProgress', JSON.stringify(all));
-}
-
-function planChecklist(id) {
-  const useOwned = planMode !== 'nothing' && owned.size > 0;
-  const w = walkPlan(id, useOwned);
-  if (w.rootOwned || !w.primary(id)) return { ...w, steps: [] };
-  const need = w.needed;
-  for (const [, info] of [...need]) { // inject un-owned stations (materials: see the station's panel)
-    if (info.kind !== 'craft' || !info.facility) continue;
-    const fNode = nodeById.get(info.facility);
-    if (!fNode || fNode.kind !== 'station' || owned.has(info.facility) || need.has(info.facility)) continue;
-    need.set(info.facility, { qty: 1, kind: 'build' });
-  }
-  const kindRank = k => (k === 'gather' ? 0 : 1);
-  const outs = new Map();   // prerequisite -> [dependents]
-  const indeg = new Map([...need.keys()].map(k => [k, 0]));
-  for (const [x, info] of need) {
-    if (info.kind !== 'craft') continue;
-    const r = w.primary(x);
-    for (const i of r.inputs) {
-      if (!need.has(i.name) || i.name === x) continue;
-      indeg.set(x, indeg.get(x) + 1);
-      if (!outs.has(i.name)) outs.set(i.name, []);
-      outs.get(i.name).push(x);
-    }
-    const f = info.facility;
-    if (need.has(f) && f !== x) { // station must exist before its first use
-      indeg.set(x, indeg.get(x) + 1);
-      if (!outs.has(f)) outs.set(f, []);
-      outs.get(f).push(x);
-    }
-  }
-  const byKind = (a, b) => kindRank(need.get(a).kind) - kindRank(need.get(b).kind) || a.localeCompare(b);
-  const ready = [...need.keys()].filter(k => indeg.get(k) === 0).sort(byKind);
-  const order = [];
-  while (ready.length) {
-    const x = ready.shift();
-    order.push(x);
-    for (const y of (outs.get(x) || [])) {
-      indeg.set(y, indeg.get(y) - 1);
-      if (indeg.get(y) === 0) ready.push(y);
-    }
-    ready.sort(byKind);
-  }
-  for (const k of [...need.keys()].sort()) if (!order.includes(k)) order.push(k); // cycle fallback
-  return { ...w, steps: order.map(name => ({ name, ...need.get(name) })) };
-}
-
-// --- path between nodes (BFS over material edges, skills excluded) ---
-let pathFrom = null;      // source id while arming
-let pathArming = false;
-let pathOwnedMode = false; // arming seeded by the possessions ledger (PF-3)
-let lastPath = null;      // { from, to, steps: [{from, to, e}], multi? }
-
-function findPath(a, b) {
-  // undirected adjacency over non-skill edges (skill gates are metadata, not steps)
-  const adj = new Map();
-  const push = (x, v) => { if (!adj.has(x)) adj.set(x, []); adj.get(x).push(v); };
-  for (const e of D.edges) {
-    if (SKILL_NAMES.has(e.from) || SKILL_NAMES.has(e.to)) continue;
-    push(e.from, { to: e.to, e });
-    push(e.to, { to: e.from, e });
-  }
-  // BFS from many sources at once (PF-3: everything you own); `a` may be a single id or a Set
-  const sources = a instanceof Set ? [...a] : [a];
-  const prev = new Map(sources.map(s => [s, null]));
-  const q = [...sources];
-  while (q.length) {
-    const cur = q.shift();
-    if (cur === b) break;
-    for (const { to, e } of (adj.get(cur) || [])) {
-      if (!prev.has(to)) { prev.set(to, { node: cur, e }); q.push(to); }
-    }
-  }
-  if (!prev.has(b)) return null;
-  const steps = [];
-  for (let cur = b; prev.get(cur); cur = prev.get(cur).node) {
-    const p = prev.get(cur);
-    steps.unshift({ from: p.node, to: cur, e: p.e });
-  }
-  return steps;
-}
-
-// dedicated top bar for the armed path query (TODO #18) — visible from arming
-// until the path is cleared, so the query state is never invisible
-const pathbar = document.getElementById('pathbar');
-function showPathbar(text, pulsing = true) {
-  if (!pathbar) return;
-  document.getElementById('pathbarText').textContent = text;
-  pathbar.classList.remove('hidden');
-  document.body.classList.toggle('path-result', !pulsing);
-}
-function hidePathbar() {
-  if (pathbar) pathbar.classList.add('hidden');
-  document.body.classList.remove('path-result');
-}
-if (pathbar) document.getElementById('pathbarCancel').onclick = () => { clearPath(); toast('Path query cancelled'); };
-
-function armPath(id) {
-  pathFrom = id;
-  pathArming = true;
-  document.body.classList.add('path-arming');
-  searchInput.dataset.armed = '1';
-  searchInput.placeholder = `Path from “${nodeById.get(id).name}” — pick or type the target…`;
-  searchInput.classList.add('arming');
-  showPathbar(`Path from “${nodeById.get(id).name}” — tap the target on the map, or pick it via search`);
-  toast(`Path FROM ${nodeById.get(id).name} — tap the target on the map, or pick it via search (Esc cancels)`);
-}
-
-function disarmPath() {
-  pathArming = false;
-  pathFrom = null;
-  pathOwnedMode = false;
-  document.body.classList.remove('path-arming', 'path-arming-owned');
-  delete searchInput.dataset.armed;
-  searchInput.placeholder = 'Search items, stations, materials…';
-  searchInput.classList.remove('arming');
-  hidePathbar();
-}
-
-function clearPath() {
-  lastPath = null;
-  disarmPath();
-  hidePathbar();
-  cy.elements().removeClass('faded highlighted');
-  writeRoute(selectedId ? [selectedId] : []); // the trail is gone, the selection stays
-}
-
-function runPath(a, b, multi = false) {
-  disarmPath();
-  const srcIds = multi ? [...a] : [a];
-  if (!multi && a === b) { toast('Pick a different target — that is the same item'); return; }
-  if (multi && srcIds.includes(b)) { toast('You already own the target — nothing to craft'); return; }
-  const steps = findPath(multi ? new Set(srcIds) : a, b);
-  if (!steps) {
-    toast(multi
-      ? `Nothing in your ledger leads to ${nodeById.get(b).name} — mark closer items as owned`
-      : `No crafting path between ${nodeById.get(a).name} and ${nodeById.get(b).name}`);
-    return;
-  }
-  lastPath = { from: multi ? srcIds : a, to: b, steps, multi };
-  selectNode(b, { syncHash: false }); // renders target panel (which shows the path section) and clears old classes
-  cy.batch(() => {
-    cy.elements().addClass('faded');
-    for (const s of steps) {
-      cy.getElementById(s.from).removeClass('faded').addClass('highlighted');
-      cy.getElementById(s.to).removeClass('faded').addClass('highlighted');
-      const eid = s.e.from + '→' + s.e.to + ':' + s.e.qty + (s.e.variant ? ':' + s.e.variant : '');
-      cy.getElementById(eid).removeClass('faded').addClass('highlighted');
-    }
-  });
-  const fromTxt = multi
-    ? `${srcIds.length} owned item${srcIds.length > 1 ? 's' : ''}`
-    : nodeById.get(a).name;
-  showPathbar(`Path: ${fromTxt} → ${nodeById.get(b).name} · ${steps.length} step${steps.length > 1 ? 's' : ''}`, false);
-  toast(`Path: ${steps.length} step${steps.length > 1 ? 's' : ''} from ${fromTxt} to ${nodeById.get(b).name}`);
-  // a multi-source query has no single "from" slug, so the URL keeps the target
-  writeRoute(multi ? [b] : [a, b]);
-}
-
-// PF-3: path seeded with every item in the possessions ledger
-function runPathOwned(b) {
-  if (!owned.size) { toast('Mark items as owned first (✓ Owned in their panel)'); return; }
-  runPath(new Set(owned), b, true);
-}
-
-// PF-3: arm a path query whose source is the whole ledger; next tap = target
-function armPathOwned() {
-  if (!owned.size) { toast('Mark items as owned first (✓ Owned in their panel)'); return; }
-  pathFrom = null;
-  pathOwnedMode = true;
-  pathArming = true;
-  document.body.classList.add('path-arming', 'path-arming-owned');
-  searchInput.dataset.armed = '1';
-  searchInput.placeholder = `Path from your ${owned.size} owned item${owned.size > 1 ? 's' : ''} — pick the target…`;
-  searchInput.classList.add('arming');
-  showPathbar(`Path from your ${owned.size} owned item${owned.size > 1 ? 's' : ''} — tap the target on the map, or pick it via search`);
-  toast(`Path FROM your ${owned.size} owned item${owned.size > 1 ? 's' : ''} — tap the target (Esc cancels)`);
-}
-
-function pathStepsHTML(p) {
-  const fromTxt = p.multi
-    ? `your ${p.from.length} owned item${p.from.length > 1 ? 's' : ''}`
-    : nodeById.get(p.from).name;
-  const rows = p.steps.map((s, i) => {
-    const qty = s.e.qty ? `<span class="q">${s.e.qty}×</span> ` : '';
-    const fac = s.e.facility && s.e.facility !== 'Cast' ? `<span class="pstep-fac">${esc(s.e.facility)}</span>` : '';
-    return `<div class="path-step" data-goto="${esc(s.to)}">
-      <span class="pn">${i + 1}</span>${iconImg(s.from)}<span class="ptx">${qty}${esc(s.from)}</span>
-      <span class="arr">→</span>${fac}${iconImg(s.to)}<span class="ptx">${esc(s.to)}</span>
-    </div>`;
-  }).join('');
-  return `<div class="p-section"><div class="p-label">Path from ${esc(fromTxt)} (${p.steps.length} steps)
-    <button class="p-clear" id="btnClearPath" title="Clear path">✕</button></div>${rows}
-    <div class="p-hint">Gold trail = the shortest material route. Esc also clears.</div></div>`;
-}
+// the requires/enables highlight owns node visibility, so it needs the filter
+// state and the readout/fit callbacks back from app.js via a context object
+initHighlight({
+  cy, nodeById, kindLabel, activeCats,
+  getIsolatedRoot: () => isolatedRoot, setIsolatedRoot: (v) => { isolatedRoot = v; },
+  getShowOrphans: () => showOrphans, setShowOrphans: (v) => { showOrphans = v; },
+  lgSyncKind, applyCategoryVisibility, updateReadout, fitSoon, toast,
+});
 
 /* ── URL routing (hash deep links) ───────────────────────────────
    #/ash_logs              → select Ash Logs
    #/ash_logs/iron_sword   → draw the path Ash Logs → Iron Sword
    A fragment never reaches the server, so these work unchanged on GitHub
    Pages, the Vite dev server, the in-process test server and file:// —
-   no fallback page, no rewrite rules. See site/routing.js for the slug
+   no fallback page, no rewrite rules. See src/routing.js for the slug
    rules and the collision-safe slug ⇄ id map.                      */
 
 function idForSlug(slug) { return slugIndex.toId.get(slug) || null; }
@@ -2683,10 +2173,16 @@ function writeRoute(ids) {
   try { history.replaceState(null, '', h); } catch { /* file:// — leave the URL be */ }
 }
 
+// A fragment can arrive while the graph is still booting — the document is
+// already loaded, so typing/clicking a `#/…` link is a SAME-DOCUMENT navigation
+// and this handler runs before populate(). Queue it here and let the boot gate
+// (finishBoot, below) apply it, rather than dropping the route on the floor.
+let pendingRoute = null;
+
 // turn a fragment into the matching view. Unknown items are reported, never
 // silently ignored, and a bad route leaves the previous view untouched.
 function applyRoute(hash = location.hash) {
-  if (!cy.nodes().length) return; // graph not populated yet — boot gate applies it
+  if (!cy.nodes().length) { pendingRoute = hash; return; } // graph not populated yet — boot gate applies it
   const slugs = routing.parseHash(hash).segments;
   if (!slugs.length) return; // bare "#/" — leave the current view alone
   const ids = slugs.map(idForSlug);
@@ -2708,8 +2204,7 @@ window.addEventListener('hashchange', () => applyRoute());
 // the visitor's own edits and write the URL. Same veil gate the ?tour= link uses.
 (function finishBoot() {
   const wantIso = urlOpt('iso');
-  const wantHash = location.hash;
-  const hasRoute = !!wantIso || routing.parseHash(wantHash).segments.length > 0;
+  const hasRoute = !!wantIso || routing.parseHash(location.hash).segments.length > 0;
   const t0 = Date.now();
   const wait = () => {
     const booted = window.__cy && cy.nodes().length > 0 && document.getElementById('veil').classList.contains('hidden');
@@ -2728,7 +2223,11 @@ window.addEventListener('hashchange', () => applyRoute());
         if (id) isolateTree(id, isodepthOpt === 'all' ? null : parseInt(isodepthOpt, 10));
         else toast(`Nothing matches “${wantIso}” in the URL — check the item's name`);
       }
-      if (hasRoute) applyRoute(wantHash);
+      // read the fragment NOW, not at boot: a same-document route that arrived
+      // mid-boot is queued in pendingRoute and must win over the stale one
+      const route = pendingRoute || location.hash;
+      if ((hasRoute || pendingRoute) && routing.parseHash(route).segments.length) applyRoute(route);
+      pendingRoute = null;
       optsReady = true; // boot is over — the visitor's own edits persist from here
       syncUrl();
     }, hasRoute ? 300 : 0);
@@ -2741,10 +2240,7 @@ cy.on('tap', 'node', (evt) => {
   const id = evt.target.id();
   closeSuggestions();
   const oe = evt.originalEvent || {};
-  if (pathArming) {
-    if (pathOwnedMode) { if (!owned.has(id)) { runPathOwned(id); return; } }
-    else if (pathFrom && id !== pathFrom) { runPath(pathFrom, id); return; }
-  }
+  if (tryPathTarget(id)) return; // an owned armed query consumes the tap
   if (oe.shiftKey) { isolateTree(id); return; }
   selectNode(id);
 });
@@ -2755,7 +2251,7 @@ cy.on('tap', (evt) => {
   // highlight owns the view, leave it — and the panel — exactly as they are, so
   // the highlighted tree the user was reading stays on screen. Otherwise a
   // background click is just a deselect that closes the panel.
-  if (highlightRoot !== null) return;
+  if (hasHighlight()) return;
   closePanel();
 });
 
@@ -2764,7 +2260,7 @@ let hovered = null;
 cy.on('mouseover', 'node', (evt) => {
   clearTimeout(hoverTimer);
   hoverTimer = setTimeout(() => {
-    if (highlightId || isolatedRoot) return;
+    if (highlightActive() || isolatedRoot) return;
     hovered = evt.target;
     evt.target.neighborhood().union(evt.target).addClass('hoverN');
   }, 100);
@@ -2784,7 +2280,6 @@ function iconImg(id, cls = '') {
   return `<span class="p-glyph" style="display:grid;place-items:center;width:100%;height:100%">${kindGlyph[n ? n.kind : 'other'] || '✦'}</span>`;
 }
 
-function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
 
 function facilityIcon(facility) {
   const st = D.nodes.find(n => n.id === facility && n.kind === 'station');
@@ -2882,15 +2377,6 @@ function nodeEditorHTML(n) {
   </div>`;
 }
 
-function parseStats(text) {
-  const out = {};
-  for (const line of String(text).split('\n')) {
-    const m = line.match(/^\s*([^:]+?)\s*:\s*(.*?)\s*$/);
-    if (m?.[1]) out[m[1]] = m[2];
-  }
-  return out;
-}
-
 function renderNodeEditor(n) {
   panelBody.innerHTML = nodeEditorHTML(n);
   panelBody.scrollTop = 0;
@@ -2952,12 +2438,6 @@ function applyNodeEditLive(id) {
 }
 
 /* ── edits window (P6-1b): what differs between this browser and the bundle ── */
-function fmtEditVal(v) {
-  if (v == null || v === '') return '—';
-  if (Array.isArray(v)) return v.join(' · ');
-  if (typeof v === 'object') return Object.entries(v).map(([k, x]) => `${k} ${x}`).join(', ');
-  return String(v);
-}
 function updateEditsCount() {
   const el = document.getElementById('editsCount');
   if (!el) return;
@@ -3103,18 +2583,32 @@ function exportFullData() {
   if (exf) exf.onclick = () => exportFullData();
 }
 
+// the line under the panel title — one place, so the quest/mount layers (P7)
+// can special-case their type the same way skills and spells do
+function panelTypeText(n, sp) {
+  if (n.kind === 'skill') return 'Skill';
+  if (n.kind === 'spell' && sp) return `Spell · ${sp.skill || '?'}${sp.level ? ' lvl ' + sp.level : ''}`;
+  const q = questById.get(n.id);
+  if (n.kind === 'quest' && q) {
+    const regions = (q.regions || []).join(' / ');
+    return `Quest · ${q.tier}${regions ? ' · ' + regions : ''}`;
+  }
+  const mount = mountById.get(n.id);
+  if (mount) {
+    const by = (mount.quests || []).length ? ` · unlocked by ${mount.quests.join(' + ')}` : '';
+    return `Mount${n.kind === 'mount' ? '' : ' item'} · ${mount.base}${by}`;
+  }
+  return (n.itemType || kindLabel[n.kind] || n.kind) +
+    (inDegree.get(n.id) ? ` · made by ${inDegree.get(n.id)} recipe${inDegree.get(n.id) > 1 ? 's' : ''}` : '') +
+    (outDegree.get(n.id) ? ` · used in ${outDegree.get(n.id)}` : '');
+}
+
 function openPanel(id) {
   const n = nodeById.get(id);
   if (!n) return;
   const sp = D.spells.find(s => s.name === id);
   document.getElementById('panelTitle').textContent = n.name;
-  document.getElementById('panelType').textContent = n.kind === 'skill'
-    ? 'Skill'
-    : (n.kind === 'spell' && sp
-      ? `Spell · ${sp.skill || '?'}${sp.level ? ' lvl ' + sp.level : ''}`
-      : (n.itemType || kindLabel[n.kind] || n.kind) +
-        (inDegree.get(id) ? ` · made by ${inDegree.get(id)} recipe${inDegree.get(id) > 1 ? 's' : ''}` : '') +
-        (outDegree.get(id) ? ` · used in ${outDegree.get(id)}` : ''));
+  document.getElementById('panelType').textContent = panelTypeText(n, sp);
   document.getElementById('panelIcon').innerHTML = iconImg(id);
   // the ✎ beside the title opens this node's edit form (P6-1)
   const bed = document.getElementById('btnEditData');
@@ -3137,7 +2631,8 @@ document.getElementById('panelClose').onclick = closePanel;
 function syncOwnedBtn(n) {
   const b = document.getElementById('btnOwn');
   if (!b) return;
-  if (n.kind === 'region') { b.hidden = true; return; } // region hubs are not craftables
+  // region hubs and quests are not craftables — nothing to mark as owned
+  if (n.kind === 'region' || n.kind === 'quest') { b.hidden = true; return; }
   const has = owned.has(n.id);
   b.hidden = false;
   b.textContent = has ? '★' : '☆';
@@ -3147,9 +2642,27 @@ function syncOwnedBtn(n) {
   b.setAttribute('aria-label', has ? 'Owned' : 'Mark owned');
 }
 
+// The next level's unlock on a skill hub: with a character, the first level above
+// your current one that unlocks items ("you have 32 → next is 33: X"); without
+// one, the skill's first item-unlock (owned-items TODO).
+function nextUnlockHTML(skill) {
+  const ch = charActive();
+  const lv = ch ? CH.skillOf(ch, skill.name) : null;
+  const withItems = (skill.unlocks || []).filter(u => (u.items || []).length).sort((a, b) => a.level - b.level);
+  const next = withItems.find(u => lv == null || u.level > lv);
+  if (!next) return '';
+  const chips = next.items.map(it =>
+    `<span class="mat" data-goto="${esc(it)}">${iconImg(it)}<span class="mn">${esc(it)}</span></span>`).join('');
+  const who = lv == null ? `level ${next.level}` : `level ${next.level} — you have ${lv}`;
+  return `<div class="p-section next-unlock"><div class="p-label">Next unlock<span style="flex:1"></span><span class="nu-lv">${esc(who)}</span></div>
+    <div class="recipe-mats">${chips}</div>
+    <div class="p-hint">${esc(next.text)}</div></div>`;
+}
+
 function renderPanelBody(n) {
   const id = n.id;
   syncOwnedBtn(n);
+  panel.classList.toggle('owned', owned.has(id)); // the codex itself marks an owned item
   const bo = document.getElementById('btnOwn');
   if (bo) bo.onclick = () => {
     const has = toggleOwned(id);
@@ -3173,12 +2686,62 @@ function renderPanelBody(n) {
     const rows = [...members.entries()].sort((a, b) => a[0].localeCompare(b[0])).map(([item, methods]) =>
       `<div class="found-row fi-jump" data-goto="${esc(item)}">${iconImg(item)}<span class="fr">${esc(item)}</span><span class="fw">${[...methods].map(m => esc(verb[m] || m)).join(' · ')}</span></div>`
     ).join('');
-    sections.push(`<div class="p-section"><div class="p-label">What you find here (${members.size})</div>${rows}</div>`);
-    sections.push(`<div class="p-section"><div class="p-hint">Region hubs are map aids mined from the wiki's location prose — recipes and plans ignore them. Toggle their green links in the legend (LINKS → Region links).</div></div>`);
+    if (members.size) sections.push(`<div class="p-section"><div class="p-label">What you find here (${members.size})</div>${rows}</div>`);
+    // quests set in this region (P7) — the region → quest half of the spine
+    const qHere = regionQuests.get(id) || [];
+    if (qHere.length) {
+      const qRows = qHere.slice().sort((a, b) => a.localeCompare(b)).map(q => {
+        const rec = questById.get(q) || {};
+        return `<div class="found-row fi-jump" data-goto="${esc(q)}"><span class="fi-pin">❖</span><span class="fr">${esc(q)}</span><span class="fw">${esc(rec.whereToStart || '')}</span></div>`;
+      }).join('');
+      sections.push(`<div class="p-section"><div class="p-label">Quests here (${qHere.length})</div>${qRows}</div>`);
+    }
+    sections.push(`<div class="p-section"><div class="p-hint">Region hubs are map aids mined from the wiki's location prose and its quest tables — recipes and plans ignore them. Their green links and the gold quest links toggle in the legend (LINKS).</div></div>`);
     panelBody.innerHTML = sections.join('');
     panelBody.scrollTop = 0;
     panelBody.querySelectorAll('[data-goto]').forEach(el => { el.onclick = () => selectNode(el.dataset.goto); });
     return;
+  }
+
+  // quest pseudo-node (P7): where to start, then what it rewards — all jumpable
+  if (n.kind === 'quest') {
+    const q = questById.get(id) || { regions: [], rewards: [], whereToStart: '' };
+    const regionChips = (q.regions || []).filter(r => nodeById.has(r)).map(r =>
+      `<span class="mat" data-goto="${esc(r)}"><span class="fi-pin">⌖</span><span class="mn">${esc(r)}</span></span>`).join('');
+    if (regionChips) sections.push(`<div class="p-section"><div class="p-label">Region</div><div class="recipe-mats">${regionChips}</div></div>`);
+    sections.push(`<div class="p-section"><div class="p-label">Where to start</div><div class="p-hint" style="margin-bottom:0">${esc(q.whereToStart || '—')}</div></div>`);
+    const rewards = q.rewards || [];
+    if (rewards.length) {
+      const rows = rewards.map(r =>
+        `<div class="found-row fi-jump" data-goto="${esc(r.item)}">${iconImg(r.item)}<span class="fr">${esc(r.item)}</span><span class="fw">${r.post ? 'post-quest' : r.during ? 'during the quest' : 'reward'}</span></div>`).join('');
+      sections.push(`<div class="p-section"><div class="p-label">Rewards (${rewards.length})</div>${rows}</div>`);
+    }
+    // mounts this quest unlocks — the Mount page's requirements column
+    const unlocks = [...mountById.entries()].filter(([, m]) => (m.quests || []).includes(id));
+    if (unlocks.length) {
+      const rows = unlocks.map(([mid, m]) =>
+        `<div class="found-row fi-jump" data-goto="${esc(mid)}">${iconImg(mid)}<span class="fr">${esc(mid)}</span><span class="fw">${esc(m.base)} · ${esc(m.obtain || '')}</span></div>`).join('');
+      sections.push(`<div class="p-section"><div class="p-label">Unlocks mounts (${unlocks.length})</div>${rows}</div>`);
+    }
+    sections.push(`<div class="p-section"><div class="p-hint">Quest nodes come from the wiki's Quests page — region → quest → reward. Part-completed quests count for mounts shown here too. Recipes, plans and paths ignore them; toggle their gold links in the legend (LINKS → Quest links).</div></div>`);
+    panelBody.innerHTML = sections.join('');
+    panelBody.scrollTop = 0;
+    panelBody.querySelectorAll('[data-goto]').forEach(el => { el.onclick = () => selectNode(el.dataset.goto); });
+    return;
+  }
+
+  // mounts (P7): the Mount page's base type, requirements, acquisition and lore
+  const mount = mountById.get(id);
+  if (mount) {
+    const reqChips = (mount.quests || []).filter(q => nodeById.has(q)).map(q =>
+      `<span class="mat" data-goto="${esc(q)}"><span class="fi-pin">❖</span><span class="mn">${esc(q)}</span></span>`).join('');
+    sections.push(`<div class="p-section mount-card">
+      <div class="p-label">Mount · ${esc(mount.base)}</div>
+      ${mount.lore ? `<div class="p-hint" style="margin-bottom:6px">${esc(mount.lore)}</div>` : ''}
+      ${mount.obtain ? `<div class="p-hint" style="margin-bottom:0"><b>How to get it:</b> ${esc(mount.obtain)}</div>` : ''}
+      ${reqChips ? `<div class="p-label" style="margin-top:8px">Requirements</div><div class="recipe-mats">${reqChips}</div>` : ''}
+      ${mount.vestige && nodeById.has(mount.vestige) ? `<div class="p-label" style="margin-top:8px">Unlocked by</div><div class="recipe-mats"><span class="mat" data-goto="${esc(mount.vestige)}">${iconImg(mount.vestige)}<span class="mn">${esc(mount.vestige)}</span></span></div>` : ''}
+    </div>`);
   }
 
   // "From nothing" plan — the atlas' core question; shown for items and raw
@@ -3186,7 +2749,7 @@ function renderPanelBody(n) {
   // PF-3: with the ledger populated, plans can start from what you own.
   const isSkillOrSpell = n.kind === 'skill' || n.kind === 'spell';
   const plan = isSkillOrSpell ? null : planFromNothing(id);
-  const wp = !isSkillOrSpell && planMode === 'waypoint' && owned.size > 0 ? planChecklist(id) : null;
+  const wp = !isSkillOrSpell && planState.mode === 'waypoint' && owned.size > 0 ? planChecklist(id) : null;
   const ownedModeOn = plan && plan.useOwned;
   const planTitle = wp ? 'Waypoint checklist' : ownedModeOn ? 'From what you own — remaining' : 'From nothing — what you need';
   const modeBtnLabel = wp ? 'plan: waypoint' : ownedModeOn ? 'plan: owned' : 'plan: nothing';
@@ -3240,7 +2803,8 @@ function renderPanelBody(n) {
   }
 
   // two-node path result (only when this node is the target of a queried path)
-  if (lastPath && lastPath.to === id) sections.push(pathStepsHTML(lastPath));
+  const lp = getLastPath();
+  if (lp && lp.to === id) sections.push(pathStepsHTML(lp));
 
   // description
   if (n.description && n.description.length) {
@@ -3261,6 +2825,8 @@ function renderPanelBody(n) {
   if (skill) {
     const mine = charSkillSectionHTML(id);
     if (mine) sections.push(mine);
+    const nx = nextUnlockHTML(skill);
+    if (nx) sections.push(nx);
     const rows = skill.unlocks.filter(u => u.text && !/^-[\d.]+%/.test(u.text) && u.text !== '-').map(u =>
       `<div class="unlock-row"><span class="lvl">${u.level}</span><span class="utx">${esc(u.text)}</span></div>`).join('');
     if (rows) sections.push(`<div class="p-section"><div class="p-label">Level unlocks</div>${rows}</div>`);
@@ -3283,10 +2849,18 @@ function renderPanelBody(n) {
     </div>`);
   }
 
-  // skill gates on this item
+  // skill gates on this item — with a character, say whether each is met
   if (unlocks.length) {
+    const ch = charActive();
     sections.push(`<div class="p-section"><div class="p-label">Skill gates</div>${
-      unlocks.map(u => `<div class="unlock-row"><span class="lvl">${u.level}</span><span class="utx">${esc(u.skill)} ${u.level} — ${esc(u.text)}</span></div>`).join('')
+      unlocks.map(u => {
+        const cur = ch ? CH.skillOf(ch, u.skill) : null;
+        const met = cur != null && cur >= u.level;
+        const note = cur == null ? '' : met
+          ? `<span class="gate-ok" title="Your level meets this gate">✓ you have ${cur}</span>`
+          : `<span class="gate-miss" title="You need this level to craft it">needs ${u.level} — you have ${cur}</span>`;
+        return `<div class="unlock-row${met ? ' met' : ''}"><span class="lvl">${u.level}</span><span class="utx">${esc(u.skill)} ${u.level} — ${esc(u.text)}</span>${note}</div>`;
+      }).join('')
     }</div>`);
   }
 
@@ -3401,12 +2975,11 @@ function renderPanelBody(n) {
   if (bpt) bpt.onclick = () => armPath(id);
   const bpm = document.getElementById('btnPlanMode');
   if (bpm) bpm.onclick = () => {
-    planMode = planMode === 'nothing' ? 'owned' : planMode === 'owned' ? 'waypoint' : 'nothing';
-    localStorage.setItem('dw.planMode', planMode);
+    const mode = cyclePlanMode();
     renderPanelBody(n);
-    toast(planMode === 'owned'
+    toast(mode === 'owned'
       ? `Plan starts from your ${owned.size} owned item${owned.size > 1 ? 's' : ''}`
-      : planMode === 'waypoint'
+      : mode === 'waypoint'
         ? 'Waypoint checklist — check steps off as you craft them'
         : 'Plan starts from nothing');
   };
@@ -3474,8 +3047,11 @@ function recipeCard(r) {
     : `<span class="recipe-facility">${esc(facility)}</span>`;
   // P3-6: surface the recipe-unlock item (the `recipe=` field) on cards that
   // have a separate facility — it's how this recipe is learned in-game
+  // mark the unlock item "needs" when the ledger says you have not picked it up
+  // yet (owned-items TODO: show what is still missing, next to what you own)
+  const bpOwned = r.blueprint ? owned.has(r.blueprint) : false;
   const unlockHTML = r.blueprint && r.facility && r.blueprint !== r.facility && r.blueprint !== r.output
-    ? `<span class="recipe-unlock fac-link" data-goto="${esc(r.blueprint)}" title="Obtaining/studying this item unlocks the recipe automatically">${iconImg(r.blueprint)}${esc(r.blueprint)}</span>`
+    ? `<span class="recipe-unlock fac-link${bpOwned ? '' : ' needs'}" data-goto="${esc(r.blueprint)}" title="Obtaining/studying this item unlocks the recipe automatically${bpOwned ? '' : ' — you do not own it yet'}">${iconImg(r.blueprint)}${esc(r.blueprint)}</span>`
     : '';
   return `<div class="recipe ${r.deprecated ? 'deprecated' : ''}">
     <div class="recipe-head">
@@ -3533,27 +3109,6 @@ function closeSuggestions() {
   sugIndex = -1;
 }
 
-function fuzzyScore(q, text) {
-  const t = text.toLowerCase();
-  if (t.startsWith(q)) return 1000 - t.length;
-  const idx = t.indexOf(q);
-  if (idx >= 0) return 700 - idx * 2 - t.length * 0.1;
-  let ti = 0, score = 0, streak = 0;
-  for (const ch of q) {
-    const found = t.indexOf(ch, ti);
-    if (found === -1) return -1;
-    if (found === ti) streak++; else streak = 0;
-    score += streak * 3 - (found - ti) * 0.2;
-    ti = found + 1;
-  }
-  return score;
-}
-
-function highlight(text, q) {
-  const i = text.toLowerCase().indexOf(q.toLowerCase());
-  if (i === -1) return esc(text);
-  return esc(text.slice(0, i)) + '<mark>' + esc(text.slice(i, i + q.length)) + '</mark>' + esc(text.slice(i + q.length));
-}
 
 searchInput.addEventListener('input', () => {
   const q = searchInput.value.trim();
@@ -3589,10 +3144,7 @@ searchInput.addEventListener('input', () => {
       closeSuggestions();
       searchInput.value = n.name;
       searchClear.style.display = 'block';
-      if (pathArming) {
-        if (pathOwnedMode) { if (!owned.has(n.id)) { runPathOwned(n.id); searchInput.blur(); return; } }
-        else if (pathFrom && n.id !== pathFrom) { runPath(pathFrom, n.id); searchInput.blur(); return; }
-      }
+      if (tryPathTarget(n.id)) { searchInput.blur(); return; }
       selectNode(n.id);
     };
   });
@@ -3622,17 +3174,14 @@ searchInput.addEventListener('keydown', (e) => {
     const pick = sugItems[Math.max(0, sugIndex)];
     if (pick) {
       closeSuggestions();
-      if (pathArming) {
-        if (pathOwnedMode) { if (!owned.has(pick.id)) { runPathOwned(pick.id); searchInput.blur(); return; } }
-        else if (pathFrom && pick.id !== pathFrom) { runPath(pathFrom, pick.id); searchInput.blur(); return; }
-      }
+      if (tryPathTarget(pick.id)) { searchInput.blur(); return; }
       selectNode(pick.id);
       searchInput.blur();
     }
     return;
   } else if (e.key === 'Escape') {
     closeSuggestions();
-    if (pathArming) { disarmPath(); toast('Path query cancelled'); return; }
+    if (pathArmed()) { disarmPath(); toast('Path query cancelled'); return; }
     searchInput.blur();
     return;
   }
@@ -3675,316 +3224,34 @@ document.addEventListener('keydown', (e) => {
   if (e.target === searchInput || e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
   if (e.key === '/') { e.preventDefault(); searchInput.focus(); searchInput.select(); }
   else if (e.key === '?') { e.preventDefault(); toggleHelp(); }
-  else if (e.key === 'Escape') { if (pathArming) { disarmPath(); toast('Path query cancelled'); } if (lastPath) clearPath(); if (isolatedRoot) clearIsolation(); closePanel(); clearHighlight(); }
+  else if (e.key === 'Escape') { if (pathArmed()) { disarmPath(); toast('Path query cancelled'); } if (getLastPath()) clearPath(); if (isolatedRoot) clearIsolation(); closePanel(); clearHighlight(); }
   else if (e.key === 'f' || e.key === 'F') cy.fit(undefined, 60);
 });
 
-/* ═══════════════════════════════════════════════════════════════
-   MINIMAP
-   ═══════════════════════════════════════════════════════════════ */
-const minimap = document.getElementById('minimap');
-minimap.hidden = false;
-const mmCanvas = document.getElementById('mmCanvas');
-const mmViewport = document.getElementById('mmViewport');
-const mmCtx = mmCanvas.getContext('2d');
-let mmDirty = true;
+/* ── minimap ──────────────────────────────────────────────────────
+   The canvas overview + click-to-centre live in src/minimap.js. */
+initMinimap({ cy, nodeColor });
 
-function mmResize() {
-  const r = minimap.getBoundingClientRect();
-  mmCanvas.width = r.width * devicePixelRatio;
-  mmCanvas.height = r.height * devicePixelRatio;
-  mmDirty = true;
-}
-window.addEventListener('resize', mmResize);
-mmResize();
-
-function drawMinimap() {
-  if (mmDirty) {
-    mmCtx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
-    mmCtx.clearRect(0, 0, mmCanvas.width, mmCanvas.height);
-    const w = mmCanvas.width / devicePixelRatio, h = mmCanvas.height / devicePixelRatio;
-    const bb = cy.nodes(':visible').boundingBox({});
-    if (bb && bb.w > 0) {
-      const scale = Math.min((w - 8) / bb.w, (h - 8) / bb.h);
-      const ox = (w - bb.w * scale) / 2 - bb.x1 * scale;
-      const oy = (h - bb.h * scale) / 2 - bb.y1 * scale;
-      for (const n of cy.nodes(':visible')) {
-        const p = n.position();
-        mmCtx.fillStyle = n.hasClass('locked') ? '#333' : nodeColor(n.data('meta'));
-        mmCtx.globalAlpha = n.hasClass('locked') ? 0.25 : 0.75;
-        mmCtx.fillRect(ox + p.x * scale - 1, oy + p.y * scale - 1, 2.2, 2.2);
-      }
-      mmCtx.globalAlpha = 1;
-      const extent = cy.extent();
-      mmViewport.style.left = (ox + extent.x1 * scale) + 'px';
-      mmViewport.style.top = (oy + extent.y1 * scale) + 'px';
-      mmViewport.style.width = (extent.w * scale) + 'px';
-      mmViewport.style.height = (extent.h * scale) + 'px';
-    }
-    mmDirty = false;
-  }
-}
-
-cy.on('position resize add remove', () => { mmDirty = true; });
-cy.on('viewport', () => { mmDirty = true; });
-(function mmLoop() { drawMinimap(); requestAnimationFrame(mmLoop); })();
-minimap.onclick = (e) => {
-  const rect = minimap.getBoundingClientRect();
-  const bb = cy.nodes(':visible').boundingBox({});
-  if (!bb || bb.w <= 0) return;
-  const w = rect.width, h = rect.height;
-  const scale = Math.min((w - 8) / bb.w, (h - 8) / bb.h);
-  const ox = (w - bb.w * scale) / 2 - bb.x1 * scale;
-  const oy = (h - bb.h * scale) / 2 - bb.y1 * scale;
-  const wx = (e.clientX - rect.left - ox) / scale;
-  const wy = (e.clientY - rect.top - oy) / scale;
-  cy.animate({ center: { x: wx, y: wy } }, { duration: 300 });
-};
-
-/* ═══════════════════════════════════════════════════════════════
-   CHARACTERS — per-character graph state & skill levels (TODO #24)
-   site/characters.js owns the schema and the dw.* state swap; this section is
-   only the UI: the ⚉ header control, the startup prompt for a first character,
-   and the skill-level editor on a skill hub. Switching/creating a character
-   swaps the live keys and reloads, so every part of the app re-reads them.
-   ═══════════════════════════════════════════════════════════════ */
+/* ── characters (TODO #24) ───────────────────────────────────────
+   The character UI (header control, startup prompt, skill-level editor) now
+   lives in src/characters-ui.js; app.js wires it up in initCharactersUI() at
+   boot. `CH` stays here for the skill-hub panel handler that reads/writes
+   levels directly. */
 const CH = window.DW_CHARACTERS;
 
-// Reload into the state a character swap just applied. Graph options in the URL
-// (which a shared link puts there) WIN over stored prefs by design, so they would
-// override the character's own saved layout/settings on the reload — drop them
-// here, keeping foreign params (?tour=) and the hash. The character's state is
-// the source of truth for a swap.
-function reloadForCharacterSwap() {
-  try {
-    const q = new URLSearchParams(location.search);
-    for (const k of routing.OPTION_NAMES) q.delete(k);
-    const qs = q.toString();
-    history.replaceState(null, '', (qs ? '?' + qs : location.pathname) + location.hash);
-  } catch { /* file:// — nothing to rewrite */ }
-  location.reload();
-}
-
-function charActive() { return CH ? CH.activeCharacter() : null; }
-function charTotal(ch) { return ch && CH ? CH.totalLevel(ch.skills, CH.skillNames()) : 0; }
-
-// show the tracked level on each skill hub's label ("Artisan · 12")
-function refreshSkillLabels() {
-  if (!CH) return;
-  const ch = charActive();
-  cy.nodes().forEach(n => {
-    const m = n.data('meta');
-    if (!m || m.kind !== 'skill') return;
-    const lv = ch ? CH.skillOf(ch, n.id()) : null;
-    n.data('label', lv == null ? n.id() : `${n.id()} · ${lv}`);
-  });
-}
-
-// the codex section for a skill hub — the per-node level tracker
-function charSkillSectionHTML(id) {
-  if (!CH) return '';
-  const ch = charActive();
-  if (!ch) {
-    return `<div class="p-section"><div class="p-label">Your level</div>
-      <div class="p-hint">Name a character to track your <b>${esc(id)}</b> level — the number beside the character is the sum of all skills.</div>
-      <div class="p-actions"><button class="btn" id="btnCharSetup">Set up a character</button></div></div>`;
-  }
-  const lv = CH.skillOf(ch, id);
-  return `<div class="p-section"><div class="p-label">Your level<span style="flex:1"></span><span class="char-inline-total">total ${charTotal(ch)}</span></div>
-    <div class="char-level-row">
-      <input id="skillLevelInput" type="number" min="${CH.SKILL_MIN}" max="${CH.SKILL_MAX}" value="${lv == null ? CH.SKILL_MIN : lv}" aria-label="${esc(id)} level">
-      <span class="char-level-hint">your level in ${esc(id)}</span>
-    </div></div>`;
-}
-
-function renderCharPanel() {
-  const listEl = document.getElementById('charList');
-  if (!listEl || !CH) return;
-  const data = CH.read();
-  const active = charActive();
-  listEl.innerHTML = data.chars.length
-    ? data.chars.map(c => `<button class="char-row${c.id === data.active ? ' active' : ''}" data-char="${esc(c.id)}">
-        <span class="cr-name">${esc(c.name)}</span>
-        <span class="cr-lv" title="Total level">Lv ${charTotal(c)}</span>
-        ${c.id === data.active ? '<span class="cr-lv">✓</span>' : ''}
-      </button>`).join('')
-    : '<div class="char-empty">No character yet — the atlas still works; settings stay in this browser.</div>';
-  listEl.querySelectorAll('[data-char]').forEach(el => {
-    el.onclick = () => {
-      if (el.dataset.char === data.active) return;
-      CH.activate(el.dataset.char); // snapshot out, apply in
-      reloadForCharacterSwap();
-    };
-  });
-
-  const nameInput = document.getElementById('charName');
-  if (nameInput) {
-    nameInput.value = active ? active.name : '';
-    nameInput.disabled = !active;
-    nameInput.onchange = () => {
-      if (!active) return;
-      CH.rename(active.id, nameInput.value);
-      refreshCharUI();
-      toast('Character renamed');
-    };
-  }
-  const badge = document.getElementById('charTotal');
-  if (badge) badge.textContent = active ? `Lv ${charTotal(active)}` : 'No character';
-
-  const skillsEl = document.getElementById('charSkills');
-  if (skillsEl) {
-    const names = CH.skillNames();
-    if (!active) {
-      skillsEl.innerHTML = '<div class="char-empty">Name a character to track skill levels.</div>';
-    } else {
-      const skills = CH.normSkills(active.skills, names);
-      skillsEl.innerHTML = names.map(n =>
-        `<label class="char-skill">${esc(n)}<input type="number" min="${CH.SKILL_MIN}" max="${CH.SKILL_MAX}" value="${skills[n]}" data-skill="${esc(n)}" aria-label="${esc(n)} level"></label>`
-      ).join('');
-      skillsEl.querySelectorAll('[data-skill]').forEach(inp => {
-        inp.onchange = () => { CH.setSkill(inp.dataset.skill, inp.value, active.id); refreshCharUI(); };
-      });
-    }
-  }
-  const totalLine = document.getElementById('charTotalLine');
-  if (totalLine) {
-    totalLine.innerHTML = active
-      ? `Total level: <b>${charTotal(active)}</b> — the sum of all skill levels.`
-      : '';
-  }
-  const del = document.getElementById('charDelete');
-  if (del) del.disabled = !active;
-  const adoptWrap = document.getElementById('charAdoptWrap');
-  if (adoptWrap) adoptWrap.hidden = !(!active && CH.hasLiveState());
-  const note = document.getElementById('charNote');
-  if (note) note.textContent = active
-    ? 'Layout, settings & owned items follow this character.'
-    : 'No character — settings are kept in this browser only.';
-}
-
-function refreshCharUI() {
-  const ch = charActive();
-  const btn = document.getElementById('charBtn');
-  if (btn) {
-    btn.innerHTML = ch
-      ? `<span class="cb-rune">⚉</span><span class="cb-name">${esc(ch.name)}</span><span class="cb-lv" title="Total level (sum of all skills)">${charTotal(ch)}</span>`
-      : '<span class="cb-rune">⚉</span><span class="cb-name">Character</span>';
-    btn.title = ch
-      ? `${ch.name} — total level ${charTotal(ch)}. Layout, settings and owned items are saved per character.`
-      : 'No character yet — name one to save skill levels, layout, settings and owned items';
-  }
-  refreshSkillLabels();
-  renderCharPanel();
-}
-
-(function ensureActiveCharacter() {
-  if (!CH) return;
-  const data = CH.read();
-  if (data.active || !data.chars.length) return;
-  // characters exist but none is marked active (e.g. hand-edited storage): adopt
-  // the first once. Guarded via sessionStorage so a failed write can't reload-loop.
-  const GUARD = 'dw.charActivateGuard';
-  try {
-    if (sessionStorage.getItem(GUARD)) { sessionStorage.removeItem(GUARD); return; }
-    sessionStorage.setItem(GUARD, '1');
-  } catch { /* no sessionStorage — the persisted active below settles it */ }
-  CH.activate(data.chars[0].id);
-  reloadForCharacterSwap();
-})();
-
-(function initCharPanel() {
-  const btn = document.getElementById('charBtn');
-  const panel = document.getElementById('charPanel');
-  if (!btn || !panel || !CH) return;
-  panel.addEventListener('click', e => e.stopPropagation());
-  if ('showPopover' in panel) {
-    panel.addEventListener('beforetoggle', e => btn.setAttribute('aria-expanded', String(e.newState === 'open')));
-    btn.onclick = e => {
-      e.stopPropagation();
-      if (panel.matches(':popover-open')) panel.hidePopover();
-      else {
-        if (!CSS.supports('anchor-name: --a')) {
-          const r = btn.getBoundingClientRect(); // top layer escapes the header — place manually
-          panel.style.top = Math.round(r.bottom + 8) + 'px';
-          panel.style.right = Math.max(8, Math.round(window.innerWidth - r.right)) + 'px';
-        }
-        renderCharPanel();
-        panel.showPopover();
-      }
-    };
-  } else {
-    let closer = null;
-    const escClose = e => {
-      if (e.key !== 'Escape' || panel.hidden) return;
-      panel.hidden = true; btn.setAttribute('aria-expanded', 'false');
-      document.removeEventListener('click', closer); document.removeEventListener('keydown', escClose, true);
-    };
-    btn.onclick = e => {
-      e.stopPropagation();
-      const open = panel.hidden;
-      panel.hidden = !open;
-      btn.setAttribute('aria-expanded', String(open));
-      if (open) {
-        renderCharPanel();
-        closer = ev => {
-          if (panel.contains(ev.target) || ev.target === btn) return;
-          panel.hidden = true; btn.setAttribute('aria-expanded', 'false');
-          document.removeEventListener('click', closer); document.removeEventListener('keydown', escClose, true);
-        };
-        document.addEventListener('click', closer); document.addEventListener('keydown', escClose, true);
-      }
-    };
-  }
-  const createBtn = document.getElementById('charCreate');
-  if (createBtn) createBtn.onclick = () => {
-    const input = document.getElementById('charNewName');
-    const name = (input && input.value || '').trim();
-    if (!name) { toast('Give your character a name first'); if (input) input.focus(); return; }
-    const adoptBox = document.getElementById('charAdopt');
-    const adopt = !charActive() && CH.hasLiveState() && !!adoptBox && adoptBox.checked;
-    CH.create(name, { adopt });
-    reloadForCharacterSwap();
-  };
-  const delBtn = document.getElementById('charDelete');
-  if (delBtn) delBtn.onclick = () => {
-    const a = charActive();
-    if (!a) return;
-    CH.remove(a.id);
-    reloadForCharacterSwap();
-  };
-})();
-
-(function initCharPrompt() {
-  const modal = document.getElementById('charModal');
-  if (!modal || !CH) return;
-  const nameInput = document.getElementById('charModalName');
-  const skip = document.getElementById('charModalSkip');
-  if (skip) skip.onclick = () => { CH.markPrompted(); modal.hidden = true; };
-  const doCreate = () => {
-    const name = (nameInput && nameInput.value || '').trim();
-    if (!name) { toast('Give your character a name first'); if (nameInput) nameInput.focus(); return; }
-    const adoptWrap = document.getElementById('charModalAdoptWrap');
-    const adoptBox = document.getElementById('charModalAdopt');
-    const adopt = !!adoptWrap && !adoptWrap.hidden && !!adoptBox && adoptBox.checked;
-    CH.markPrompted();
-    CH.create(name, { adopt });
-    reloadForCharacterSwap();
-  };
-  const createBtn = document.getElementById('charModalCreate');
-  if (createBtn) createBtn.onclick = doCreate;
-  if (nameInput) nameInput.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); doCreate(); } };
-  // ask once: only when there is no character and we have not asked before
-  if (!charActive() && !CH.promptShown()) {
-    const adoptWrap = document.getElementById('charModalAdoptWrap');
-    if (adoptWrap) adoptWrap.hidden = !CH.hasLiveState(); // migration prompt only when data exists
-    modal.hidden = false;
-    if (nameInput) setTimeout(() => nameInput.focus(), 150);
-  }
-})();
-
 /* ── boot ────────────────────────────────────────────────────── */
+// searchInput is declared below the path section, so hand path.js its context here
+initPath({ cy, nodeById, owned, iconImg, selectNode, writeRoute, toast, searchInput, selectedId: () => selectedId });
+initCharactersUI({ cy, toast });
 persistOwned();
 applyPossessions();
 updateReadout();
 refreshCharUI();
+
+/* Classic scripts leaked every top-level `function` declaration onto window; a
+   module keeps them in its own scope. Re-publish the handful that the guided
+   tours (src/tours.js), the acceptance harness (scripts/test-ui.mjs) and the
+   browser console call by name, so nothing outside this file regresses.
+   (`window.__cy` is published above, next to the cy it wraps.) */
+Object.assign(window, { selectNode, isolateTree, showEverything });
 console.log(`Dragonwilds Crafting Atlas: ${D.nodes.length} nodes, ${D.edges.length} edges, ${D.recipes.length} recipes`);

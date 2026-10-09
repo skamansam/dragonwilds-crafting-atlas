@@ -1,5 +1,5 @@
 /**
- * Shared per-character state math — replicated from site/characters.js (TODO #24).
+ * Shared per-character state math — replicated from src/characters.js (TODO #24).
  *
  * The site keeps a character roster in localStorage (`dw.characters`). Each
  * character has a name, one level per skill and its OWN graph state — the live
@@ -12,7 +12,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-const dataPath = resolve(process.cwd(), "site", "data.json");
+const dataPath = resolve(process.cwd(), "public", "data.json");
 const D = JSON.parse(readFileSync(dataPath, "utf8")) as {
 	skills: { name: string }[];
 };

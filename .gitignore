@@ -1,3 +1,6 @@
+# build output (vite build → the folder the Pages workflow uploads)
+dist/
+
 # build/test tooling
 node_modules/
 # package.json is tracked now (holds dev tooling: vite, vitest, playwright)

@@ -64,11 +64,11 @@ argument.
 **Do:** Add a `LICENSE` file for the project's own original code (pick a permissive license, e.g.
 MIT or Apache-2.0). Add a separate `LICENSE-DATA.md` (or a clearly marked section in README)
 stating:
-- The scraped dataset (`site/data.js`, recipe/skill/spell relationship data derived from wiki
+- The scraped dataset (`public/data.js`, recipe/skill/spell relationship data derived from wiki
   text) is a derivative of RuneScape: Dragonwilds Wiki content and is licensed under
   **CC BY-NC-SA 3.0**, matching the source wiki's license, with a link to
   https://creativecommons.org/licenses/by-nc-sa/3.0/
-- The icon/image assets in `site/icons/` are Jagex Limited's copyrighted game assets, used
+- The icon/image assets in `public/icons/` are Jagex Limited's copyrighted game assets, used
   under Jagex's Fan Content Policy (non-commercial, revocable license) — NOT under any open
   source or Creative Commons license, and NOT covered by the code's MIT/Apache license.
 

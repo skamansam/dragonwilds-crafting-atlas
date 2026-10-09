@@ -25,13 +25,13 @@ SOFTWARE.
 SCOPE OF THIS LICENSE
 
 This MIT license covers the original source code in this repository only:
-the scraper scripts (`scripts/`), the site application code (`site/app.js`,
-`site/index.html`, `site/style.css`), and build tooling.
+the scraper scripts (`scripts/`), the site application code
+(`src/*.js`, `src/style.css`, `index.html`), and build tooling.
 
 It does NOT cover:
-- the game dataset (`site/data.js`) — see LICENSE-DATA.md
-- the item/station/spell/skill icons (`site/icons/`) — Jagex Limited's
+- the game dataset (`public/data.js`) — see LICENSE-DATA.md
+- the item/station/spell/skill icons (`public/icons/`) — Jagex Limited's
   copyrighted game assets, used under Jagex's Fan Content Policy
-- the embedded fonts (`site/fonts/`) — SIL Open Font License (see LICENSE-DATA.md)
+- the embedded fonts (`public/fonts/`) — SIL Open Font License (see LICENSE-DATA.md)
 
 See LICENSE-DATA.md and the README "Licensing" section for the full picture.

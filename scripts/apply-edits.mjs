@@ -8,7 +8,7 @@
 //   • a full dataset — { nodes: [ … ] } (Export full data): replaces the graph.
 //
 // The result is written to cache/final-dataset.json and re-emitted to
-// site/data.json + site/data.js in the exact shape build-data.mjs and
+// public/data.json + public/data.js in the exact shape build-data.mjs and
 // fetch-icon-files.mjs use, so the browser keeps reading the same files.
 import fs from 'node:fs';
 import { mergeEditsOverlay, validateDatasetExport, applyDatasetExport } from './apply-edits-core.mjs';
@@ -22,8 +22,8 @@ if (!file) {
 }
 
 const dataPath = new URL('../cache/final-dataset.json', import.meta.url).pathname;
-const jsonPath = new URL('../site/data.json', import.meta.url).pathname;
-const jsPath = new URL('../site/data.js', import.meta.url).pathname;
+const jsonPath = new URL('../public/data.json', import.meta.url).pathname;
+const jsPath = new URL('../public/data.js', import.meta.url).pathname;
 
 const dataset = JSON.parse(fs.readFileSync(dataPath, 'utf8'));
 const input = JSON.parse(fs.readFileSync(file, 'utf8'));
@@ -52,4 +52,4 @@ if (dryRun) { console.log('dry run — nothing written'); process.exit(0); }
 fs.writeFileSync(dataPath, JSON.stringify(dataset, null, 1));
 fs.writeFileSync(jsonPath, JSON.stringify(dataset, null, 1));
 fs.writeFileSync(jsPath, 'window.DW_DATA = ' + JSON.stringify(dataset) + ';');
-console.log('wrote cache/final-dataset.json + site/data.json + site/data.js');
+console.log('wrote cache/final-dataset.json + public/data.json + public/data.js');

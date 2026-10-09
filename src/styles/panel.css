@@ -1,0 +1,351 @@
+/* ── item panel (top right) ─────────────────────────────────── */
+#panel {
+  position: absolute; top: 14px; right: 16px; z-index: 40;
+  width: 380px; max-width: calc(100vw - 32px);
+  max-height: calc(100% - 28px);
+  display: flex; flex-direction: column;
+  background: linear-gradient(165deg, rgba(24, 28, 40, 0.97), rgba(14, 16, 24, 0.97));
+  border: 1px solid var(--gold-dim);
+  border-radius: 14px;
+  box-shadow: var(--shadow), 0 0 60px rgba(226, 185, 92, 0.06) inset;
+  backdrop-filter: blur(16px);
+  opacity: 0; transform: translateX(24px); pointer-events: none;
+  transition: opacity 0.28s var(--ease-out), transform 0.28s var(--ease-out);
+}
+#panel.open { opacity: 1; transform: translateX(0); pointer-events: auto; }
+/* an owned item announces itself in the codex too (owned-items TODO) */
+#panel.owned { border-color: var(--gold); box-shadow: var(--shadow), 0 0 0 1px var(--gold-dim), 0 0 46px rgba(226, 185, 92, 0.14) inset; }
+
+.panel-head {
+  display: flex; align-items: center; gap: 13px;
+  padding: 15px 16px 13px;
+  border-bottom: 1px solid var(--line);
+}
+.panel-head .p-icon {
+  width: 52px; height: 52px; flex: none;
+  display: grid; place-items: center;
+  background: radial-gradient(circle at 50% 35%, rgba(226, 185, 92, 0.12), rgba(0, 0, 0, 0.25));
+  border: 1px solid var(--line);
+  border-radius: 11px;
+}
+.panel-head .p-icon img { width: 40px; height: 40px; object-fit: contain; image-rendering: auto; filter: drop-shadow(0 2px 6px rgba(0,0,0,0.5)); }
+.panel-head .p-icon .p-glyph { font-size: 22px; color: var(--gold); opacity: 0.85; }
+.p-titlebox { flex: 1; min-width: 0; }
+.p-title-row { display: flex; align-items: flex-start; gap: 7px; }
+.p-title {
+  font-family: var(--font-display); font-weight: 700; font-size: 17px;
+  color: var(--gold-bright); line-height: 1.15;
+  text-shadow: 0 0 14px rgba(226, 185, 92, 0.25);
+}
+.p-edit {
+  flex: none;
+  margin-top: 1px;
+  padding: 2px 5px;
+  font: inherit; font-size: 12px; line-height: 1.3;
+  color: var(--gold);
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  cursor: pointer; opacity: 0.7;
+}
+.p-edit:hover { opacity: 1; color: var(--gold-bright); border-color: var(--gold); }
+.p-edit:focus-visible { outline: 2px solid var(--gold); outline-offset: 1px; }
+.p-edit.on { opacity: 1; color: var(--gold-bright); border-color: var(--gold); background: rgba(226, 185, 92, 0.18); }
+.p-own { font-size: 14px; }
+.p-own[hidden] { display: none; }
+.p-type {
+  margin-top: 3px; display: inline-block;
+  font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--muted);
+  padding: 2px 8px; border: 1px solid var(--line); border-radius: 999px;
+  background: rgba(0, 0, 0, 0.25);
+}
+#panelClose {
+  flex: none; width: 30px; height: 30px; border-radius: 8px;
+  background: none; border: 1px solid transparent; color: var(--faint);
+  font-size: 16px; cursor: pointer;
+}
+#panelClose:hover { color: var(--ink); border-color: var(--line); background: var(--bg2); }
+
+.panel-body { overflow-y: auto; padding: 14px 16px 18px; overscroll-behavior: contain; }
+.panel-body::-webkit-scrollbar { width: 8px; }
+
+.p-section { margin-bottom: 15px; }
+.p-section:last-child { margin-bottom: 0; }
+.p-label {
+  font-size: 10.5px; font-weight: 800; letter-spacing: 0.16em;
+  text-transform: uppercase; color: var(--faint);
+  margin-bottom: 7px; display: flex; align-items: center; gap: 8px;
+}
+.p-label::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+.p-label .p-clear {
+  background: none; border: 1px solid var(--line); border-radius: 6px;
+  color: var(--muted); font: inherit; font-size: 9.5px; padding: 2px 7px;
+  cursor: pointer; letter-spacing: 0.08em;
+}
+.p-label .p-clear:hover { color: var(--ink); border-color: var(--gold-dim); }
+.p-label.sub { margin: 9px 0 5px; }
+.p-label.sub::after { background: none; }
+
+/* "From nothing" plan — the atlas' core answer */
+.p-section.plan {
+  background: linear-gradient(160deg, rgba(226,185,92,0.055), rgba(226,185,92,0.015) 55%);
+  border: 1px solid rgba(226,185,92,0.22);
+  border-radius: 10px;
+  padding: 11px 12px 12px;
+}
+/* PF-3: plan seeded from the possessions ledger */
+.p-section.plan.owned-mode { border-color: rgba(88, 201, 185, 0.35); background: linear-gradient(160deg, rgba(88,201,185,0.06), rgba(88,201,185,0.015) 55%); }
+.p-section.plan.owned-mode .p-label { color: var(--teal); }
+.mat.owned { opacity: 0.75; border-color: rgba(88, 201, 185, 0.4) !important; }
+.mat.owned::before { content: '✓ '; color: var(--teal); font-weight: 800; }
+#search.arming.owned-mode-pulse { animation-name: armpulse-teal; }
+@keyframes armpulse-teal {
+  0%, 100% { box-shadow: 0 0 0 3px rgba(88,201,185,0.14), 0 0 14px rgba(88,201,185,0.10); }
+  50% { box-shadow: 0 0 0 4px rgba(88,201,185,0.18), 0 0 26px rgba(88,201,185,0.28); }
+}
+body.path-arming-owned #search.arming { border-color: var(--teal); animation-name: armpulse-teal; }
+body.path-arming-owned #search.arming::placeholder { color: var(--teal); }
+.p-section.plan .p-label { color: var(--gold); }
+.p-label .p-clear.gold { color: var(--gold); border-color: rgba(226,185,92,0.35); }
+.p-label .p-clear.gold:hover { color: var(--gold-bright); border-color: var(--gold); }
+.path-step {
+  display: flex; align-items: center; gap: 6px; padding: 4px 6px;
+  border-radius: 8px; cursor: pointer; font-size: 12.5px; color: var(--ink);
+}
+.path-step:hover { background: rgba(226,185,92,0.08); }
+.path-step .pn {
+  width: 16px; height: 16px; border-radius: 50%; flex: 0 0 auto;
+  background: rgba(226,185,92,0.16); color: var(--gold-bright);
+  font-size: 9.5px; font-weight: 800; display: grid; place-items: center;
+}
+.path-step img { width: 18px; height: 18px; }
+.path-step .ptx { max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.path-step .q { color: var(--gold); font-weight: 700; }
+.path-step .arr { color: var(--faint); }
+.path-step .pstep-fac {
+  font-size: 10px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--teal); border: 1px solid rgba(255,255,255,0.09); border-radius: 5px; padding: 1px 5px;
+}
+.p-hint { margin-top: 6px; font-size: 11px; color: var(--faint); font-style: italic; }
+body.path-arming #cy, body.path-arming .panel { cursor: crosshair; }
+body.path-arming #panelBody { pointer-events: none; }
+
+.p-desc { color: var(--muted); font-size: 13.5px; line-height: 1.5; font-style: italic; }
+
+.p-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.p-stat {
+  background: rgba(0, 0, 0, 0.22);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  padding: 7px 9px;
+}
+.p-stat .v { font-weight: 800; font-size: 14px; color: var(--ink); }
+.p-stat .k { font-size: 10px; color: var(--faint); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 1px; }
+
+.recipe {
+  background: rgba(0, 0, 0, 0.22);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 9px;
+}
+.recipe:last-child { margin-bottom: 0; }
+.recipe.deprecated { opacity: 0.45; }
+.recipe-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+.recipe-facility {
+  font-size: 11px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--teal); display: inline-flex; align-items: center; gap: 5px;
+}
+.recipe-skill {
+  margin-left: auto; font-size: 11px; color: var(--gold); font-weight: 700;
+  display: inline-flex; align-items: center; gap: 4px;
+}
+.recipe-skill img { width: 14px; height: 14px; }
+/* honest zero: the wiki publishes 0 XP for some actions (potionMaking0 style rows);
+   show it explicitly, but quiet — distinct from "unknown" (absent) */
+.xp-zero { opacity: 0.55; font-size: 11px; }
+.recipe-mats { display: flex; flex-wrap: wrap; gap: 6px; }
+.mat {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 8px 3px 4px;
+  background: var(--bg2); border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 999px; font-size: 12.5px; cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.mat:hover { border-color: var(--gold-dim); background: var(--bg3); }
+.mat img { width: 20px; height: 20px; object-fit: contain; }
+.mat .q { color: var(--gold); font-weight: 800; font-size: 12px; }
+.mat .mn { max-width: 130px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.recipe-out { margin-top: 8px; padding-top: 8px; border-top: 1px dashed rgba(255,255,255,0.08); font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+.recipe-out img { width: 20px; height: 20px; }
+.recipe-out b { color: var(--ink); }
+
+/* waypoint checklist (PF-4) */
+.wp-progress {
+  display: flex; align-items: center; gap: 6px;
+  margin-top: 5px; padding: 4px 8px;
+  background: var(--bg2); border: 1px solid rgba(255, 255, 255, 0.07); border-radius: 8px;
+  font-size: 11.5px; color: var(--muted);
+}
+.wp-progress .wp-count b { color: var(--gold-bright); font-weight: 800; }
+.wp-progress .wp-replans { color: var(--faint); }
+.wp-progress .p-clear { font-size: 10.5px; padding: 1px 6px; }
+.wp-list { display: flex; flex-direction: column; gap: 4px; margin-top: 6px; }
+.wp-step {
+  display: flex; align-items: center; gap: 7px;
+  padding: 4px 8px 4px 6px;
+  background: var(--bg2); border: 1px solid rgba(255, 255, 255, 0.07); border-radius: 8px;
+  font-size: 12.5px;
+}
+.wp-step img { width: 20px; height: 20px; object-fit: contain; flex: 0 0 auto; }
+.wp-box {
+  width: 15px; height: 15px; flex: 0 0 auto;
+  border: 1.5px solid var(--gold-dim); border-radius: 4px;
+  cursor: pointer; transition: background 0.15s, border-color 0.15s;
+}
+.wp-box:hover { border-color: var(--gold); background: rgba(226, 185, 92, 0.15); }
+.wp-verb { color: var(--faint); font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.08em; width: 44px; flex: 0 0 auto; }
+.wp-qty { color: var(--gold); font-weight: 800; font-size: 12px; flex: 0 0 auto; }
+.wp-step .mn { max-width: 120px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
+.wp-step .mn:hover { color: var(--gold-bright); }
+.wp-fac { color: var(--faint); font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; text-align: right; }
+.recipe-notes { font-size: 11.5px; color: var(--faint); margin-top: 6px; font-style: italic; }
+.recipe-variant { font-size: 10.5px; color: var(--faint); letter-spacing: 0.08em; text-transform: uppercase; }
+/* recipe-unlock item (P3-6): the `recipe=` field — the item that teaches the
+   recipe when obtained; shown on cards whose facility is a separate station */
+.recipe-unlock {
+  font-size: 11px; color: var(--gold); display: inline-flex; align-items: center; gap: 5px;
+}
+.recipe-unlock img { width: 16px; height: 16px; object-fit: contain; }
+.recipe-unlock:hover { color: var(--gold-bright); }
+/* the unlock item is not in the ledger yet — you still need it (owned-items TODO) */
+.recipe-unlock.needs { color: var(--ember); }
+.recipe-unlock.needs::after { content: '✗'; font-weight: 800; }
+
+.p-actions { display: flex; gap: 8px; margin-top: 2px; }
+.btn {
+  flex: 1; padding: 8px 10px; text-align: center;
+  background: var(--bg2); border: 1px solid var(--line); border-radius: 8px;
+  color: var(--muted); font-size: 12.5px; font-weight: 700; letter-spacing: 0.04em;
+  cursor: pointer; transition: all 0.15s;
+}
+.btn:hover { color: var(--gold-bright); border-color: var(--gold-dim); background: var(--bg3); }
+.btn.primary {
+  background: linear-gradient(180deg, rgba(226, 185, 92, 0.2), rgba(226, 185, 92, 0.08));
+  border-color: var(--gold-dim); color: var(--gold-bright);
+}
+.btn.primary:hover { background: linear-gradient(180deg, rgba(226, 185, 92, 0.3), rgba(226, 185, 92, 0.12)); }
+
+/* used-in rows */
+.used-row { display: flex; align-items: center; gap: 8px; padding: 4px 6px; border-radius: 7px; cursor: pointer; }
+.used-row:hover { background: var(--gold-faint); }
+.used-row img { width: 22px; height: 22px; object-fit: contain; }
+.used-row .un { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 13px; }
+.used-row .uq { color: var(--faint); font-size: 11.5px; }
+.used-row .uout { color: var(--gold); font-size: 11.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 40%; }
+
+/* found-in rows (P4-1): region → gather method + tool */
+.found-row { display: flex; align-items: center; gap: 8px; padding: 4px 6px; border-radius: 7px; }
+.found-row.fi-jump { cursor: pointer; }
+.found-row.fi-jump:hover { background: var(--gold-faint); }
+.found-row img { width: 22px; height: 22px; object-fit: contain; }
+.found-row .fi-pin { color: var(--faint); width: 22px; text-align: center; }
+.found-row .fr { flex: none; font-size: 13px; min-width: 118px; }
+.found-row .fw { flex: 1; min-width: 0; color: var(--muted); font-size: 12px; }
+.found-row .fi-way b.fi-tool { color: var(--gold); font-weight: 600; }
+.found-row .fi-or { color: var(--faint); }
+
+/* skill unlock rows */
+.unlock-row { display: flex; gap: 10px; align-items: baseline; padding: 3px 0; font-size: 13px; }
+.unlock-row .lvl {
+  flex: none; min-width: 34px; text-align: center;
+  font-family: var(--font-display); font-weight: 700; font-size: 12px;
+  color: var(--gold); background: rgba(0,0,0,0.3); border: 1px solid var(--line);
+  border-radius: 6px; padding: 1px 0;
+}
+.unlock-row .utx { color: var(--muted); }
+.unlock-row.met .lvl { border-color: var(--teal); color: var(--teal); }
+.unlock-row.met .utx { color: var(--ink); }
+.gate-ok { margin-left: auto; color: var(--teal); font-size: 12px; font-weight: 700; }
+.gate-miss { margin-left: auto; color: var(--ember); font-size: 12px; font-weight: 700; }
+
+/* the next level's unlock, shown above the full ladder (owned-items TODO) */
+.p-section.next-unlock { border-color: rgba(88, 201, 185, 0.35); background: linear-gradient(160deg, rgba(88,201,185,0.07), rgba(88,201,185,0.015) 55%); }
+.p-section.next-unlock .p-label { color: var(--teal); }
+.p-section.next-unlock .nu-lv { color: var(--teal); font-size: 12px; font-weight: 700; }
+
+/* spells list */
+.spell-row { display: flex; align-items: center; gap: 10px; padding: 5px 6px; border-radius: 8px; cursor: pointer; }
+.spell-row:hover { background: var(--gold-faint); }
+.spell-row img { width: 28px; height: 28px; }
+.spell-row .sn { font-weight: 500; }
+.spell-row .sd { font-size: 11px; color: var(--faint); }
+
+/* ── welcome card ───────────────────────────────────────────── */
+#welcome {
+  position: absolute; left: 50%; top: 46%; transform: translate(-50%, -50%);
+  z-index: 15; width: min(560px, calc(100vw - 40px));
+  text-align: center; padding: 34px 38px;
+  background: linear-gradient(170deg, rgba(22, 26, 37, 0.9), rgba(13, 15, 22, 0.9));
+  border: 1px solid var(--gold-dim); border-radius: 16px;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(10px);
+  transition: opacity 0.4s, visibility 0.4s;
+  /* the card carries the stats, the complexity note and the contribute ask —
+     scroll inside it rather than overflowing the viewport on a short screen */
+  max-height: calc(100vh - 32px); overflow-y: auto; overscroll-behavior: contain;
+}
+#welcome.hidden { opacity: 0; visibility: hidden; }
+#welcome .w-rune { font-family: var(--font-display); font-size: 40px; font-weight: 900; color: var(--gold); text-shadow: 0 0 26px rgba(226,185,92,0.45); }
+#welcome h1 {
+  font-family: var(--font-display); font-weight: 900; margin: 10px 0 6px;
+  font-size: 26px; letter-spacing: 0.08em; color: var(--gold-bright);
+}
+#welcome p { color: var(--muted); font-size: 14px; margin: 6px 0 18px; line-height: 1.55; }
+#welcome .w-keys { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 18px; }
+#welcome kbd {
+  font-family: var(--font-body); font-size: 11.5px; color: var(--muted);
+  border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 6px;
+  padding: 3px 9px; background: rgba(0,0,0,0.3);
+}
+#welcome .w-stats { display: flex; gap: 22px; justify-content: center; margin-top: 16px; font-size: 12px; color: var(--faint); }
+#welcome .w-stats b { color: var(--gold); font-family: var(--font-display); font-size: 15px; display: block; }
+#welcome .w-note {
+  margin-top: 16px; padding: 10px 15px 11px; text-align: left;
+  border: 1px solid var(--gold-dim); border-radius: 8px;
+  background: rgba(226, 185, 92, 0.07);
+  font-size: 12.5px; color: var(--muted); line-height: 1.5;
+}
+#welcome .w-note .w-cta-label {
+  font-family: var(--font-display); font-size: 10.5px; font-weight: 700;
+  letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold); margin-bottom: 3px;
+}
+#welcome .w-note b { color: var(--ink); }
+#welcome .w-help {
+  display: block; margin-top: 9px; padding: 5px 12px; border-radius: 8px; cursor: pointer;
+  border: 1px solid var(--gold-dim); background: rgba(0, 0, 0, 0.3);
+  color: var(--gold-bright); font-family: inherit; font-size: 12px; font-weight: 700;
+}
+#welcome .w-help:hover { border-color: var(--gold); background: rgba(226, 185, 92, 0.14); }
+
+/* contribute CTA — solid gold so the help-wanted ask is unmissable
+   (same gold-block language as the owned-count badge; dark-on-gold ≈ 10:1) */
+#welcome .w-contribute {
+  margin-top: 16px; padding: 10px 16px 11px;
+  background: var(--gold);
+  border: 1px solid var(--gold-bright); border-radius: 8px;
+  box-shadow: 0 0 20px rgba(226, 185, 92, 0.28);
+  font-size: 12.5px; color: var(--bg0); line-height: 1.5;
+}
+#welcome .w-contribute .w-cta-label {
+  font-family: var(--font-display); font-size: 10.5px; font-weight: 700;
+  letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 2px;
+}
+#welcome .w-contribute b { color: var(--bg0); }
+#welcome .w-contribute a {
+  color: var(--bg0); font-weight: 700;
+  text-decoration: underline; text-underline-offset: 2px;
+}
+#welcome .w-contribute a:hover { text-decoration-thickness: 2px; }
+

@@ -12,10 +12,11 @@
    slate (its keys are cleared so the app's own defaults apply). The page is
    reloaded after a switch, so every part of the app re-reads the new state.
 
-   This module owns only that schema and swap — it touches nothing else and is
-   loaded before app.js as a plain classic script.
+   This module owns only that schema and swap — it touches nothing else. It is
+   an ES module imported by app.js that also mirrors itself onto
+   window.DW_CHARACTERS for the acceptance harness and the browser console.
    ═══════════════════════════════════════════════════════════════ */
-(function () {
+export const DW_CHARACTERS = (function () {
   'use strict';
 
   const KEY = 'dw.characters';            // the whole roster, as JSON
@@ -237,7 +238,7 @@
     st.removeItem('dw.trace');
   } catch { /* blocked */ }
 
-  window.DW_CHARACTERS = {
+  return {
     KEY, PROMPTED_KEY, STATE_KEYS, SKILL_MIN, SKILL_MAX,
     skillNames, clampLevel, blankSkills, normSkills, totalLevel, cleanName,
     emptyStore, normalizeStore,
@@ -247,3 +248,5 @@
     promptShown, markPrompted,
   };
 })();
+
+window.DW_CHARACTERS = DW_CHARACTERS;

@@ -3,7 +3,7 @@
 This repository mixes several kinds of content with **different licenses**.
 The MIT `LICENSE` file covers original code only. Everything else is covered here.
 
-## 1. The dataset — `site/data.js`
+## 1. The dataset — `public/data.js`
 
 A derivative of text content from the [RuneScape: Dragonwilds Wiki](https://dragonwilds.runescape.wiki),
 operated by Weird Gloop, whose text is licensed **CC BY-NC-SA 3.0**
@@ -18,7 +18,7 @@ spell data, and the relationships between them) is licensed under
 - **NonCommercial:** the dataset (and this project) may not be used commercially.
 - **ShareAlike:** derivatives of the dataset must carry the same license.
 
-## 2. Icons & images — `site/icons/`
+## 2. Icons & images — `public/icons/`
 
 The item, station, spell and skill icons are screenshots/artwork from
 **RuneScape: Dragonwilds**, © **Jagex Limited**. They are used here under
@@ -31,7 +31,7 @@ license. If you reuse them, you must comply with that policy yourself.
 > of Jagex's Fan Content Policy. This content is not endorsed by or affiliated
 > with Jagex.
 
-## 3. Fonts — `site/fonts/`
+## 3. Fonts — `public/fonts/`
 
 Cinzel and Alegreya Sans, both under the **SIL Open Font License 1.1**
 (<https://openfontlicense.org/>), vendored from Google Fonts.
@@ -44,7 +44,7 @@ The scraper scripts and site code are MIT-licensed — see [`LICENSE`](LICENSE).
 
 | Content | Location | License |
 |---|---|---|
-| Scraper & site code | `scripts/`, `site/*.js`, `site/*.html`, `site/*.css` | MIT |
-| Game dataset | `site/data.js` | CC BY-NC-SA 3.0 (from the Dragonwilds Wiki) |
-| Game icons | `site/icons/` | Jagex Fan Content Policy (all rights reserved) |
-| Fonts | `site/fonts/` | SIL OFL 1.1 |
+| Scraper & site code | `scripts/`, `src/*.js`, `src/style.css`, `index.html` | MIT |
+| Game dataset | `public/data.js` | CC BY-NC-SA 3.0 (from the Dragonwilds Wiki) |
+| Game icons | `public/icons/` | Jagex Fan Content Policy (all rights reserved) |
+| Fonts | `public/fonts/` | SIL OFL 1.1 |

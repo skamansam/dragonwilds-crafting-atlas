@@ -6,7 +6,7 @@ Feature: URL routing (hash deep links)
   Background:
     Given the routing helpers are loaded
 
-  # slug rules (site/routing.js slug)
+  # slug rules (src/routing.js slug)
   Scenario: A display name becomes a snake_case slug
     When I slug the name "Iron Sword"
     Then the slug is "iron_sword"
@@ -41,7 +41,7 @@ Feature: URL routing (hash deep links)
     Given the routing index is built from the atlas data
     Then the colliding names resolve to different ids
 
-  # hash parsing (site/routing.js parseHash)
+  # hash parsing (src/routing.js parseHash)
   Scenario: A one-item hash selects that item
     When I parse the hash "#/ash_logs"
     Then the route segment count is 1

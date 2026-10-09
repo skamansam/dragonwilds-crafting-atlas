@@ -15,20 +15,63 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # package-lock.json is intentionally not tracked, so this is `npm install`
+      # rather than `npm ci`.
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Configure Pages
+        id: pages
+        uses: actions/configure-pages@v5
+
+      # The base path is taken from Pages itself instead of being hard-coded, so
+      # a rename, a custom-domain change or a move to a user page needs no edit.
+      - name: Build (vite build → dist/)
+        run: npm run build
+        env:
+          PAGES_BASE: ${{ steps.pages.outputs.base_path }}
+
+      # Bundled JS/CSS land in dist/assets/, everything else (vendor bundles,
+      # icons, the generated data files, the layout worker) is copied verbatim
+      # from public/. dist/ is gitignored and rebuilt on every run.
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    # expose the deployed URL to the smoke job below (job-level outputs are not
+    # inferred from a step's id — the smoke job reads needs.deploy.outputs.page_url)
+    outputs:
+      page_url: ${{ steps.deployment.outputs.page_url }}
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Configure Pages
-        uses: actions/configure-pages@v5
-      - name: Upload site artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: site
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+  # The suite runs against SOURCES locally (Vite dev server) and against the
+  # BUILD here, which is the only place the minified, base-prefixed bundle is
+  # exercised end to end. scripts/test-ui.mjs --url=... exists for exactly this.
+  smoke:
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Smoke-test the deployed build
+        run: node scripts/test-ui.mjs --url=${{ needs.deploy.outputs.page_url }} smoke

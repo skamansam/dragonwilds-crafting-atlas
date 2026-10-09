@@ -1,0 +1,20 @@
+/* ── minimap ────────────────────────────────────────────────── */
+#minimap { position: absolute; right: 16px; bottom: 16px; z-index: 20; width: 170px; height: 120px; border: 1px solid var(--line); border-radius: 10px; background: rgba(10,12,17,0.7); backdrop-filter: blur(6px); }
+#minimap .mm-viewport { position: absolute; border: 1px solid var(--gold-dim); background: rgba(226,185,92,0.06); pointer-events: none; }
+#minimap canvas { width: 100%; height: 100%; border-radius: 9px; }
+
+/* ── responsive ─────────────────────────────────────────────── */
+@media (max-width: 980px) {
+  .brand .subtitle, .divider-v, .layout-meta { display: none; }
+  .header-center { order: 3; width: 100%; }
+  .search-wrap { flex: 1 1 auto; width: auto; max-width: none; }
+}
+@media (max-width: 720px) {
+  header { padding: 8px 10px; gap: 8px; flex-wrap: wrap; }
+  .brand .title { font-size: 15px; }
+  .filters { order: 3; width: 100%; overflow-x: auto; flex-wrap: nowrap; padding-bottom: 2px; }
+  #panel { width: calc(100vw - 20px); right: 10px; top: 10px; max-height: calc(100% - 20px); }
+  .breadcrumb { top: auto; bottom: 14px; right: 10px; max-width: 70vw; }
+  #minimap { display: none; }
+  .legend { display: none; }
+}

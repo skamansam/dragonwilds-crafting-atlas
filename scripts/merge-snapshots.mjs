@@ -1,4 +1,4 @@
-// Merges exported 💾 snapshots (site ⤓ button) into site/layouts/curated.js so
+// Merges exported 💾 snapshots (site ⤓ button) into public/layouts/curated.js so
 // every visitor shares the curated arrangements. Files are validated before
 // merging: sane bounding box, finite coords, node ids must exist in the data.
 // Shape matches the app's own-snapshot convention: flat key → {id:{x,y}} map
@@ -15,8 +15,8 @@ import { fileURLToPath } from 'node:url';
 import vm from 'node:vm';
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
-const CURATED = path.join(ROOT, 'site/layouts/curated.js');
-const DATA = path.join(ROOT, 'site/data.json');
+const CURATED = path.join(ROOT, 'public/layouts/curated.js');
+const DATA = path.join(ROOT, 'public/data.json');
 
 const args = process.argv.slice(2);
 const labelIdx = args.indexOf('--label');

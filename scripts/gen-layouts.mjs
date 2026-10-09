@@ -1,6 +1,6 @@
 // Generates precomputed layout positions (P1.5-3, TODO #17): runs each
 // algorithm headlessly against the full graph, then writes
-//   site/layouts/manifest.js  →  window.DW_LAYOUTS = { <algo>: { <nodeId>: {x, y} } }
+//   public/layouts/manifest.js  →  window.DW_LAYOUTS = { <algo>: { <nodeId>: {x, y} } }
 // runLayout() applies these instantly when "saved positions" is checked —
 // no physics, no wait, deterministic. Cytoscape-Desktop-authored positions
 // can be dropped into the same manifest (same node-id keys).
@@ -14,13 +14,13 @@ import vm from 'node:vm';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
-const OUT_DIR = path.join(ROOT, 'site/layouts');
+const OUT_DIR = path.join(ROOT, 'public/layouts');
 fs.mkdirSync(OUT_DIR, { recursive: true });
 
 // dataset (window.DW_DATA)
 const ctx = { window: {} };
 vm.createContext(ctx);
-vm.runInContext(fs.readFileSync(path.join(ROOT, 'site/data.js'), 'utf8'), ctx);
+vm.runInContext(fs.readFileSync(path.join(ROOT, 'public/data.js'), 'utf8'), ctx);
 const D = ctx.window.DW_DATA;
 
 // preset definitions — imported from the app by evaluating a trimmed slice:

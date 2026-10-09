@@ -9,10 +9,11 @@ Ticket references point at `TODO-compliance.md`; overall status lives in `PLAN.m
   `api.php` endpoints (`action=query`, `prop=revisions&rvprop=content`,
   `prop=imageinfo`) — no rendered-HTML scraping. The wiki's own API is the
   access channel MediaWiki sites expect automated consumers to use.
-- **Snapshot policy (TICKET-09):** the dataset in `site/data.js` is a
+- **Snapshot policy (TICKET-09):** the dataset in `public/data.js` is a
   **manually triggered snapshot** of the wiki as of the 1.0 update
   (15 September 2026). There is no cron job, no CI job, and no scheduled
-  re-scrape; the deploy workflow only uploads the existing `site/` folder.
+  re-scrape; the deploy workflow only rebuilds `dist/` from the committed
+  `public/` and `src/`.
   Re-runs happen by hand after major game updates.
 - **Non-commercial commitment (TICKET-03):** no ads, no paywall, no
   sponsorships, no donations tied to features — in perpetuity. This is the

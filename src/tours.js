@@ -10,6 +10,10 @@
 //   outputs — "What can I make with Ash Logs?"
 //   inputs  — "What does a Blast Furnace need?"
 // Deep links: ?tour=robes (etc.) start a tour once the map has booted.
+//
+// An ES module imported by app.js. driver.js must already have run — it is a
+// classic script in index.html, and classic scripts execute before the app's
+// deferred module entry. Exports DW_TOURS and mirrors it onto window.DW_TOURS.
 (function () {
   'use strict';
   // driver.js 1.3.1 IIFE exposes its factory at window.driver.js.driver
@@ -214,3 +218,5 @@
     wait();
   }
 })();
+
+export const DW_TOURS = window.DW_TOURS;

@@ -127,11 +127,11 @@ for (let i = 1; i < csvLines.length; i++) {
   byKey.set(`${cells[cSec]}\u0000${cells[cItem].trim()}`, cells);
 }
 
-/* soft validation: warn about items that are not nodes in site/data.json,
+/* soft validation: warn about items that are not nodes in public/data.json,
  * and remember each node's canonical wiki url so merge can repair broken ones */
 let known = null, knownWiki = new Map();
 try {
-  const data = JSON.parse(fs.readFileSync('site/data.json', 'utf8'));
+  const data = JSON.parse(fs.readFileSync('public/data.json', 'utf8'));
   known = new Set(data.nodes.flatMap(n => [n.id, n.name].filter(Boolean)));
   for (const n of data.nodes) {
     if (n.wiki) { knownWiki.set(n.name, n.wiki); knownWiki.set(n.id, n.wiki); }
@@ -189,7 +189,7 @@ for (const sec of sections) {
 }
 
 for (const key of byKey.keys()) if (!matched.has(key)) orphanSections.add(key.split('\u0000')[0]);
-if (wikiRepaired) console.error(`\nrepaired ${wikiRepaired} wiki link(s) from site/data.json`);
+if (wikiRepaired) console.error(`\nrepaired ${wikiRepaired} wiki link(s) from public/data.json`);
 if (missing.length) {
   console.error(`\n${missing.length} csv/markdown rows did not line up (those tables left untouched):`);
   for (const m of missing.slice(0, 10)) console.error('  ' + m);
@@ -197,7 +197,7 @@ if (missing.length) {
 }
 if (unknownItems.length) {
   const uniq = [...new Set(unknownItems)];
-  console.error(`\n${uniq.length} items not found in site/data.json (kept anyway):`);
+  console.error(`\n${uniq.length} items not found in public/data.json (kept anyway):`);
   for (const m of uniq.slice(0, 10)) console.error('  ' + m);
   if (uniq.length > 10) console.error(`  … and ${uniq.length - 10} more`);
 }

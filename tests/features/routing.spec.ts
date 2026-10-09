@@ -3,7 +3,7 @@
  * over the real dataset, and hash parsing/round-tripping.
  *
  * Every step drives the shared helpers in tests/lib/routing.ts, which mirror the
- * production logic in site/routing.js (a classic script the page loads before
+ * production logic in src/routing.js (a classic script the page loads before
  * app.js). Keeping one copy of the rules means the feature can't drift from the
  * code that actually resolves `#/ash_logs/iron_sword`.
  *

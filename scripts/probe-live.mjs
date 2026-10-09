@@ -1,32 +1,27 @@
-// Self-contained live probe. By default serves site/ in-process; pass --url=https://example.com/
-// to test an external deployment instead (e.g. production).
-import http from 'node:http';
-import { readFile } from 'node:fs/promises';
+// Self-contained live probe. By default it boots the src/ SOURCES through
+// Vite's dev server; pass --url=https://example.com/ to test an external
+// deployment instead (e.g. production).
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 
-const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'site');
+const REPO = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const PORT = 8490;
 const urlArg = process.argv.find(a => a.startsWith('--url='));
 const BASE = urlArg ? urlArg.slice(6).replace(/\/$/, '') : `http://localhost:${PORT}`;
-const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.png': 'image/png', '.woff2': 'font/woff2', '.ico': 'image/x-icon', '.svg': 'image/svg+xml' };
 
 let srv = null;
 if (!urlArg) {
-  srv = http.createServer(async (req, res) => {
-    try {
-      const url = new URL(req.url, 'http://x');
-      let p = path.join(ROOT, decodeURIComponent(url.pathname));
-      if (p.endsWith('/') || p.endsWith(path.sep)) p = path.join(p, 'index.html');
-      const data = await readFile(p);
-      res.writeHead(200, { 'Content-Type': MIME[path.extname(p)] || 'application/octet-stream' });
-      res.end(data);
-    } catch {
-      res.writeHead(404); res.end('nope');
-    }
+  // Same server the developer and the acceptance suite use, pinned to this
+  // repo's config so the run does not depend on the caller's cwd.
+  const { createServer } = await import('vite');
+  srv = await createServer({
+    configFile: path.join(REPO, 'vite.config.js'),
+    root: REPO,
+    logLevel: 'warn',
+    server: { port: PORT, strictPort: true, open: false },
   });
-  await new Promise(r => srv.listen(PORT, r));
+  await srv.listen();
 }
 
 const errors = [];
@@ -552,11 +547,11 @@ if (!only || only === 'p12') {
 }
 console.log('errors:', errors.length ? errors.join('\n') : 'none');
 await cleanup();
-srv?.close();
+await srv?.close();
 process.exit(0);
 } catch (e) {
   console.error('PROBE FAIL:', e.message.split('\n')[0]);
   await cleanup();
-  srv?.close();
+  await srv?.close();
   process.exit(1);
 }

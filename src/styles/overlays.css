@@ -1,0 +1,244 @@
+/* ── toast ──────────────────────────────────────────────────── */
+#toast {
+  position: absolute; bottom: 22px; left: 50%; transform: translateX(-50%) translateY(8px);
+  background: var(--panel); border: 1px solid var(--gold-dim); color: var(--ink);
+  padding: 9px 18px; border-radius: 10px; font-size: 13px;
+  opacity: 0; transition: all 0.25s; pointer-events: none; z-index: 60;
+  backdrop-filter: blur(8px);
+}
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ── help button + modal ────────────────────────────────────── */
+/* right-edge cluster: ⚙ settings + ? help hug the right edge */
+.header-right { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; }
+#helpBtn {
+  flex: 0 0 auto; width: 30px; height: 30px; margin-left: 0;
+  border-radius: 50%; border: 1px solid var(--line);
+  background: var(--bg1); color: var(--gold);
+  font: 800 15px/1 var(--font-display), serif; cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, box-shadow 0.15s;
+}
+#helpBtn:hover { border-color: var(--gold); color: var(--gold-bright); box-shadow: 0 0 12px rgba(226,185,92,0.18); }
+
+#helpModal {
+  position: fixed; inset: 0; z-index: 200;
+  display: grid; place-items: center;
+  background: rgba(5, 6, 10, 0.72); backdrop-filter: blur(6px);
+}
+#helpModal[hidden] { display: none; }
+.help-card {
+  position: relative; width: min(880px, calc(100vw - 40px)); max-height: calc(100vh - 60px);
+  overflow-y: auto; overscroll-behavior: contain;
+  background: var(--panel); border: 1px solid var(--gold-dim); border-radius: 16px;
+  padding: 26px 30px 22px; box-shadow: 0 18px 70px rgba(0,0,0,0.6);
+}
+.help-card #helpClose {
+  position: absolute; top: 12px; right: 12px; width: 30px; height: 30px;
+  border-radius: 8px; border: 1px solid var(--line); background: none;
+  color: var(--muted); font-size: 13px; cursor: pointer;
+}
+.help-card #helpClose:hover { color: var(--ink); border-color: var(--gold-dim); }
+.help-card .h-rune { text-align: center; color: var(--gold); font-size: 22px; margin-bottom: 4px; }
+.help-card h2 {
+  margin: 0 0 6px; text-align: center;
+  font-family: var(--font-display), serif; font-size: 21px; letter-spacing: 0.22em;
+  color: var(--gold-bright); font-weight: 700;
+}
+.help-card .h-tag { text-align: center; color: var(--muted); font-size: 13.5px; margin: 0 auto 18px; max-width: 560px; line-height: 1.5; }
+.h-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 26px; }
+@media (max-width: 720px) { .h-cols { grid-template-columns: 1fr; } }
+.h-col h3 {
+  margin: 0 0 5px; font-size: 11px; font-weight: 800; letter-spacing: 0.16em;
+  text-transform: uppercase; color: var(--gold);
+}
+.h-col h3:not(:first-child) { margin-top: 13px; }
+.h-col p { margin: 0 0 8px; color: var(--muted); font-size: 12.8px; line-height: 1.55; }
+.h-col b { color: var(--ink); }
+.help-card kbd {
+  display: inline-block; padding: 1px 7px; border: 1px solid var(--line);
+  border-bottom-width: 2px; border-radius: 6px; background: var(--bg2);
+  color: var(--ink); font-size: 11.5px; font-family: inherit;
+}
+/* the "necessarily complicated" callout — help window + welcome card say the
+   same thing, in the same gold-wash language, so it reads as house policy */
+.help-card .h-note {
+  margin: 0 0 18px; padding: 11px 15px 12px;
+  border: 1px solid var(--gold-dim); border-radius: 12px;
+  background: rgba(226, 185, 92, 0.07);
+}
+.help-card .h-note p { margin: 0; color: var(--muted); font-size: 12.8px; line-height: 1.55; }
+.help-card .h-note b { color: var(--gold-bright); }
+.help-card .h-legal {
+  margin-top: 18px; padding-top: 12px; border-top: 1px solid var(--line);
+  text-align: center; color: var(--faint); font-size: 10.5px; line-height: 1.5;
+}
+
+/* ── in-app data editing (P6-1) ────────────────────────────── */
+/* the codex edit form */
+.edit-form .p-label { color: var(--gold); }
+.pe-flag {
+  margin-left: 8px; padding: 1px 7px; border-radius: 999px;
+  background: rgba(226,185,92,0.16); border: 1px solid var(--gold-dim);
+  color: var(--gold-bright); font-size: 9.5px; font-weight: 800;
+  letter-spacing: 0.1em; text-transform: uppercase;
+}
+.pe-count { margin-left: 6px; color: var(--gold-bright); font-weight: 800; }
+.pe-count:empty { display: none; }
+.pe-field { display: flex; flex-direction: column; gap: 3px; margin: 8px 0; }
+.pe-field > span { font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--faint); }
+.pe-field small { color: var(--faint); text-transform: none; letter-spacing: 0; }
+.pe-field input, .pe-field textarea, .pe-field select {
+  width: 100%; background: var(--bg1); border: 1px solid var(--line); border-radius: 8px;
+  color: var(--ink); font-family: var(--font-body); font-size: 12.5px;
+  padding: 7px 9px; outline: none;
+}
+.pe-field input:focus, .pe-field textarea:focus, .pe-field select:focus { border-color: var(--gold-dim); }
+.pe-field textarea { resize: vertical; line-height: 1.45; }
+.pe-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.pe-id { margin-top: 6px; }
+.pe-id code { color: var(--gold); font-size: 11px; }
+.btn.danger { color: #e08a6a; border-color: rgba(201,106,74,0.4); }
+.btn.danger:hover { color: #ffb193; border-color: #c96a4a; background: var(--bg3); }
+.btn:disabled { opacity: 0.45; cursor: default; }
+.btn:disabled:hover { color: var(--muted); border-color: var(--line); background: var(--bg2); }
+
+/* the edits window (browser ↔ dataset diff) */
+#editsModal {
+  position: fixed; inset: 0; z-index: 210;
+  display: grid; place-items: center;
+  background: rgba(5, 6, 10, 0.72); backdrop-filter: blur(6px);
+}
+#editsModal[hidden] { display: none; }
+.edits-card { width: min(620px, calc(100vw - 40px)); }
+.edits-card #editsClose {
+  position: absolute; top: 12px; right: 12px; width: 30px; height: 30px;
+  border-radius: 8px; border: 1px solid var(--line); background: none;
+  color: var(--muted); font-size: 13px; cursor: pointer;
+}
+.edits-card #editsClose:hover { color: var(--ink); border-color: var(--gold-dim); }
+.edits-card .char-modal-actions { margin-top: 10px; }
+.edits-list { max-height: 46vh; overflow-y: auto; overscroll-behavior: contain; margin: 0 0 12px; }
+.edits-empty {
+  color: var(--faint); font-size: 13px; text-align: center; padding: 22px 10px;
+  border: 1px dashed var(--line); border-radius: 10px;
+}
+.edits-note {
+  margin-bottom: 10px; padding: 9px 11px; border-radius: 9px; font-size: 12.5px; line-height: 1.5;
+  color: #b8e0c6; background: rgba(88,201,185,0.12); border: 1px solid rgba(88,201,185,0.35);
+}
+.edits-node {
+  border: 1px solid var(--line); border-radius: 10px; padding: 9px 11px; margin-bottom: 8px;
+  background: var(--bg1); text-align: left;
+}
+.edits-node.merged { border-color: rgba(226,185,92,0.3); }
+.edits-node-head { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
+.edits-node-head .en-name { font-weight: 800; color: var(--ink); font-size: 13px; }
+.ed-revert {
+  margin-left: auto; background: none; border: 1px solid var(--line); border-radius: 7px;
+  color: var(--muted); font-family: var(--font-body); font-size: 10.5px; padding: 2px 8px; cursor: pointer;
+}
+.ed-revert:hover { color: var(--gold-bright); border-color: var(--gold-dim); }
+.edit-diff { display: flex; align-items: baseline; gap: 7px; font-size: 12px; padding: 2px 0; }
+.edit-diff .ed-field { flex: 0 0 74px; color: var(--faint); font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.06em; }
+.edit-diff .ed-from { color: var(--muted); text-decoration: line-through; text-decoration-color: rgba(201,106,74,0.6); }
+.edit-diff .ed-arrow { color: var(--gold); }
+.edit-diff .ed-to { color: var(--gold-bright); font-weight: 700; }
+
+/* custom relationship editor (P6-3) */
+.link-add { display: flex; gap: 6px; margin-top: 8px; align-items: center; }
+.link-add select, .link-add input {
+  background: var(--bg1); border: 1px solid var(--line); border-radius: 8px;
+  color: var(--ink); font-family: var(--font-body); font-size: 12px; padding: 7px 8px; outline: none;
+}
+.link-add select { flex: 0 0 auto; }
+.link-add input { flex: 1; min-width: 0; }
+.link-add select:focus, .link-add input:focus { border-color: var(--gold-dim); }
+.link-add .btn { flex: 0 0 auto; padding: 7px 10px; }
+.link-jump { cursor: pointer; }
+.link-jump:hover { text-decoration: underline; }
+
+/* ── guided tours (driver.js) ──────────────────────────────── */
+/* popover re-themed to the atlas' dark-and-gold tome look; driver.css loads
+   first, so these need no !important fights */
+.driver-popover {
+  background: var(--bg2);
+  color: var(--ink);
+  border: 1px solid var(--gold-dim);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  padding: 16px 18px;
+  max-width: 340px;
+  font-family: var(--font-body), sans-serif;
+}
+.driver-popover-title {
+  font-family: var(--font-display), serif;
+  font-size: 14.5px;
+  letter-spacing: 0.08em;
+  color: var(--gold-bright);
+  padding-right: 26px;
+}
+.driver-popover-description {
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--muted);
+}
+.driver-popover-description b, .driver-popover-description kbd {
+  color: var(--ink);
+  font-family: inherit;
+}
+.driver-popover-description kbd {
+  display: inline-block; padding: 0 6px; border: 1px solid var(--line);
+  border-bottom-width: 2px; border-radius: 6px; background: var(--bg3); font-size: 11.5px;
+}
+.driver-popover-close-btn { color: var(--faint); }
+.driver-popover-close-btn:hover, .driver-popover-close-btn:focus { color: var(--ink); }
+.driver-popover-progress-text { color: var(--faint); font-variant-numeric: tabular-nums; }
+.driver-popover-footer button {
+  background: var(--bg3);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 5px 12px;
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  text-shadow: none;
+}
+.driver-popover-footer button:hover, .driver-popover-footer button:focus { background: var(--bg2); border-color: var(--gold-dim); }
+.driver-popover-footer button:last-child {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: var(--bg0);
+  font-weight: 700;
+}
+.driver-popover-footer button:last-child:hover, .driver-popover-footer button:last-child:focus { background: var(--gold-bright); border-color: var(--gold-bright); }
+
+/* help window: the tours + sharing sections */
+.h-tours, .h-links {
+  margin-top: 20px; padding: 14px 16px;
+  border: 1px solid var(--gold-faint); border-radius: 12px;
+  background: var(--gold-faint);
+}
+.h-links p {
+  margin: 0 0 8px; color: var(--muted); font-size: 12.8px; line-height: 1.55;
+}
+.h-links b { color: var(--ink); }
+.h-links .h-tour-sub { margin-bottom: 10px; }
+.h-links p:last-child { margin-bottom: 0; }
+.h-tour-title {
+  font-family: var(--font-display), serif; font-size: 11.5px; font-weight: 700;
+  letter-spacing: 0.2em; color: var(--gold); margin-bottom: 4px;
+}
+.h-tour-sub { margin: 0 0 10px; color: var(--muted); font-size: 12px; line-height: 1.5; }
+.h-tour-list { display: flex; flex-wrap: wrap; gap: 8px; }
+.h-tour {
+  padding: 6px 13px; border-radius: 8px; cursor: pointer;
+  border: 1px solid var(--line); background: var(--bg2); color: var(--ink);
+  font-family: inherit; font-size: 12.5px; font-weight: 600;
+}
+.h-tour:hover { border-color: var(--gold-dim); color: var(--gold-bright); }
+.h-tour.gold {
+  background: var(--gold); border-color: var(--gold); color: var(--bg0); font-weight: 700;
+}
+.h-tour.gold:hover { background: var(--gold-bright); border-color: var(--gold-bright); color: var(--bg0); }
+

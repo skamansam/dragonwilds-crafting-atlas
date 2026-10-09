@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Audit the crafting graph (site/data.json) for craft-loop cycles.
+// Audit the crafting graph (public/data.json) for craft-loop cycles.
 //
 // Edge direction: `from` = ingredient, `to` = product (e.g. Iron Ore -> Iron Bar).
 // A cycle is therefore a chain of recipes where some product feeds back around as

@@ -20,11 +20,13 @@
    key off them — so this module owns the slug ⇄ id mapping instead of a
    repo-wide id migration.
 
-   Loaded as a plain classic script before app.js; exposes DW_ROUTING.
-   The same pure functions are mirrored in tests/lib/routing.ts so the
-   Gherkin routing scenarios exercise this exact logic.
+   An ES module (imported by app.js) that ALSO mirrors itself onto
+   window.DW_ROUTING, because the acceptance harness (scripts/test-ui.mjs) and
+   the browser console reach for the global. The same pure functions are
+   mirrored in tests/lib/routing.ts so the Gherkin routing scenarios exercise
+   this exact logic.
    ═══════════════════════════════════════════════════════════════ */
-window.DW_ROUTING = (() => {
+export const DW_ROUTING = (() => {
   // snake_case slug: strip accents, drop apostrophes/quotes outright
   // (Adventurer's → adventurers), spell '&' as ' and ', then squash every
   // remaining run of non-alphanumerics into a single underscore.
@@ -106,6 +108,7 @@ window.DW_ROUTING = (() => {
     { name: 'links', kind: 'bool' },
     { name: 'skilllinks', kind: 'bool' },
     { name: 'regions', kind: 'bool' },
+    { name: 'questlinks', kind: 'bool' },
     { name: 'possessions', kind: 'bool' },
     { name: 'iso', kind: 'slug' },
     { name: 'isodir', kind: 'enum', values: ['both', 'down', 'needs', 'up'] },
@@ -172,3 +175,7 @@ window.DW_ROUTING = (() => {
 
   return { slug, buildIndex, parseHash, buildHash, OPTION_NAMES, parseOptions, buildOptionsQuery };
 })();
+
+/* The compatibility mirror: a module has no implicit globals, so publish the
+   object the classic-script world used to get for free. */
+window.DW_ROUTING = DW_ROUTING;

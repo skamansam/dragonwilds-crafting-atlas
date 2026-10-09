@@ -1,0 +1,16 @@
+/* ═══════════════════════════════════════════════════════════════
+   DRAGONWILDS ✦ CRAFTING ATLAS — stylesheet entry
+
+   The design system used to be one 1300-line file. It is now split by section
+   under src/styles/ and reassembled here in cascade order — @import keeps the
+   original ordering, and Vite inlines the partials into a single built asset.
+   Keep the import order: later sections deliberately override earlier ones.
+   ═══════════════════════════════════════════════════════════════ */
+
+@import './styles/base.css';      /* tokens, scrollbars, app shell, header row */
+@import './styles/search.css';    /* search box, suggestions, filter chips */
+@import './styles/controls.css';  /* possessions, layout meta, stage, settings */
+@import './styles/legend.css';    /* legend, breadcrumb, path bar, veil */
+@import './styles/panel.css';     /* item codex panel */
+@import './styles/overlays.css';  /* welcome, toast, help, data editing, tours */
+@import './styles/minimap.css';   /* minimap + responsive */

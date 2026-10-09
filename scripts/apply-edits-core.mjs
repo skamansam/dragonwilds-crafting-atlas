@@ -1,7 +1,7 @@
 /* Pure logic for baking browser-exported data edits into the dataset
    (PLAN §3 P6-5). Kept apart from the CLI so the merge can be unit-tested
    without touching the repo's files. The field list mirrors EDIT_FIELDS in
-   site/app.js — keep them in step. */
+   src/app.js — keep them in step. */
 
 export const EDIT_FIELDS = ['name', 'kind', 'itemType', 'wiki', 'description', 'stats'];
 
