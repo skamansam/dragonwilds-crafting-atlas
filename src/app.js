@@ -35,6 +35,11 @@ import {
   initLayoutProgress, markLayoutStart, layoutElapsed, lastLayout,
   startProgressBar, stopProgressBar, startLayoutPill, stopLayoutPill, recordLayoutDone,
 } from './layout-progress.js';
+import {
+  initLayoutSnapshots, densFactor, getDensPct, setDensPct, isElkDenseable, densKey,
+  loadCustomLayouts, loadSavedLayouts, loadCuratedLayouts, isSaneSnapshot,
+  doCustomSave, shareSnapshot,
+} from './layout-snapshots.js';
 
 const D = window.DW_DATA;
 
@@ -712,7 +717,7 @@ function optionState() {
     anim: animateOn ? '1' : '0',
     saved: savedToggleOn() ? '1' : '0',
     worker: workerOn() ? '1' : '0',
-    dens: String(Math.round(densPct)),
+    dens: String(Math.round(getDensPct())),
     auto: autoRelayoutOn() ? '1' : '0',
     cats: activeCats.size === kinds.length ? 'all'
       : activeCats.size === 0 ? 'none'
@@ -765,7 +770,6 @@ function setLayoutIndicator(on, label) {
    run-time EMA and the DOM. */
 
 let activeLayout = null;
-let savedLayouts = null;      // algo -> { x, y } map from public/layouts/manifest.js (P1.5-3)
 let usingSavedPositions = false;
 let usingCustomPositions = false; // density-slider 💾 snapshot (P3-1b)
 let usingCuratedPositions = false; // shared curated snapshot (public/layouts/curated.js)
@@ -853,98 +857,20 @@ async function runWorkerLayout(preset, opts, timeoutMs = 120000, eles = null) {
   ]);
 }
 
-// P3-1b: density slider — scales elk layered spacing 50–200%, live re-runs; 💾 saves
-// the current arrangement per layout+density as a custom snapshot that boots instantly.
-let densPct = urlNum('dens', parseFloat(localStorage.getItem('dw.dens')) || 100);
-const DENS_BASE = {
-  'elk-layered': true,
-  'elk-layered-wide': true,
-};
-function densFactor() { return Math.min(2, Math.max(0.5, (densPct || 100) / 100)); }
-function isElkDenseable(p) { return !!DENS_BASE[p]; }
-function densKey(p) { return p + '@' + densPct; }
-let customLayouts = null;
-function loadCustomLayouts() {
-  if (customLayouts) return customLayouts;
-  try { customLayouts = JSON.parse(localStorage.getItem('dw.customLayouts') || '{}') || {}; } catch { customLayouts = {}; }
-  return customLayouts;
-}
-// a degenerate snapshot (captured mid-layout, or corrupted) must never boot —
-// it would collapse the map to a tiny blob or scatter NaNs
-function isSaneSnapshot(map) {
-  const ids = Object.keys(map).filter(k => k !== '~meta'); // ~meta is a metadata sibling, not a position
-  if (ids.length < 2) return false;
-  let x1 = Infinity, x2 = -Infinity, y1 = Infinity, y2 = -Infinity;
-  for (const id of ids) {
-    const p = map[id];
-    if (!p || !isFinite(p.x) || !isFinite(p.y)) return false;
-    if (p.x < x1) x1 = p.x; if (p.x > x2) x2 = p.x;
-    if (p.y < y1) y1 = p.y; if (p.y > y2) y2 = p.y;
-  }
-  // required spread scales with node count. A flat >400px floor rejected valid
-  // SMALL results: an isolated subtree (and the worker result that arranges it)
-  // legitimately spans only a few hundred px, so a 15-node layout at 444x224 was
-  // treated as degenerate and its worker result was discarded. Full-map
-  // snapshots (~2k nodes) keep effectively the same floor, so the mid-flight
-  // blob guard is unchanged for them.
-  const minExtent = Math.min(400, Math.max(16, Math.sqrt(ids.length) * 20));
-  return x2 - x1 > minExtent && y2 - y1 > minExtent;
-}
+/* ── layout snapshots + density (moved to src/layout-snapshots.js) ──
+   The 💾 / curated / bundled snapshot tiers, the density value (and the
+   degenerate-snapshot guard) live in src/layout-snapshots.js (Phase 2c); app.js
+   hands it cy, toast, urlNum and runLayout so the store can read positions and
+   re-run after a save. */
+initLayoutSnapshots({ cy, toast, urlNum, runLayout });
+
 // 💾 arms this, and the positions are captured at layoutstop — never mid-flight
 let pendingSave = null;
 let lastSpacing = null; // spacing of the most recent live layout run
-function doCustomSave(preset, spacing, dens) {
-  if (!spacing) { toast('Open an elk layered layout first — snapshots save its arrangement'); return; }
-  const map = {};
-  for (const n of cy.nodes()) map[n.id()] = { x: Math.round(n.position().x), y: Math.round(n.position().y) };
-  const all = loadCustomLayouts();
-  // flat id→{x,y} at the key (same shape as the bundled manifest / Desktop-authored
-  // snapshots); spacing + timestamp ride along under a sibling ~meta key
-  all[`${preset}@${dens}`] = map;
-  all[`${preset}@${dens}~meta`] = { spacing, savedAt: Date.now() };
-  try { localStorage.setItem('dw.customLayouts', JSON.stringify(all)); } catch { toast('Could not save — browser storage is full'); return; }
-  toast(`Arrangement saved for ${preset} @ ${dens}% — it boots instantly from now on`);
-  runLayout(preset, { reflow: false });
-}
-function loadSavedLayouts() {
-  if (savedLayouts || window.DW_LAYOUTS === undefined) return savedLayouts || null;
-  savedLayouts = window.DW_LAYOUTS || {};
-  return savedLayouts;
-}
-// curated snapshots shipped with the site (public/layouts/curated.js, merged by
-// scripts/merge-snapshots.mjs) — the layer between a visitor's own 💾
-// snapshots and the bundled manifest
-let curatedLayouts = null;
-function loadCuratedLayouts() {
-  if (curatedLayouts) return curatedLayouts;
-  curatedLayouts = window.DW_CURATED || {};
-  return curatedLayouts;
-}
-// ⤓ downloads the current 💾 snapshot as a shareable JSON file
-function shareSnapshot(preset, dens) {
-  const cl = loadCustomLayouts();
-  const map = cl[`${preset}@${dens}`] || cl[preset];
-  if (!map) { toast('Nothing to share yet — save an arrangement with 💾 first'); return; }
-  const meta = cl[`${preset}@${dens}~meta`] || cl[`${preset}~meta`] || null;
-  const doc = {
-    type: 'dw-snapshot',
-    version: 1,
-    preset,
-    dens: cl[`${preset}@${dens}`] ? dens : null,
-    exportedAt: new Date().toISOString(),
-    meta: meta ? { spacing: meta.spacing || null } : null,
-    positions: map,
-  };
-  const blob = new Blob([JSON.stringify(doc)], { type: 'application/json' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `dw-snapshot-${preset}${cl[`${preset}@${dens}`] ? '-' + dens : ''}.json`;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
-  toast('Snapshot downloaded — send it in and it can ship with the atlas for everyone');
-}
+// doCustomSave / loadSavedLayouts / loadCuratedLayouts / shareSnapshot live in
+// src/layout-snapshots.js (Phase 2c); savedLayouts and curatedLayouts moved with
+// them and are cached there.
+
 // One-shot Undo hook for settings flips (⚙ panel): toastWithUndo() arms a
 // restore callback, and the next runLayout (or an explicit call) upgrades the
 // visible toast with an Undo button. Lets "did I mean to do that?" flips —
@@ -1052,7 +978,7 @@ function runLayout(preset = currentLayout, { skipSaved = false, forceMain = fals
   if (saveRow) saveRow.style.display = (densRelevant || hasCustom) ? '' : 'none';
   if (saveBtn) saveBtn.onclick = () => {
     if (!curSpacing) { toast('Open an elk layered layout first — snapshots save its arrangement'); return; }
-    pendingSave = { preset, dens: densPct };
+    pendingSave = { preset, dens: getDensPct() };
     if (layoutRunning) { toast('Arranging — the snapshot is captured the moment the layout settles'); return; }
     const p = pendingSave; pendingSave = null;
     doCustomSave(p.preset, lastSpacing, p.dens); // already settled — capture now
@@ -1064,7 +990,7 @@ function runLayout(preset = currentLayout, { skipSaved = false, forceMain = fals
     delete all[preset];
     delete all[preset + '~meta'];
     try { localStorage.setItem('dw.customLayouts', JSON.stringify(all)); } catch {}
-    toast(`Custom snapshot cleared for ${preset} @ ${densPct}%`);
+    toast(`Custom snapshot cleared for ${preset} @ ${getDensPct()}%`);
     runLayout(preset, { reflow: false, visibleOnly: true });
   };
   // ⤓ share: export the current 💾 snapshot so it can be merged into the
@@ -1072,7 +998,7 @@ function runLayout(preset = currentLayout, { skipSaved = false, forceMain = fals
   const shareBtn = document.getElementById('densShare');
   if (shareBtn) {
     shareBtn.style.display = hasCustom ? '' : 'none';
-    shareBtn.onclick = () => shareSnapshot(preset, densPct);
+    shareBtn.onclick = () => shareSnapshot(preset, getDensPct());
   }
   // P1.5-3: precomputed positions — instant, deterministic, no physics
   // precedence: own 💾 snapshot → curated snapshot → bundled manifest
@@ -1810,13 +1736,13 @@ if (recalcBtn) recalcBtn.onclick = () => {
 };
 const densSlider = document.getElementById('densSlider');
 if (densSlider) {
-  densSlider.value = densPct;
+  densSlider.value = getDensPct();
   const densVal = document.getElementById('densVal');
-  if (densVal) densVal.textContent = densPct + '%';    let densTimer = null;
+  if (densVal) densVal.textContent = getDensPct() + '%';    let densTimer = null;
   densSlider.oninput = () => {
-    densPct = parseFloat(densSlider.value) || 100;
-    storeOpt('dens', String(densPct));
-    if (densVal) densVal.textContent = densPct + '%';
+    setDensPct(parseFloat(densSlider.value) || 100);
+    storeOpt('dens', String(getDensPct()));
+    if (densVal) densVal.textContent = getDensPct() + '%';
     syncUrl(); // the debounced re-layout may not run at all — keep the URL current
     // drag-storm batching: the label updates live (cheap), but the layout only
     // re-runs once the slider has been still for a beat. 260ms felt instant for
