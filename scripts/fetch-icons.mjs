@@ -41,6 +41,13 @@ for (let i = 0; i < files.length; i += 50) {
       for (const p of jd.query.pages) {
         if (p.imageinfo && p.imageinfo[0]) manifest[p.title.replace(/^File:/, '')] = p.imageinfo[0].url;
       }
+      // MediaWiki normalises underscores to spaces in returned titles, so a
+      // requested "Foo_Bar.png" comes back as "Foo Bar.png". Mirror the URL onto
+      // the spelling the dataset actually uses, or that icon resolves to null.
+      for (const f of batch) {
+        const norm = f.replace(/_/g, ' ');
+        if (manifest[f] == null && manifest[norm] != null) manifest[f] = manifest[norm];
+      }
       break;
     } catch (e) {
       if (a === 4) console.error('batch failed', e.message);

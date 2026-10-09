@@ -1,9 +1,10 @@
 # Dragonwilds Crafting Atlas
 
 > An interactive crafting-dependency map of every item in RuneScape: Dragonwilds —
-> 1,963 nodes and 4,912 edges of recipes, stations, materials, skills and spells,
+> 1,983 nodes and 4,912 edges of recipes, stations, materials, skills and spells,
+> plus a quest layer (37 quests and 21 mounts wired region → quest → reward),
 > scraped from the Dragonwilds Wiki and rendered as one navigable graph. Static site,
-> no backend, no build step.
+> no backend — the front end is bundled by Vite into plain static files.
 
 ## Overview
 
@@ -11,20 +12,21 @@ The Atlas answers one question: *"What do I need to do to craft this thing from 
 have now?"* Pick any item and the graph walks dependencies backwards to raw materials,
 the stations you must build, and the skills you must train.
 
-The page itself (`index.html` + `app.js`) is a client-side application built on
-Cytoscape.js; there is no server and no API — everything an agent or scraper could want
-lives in the static data files linked below. The dataset is regenerated from
+The page itself (`index.html` + `src/*.js`, bundled by Vite) is a client-side
+application built on Cytoscape.js; there is no server and no API — everything an agent
+or scraper could want lives in the static data files linked below. The dataset is regenerated from
 [dragonwilds.runescape.wiki](https://dragonwilds.runescape.wiki) by scripts in the
 repository, so the site is fully reproducible from source.
 
 Interactions worth knowing about: click a node to open its codex panel (recipes,
 facilities, skills, a from-nothing Gather/Build/Train plan), Shift+Click to isolate its
 crafting tree, type to search; the ⚙ panel offers force-directed / dagre / ELK layouts
-with snapshot save/restore; scripted guided tours live in `site/tours.js`
+with snapshot save/restore; scripted guided tours live in `src/tours.js`
 (deep-link `?tour=robes`, `?tour=outputs`, `?tour=inputs`). Every item also has a
 stable URL name — the snake_case form of its display name — so `#/ash_logs` opens
-that item's codex panel and `#/ash_logs/iron_sword` opens the crafting path between
-the two (rules in `site/routing.js`; the fragment never reaches the server). Every
+that item's codex panel, `#/dragon_slayer` opens a quest and `#/ash_logs/iron_sword`
+opens the crafting path between the two (rules in `src/routing.js`; the fragment
+never reaches the server). Every
 graph option is settable from the query string too — `?layout=elk-layered-wide`,
 `?cats=food`, `?links=0`, `?iso=iron_sword&isodir=up&isodepth=2`, and the rest of
 `OPTION_PARAMS` — and a value from the URL overrides the visitor's stored setting for
@@ -38,8 +40,10 @@ fan content used under the
 The machine-readable core of the site. `data.json` is authoritative; the graphml and
 cyjs files are exports of it for desktop graph tools.
 
-- [data.json](https://rudeboy.dev/dragonwilds-crafting-atlas/data.json): the full dependency graph (~3 MB). `nodes[]` carry `id`, `name`, `kind` (material, station, tool, weapon, armour, food, drink, potion, spell, skill, trinket, ammo, resource, implicit, other) and a `wiki` URL; `edges[]` run `from` (ingredient) → `to` (product) with `qty`, `facility`, `skill` and `xp` fields. The graph is a DAG except for three deliberate metal-recycling loops (Bronze/Silver/Gold Bar ⇄ Leaf); a cycle audit lives at `scripts/audit-cycles.mjs`.
-- [found-in.js](https://rudeboy.dev/dragonwilds-crafting-atlas/found-in.js): per-region gather annotations for Ashenfall's six populated regions — which items are found where and how they are gathered.
+- [data.json](https://rudeboy.dev/dragonwilds-crafting-atlas/data.json): the full dependency graph (~3 MB). `nodes[]` carry `id`, `name`, `kind` (material, station, tool, weapon, armour, food, drink, potion, spell, skill, trinket, ammo, resource, mount, implicit, other) and a `wiki` URL; `edges[]` run `from` (ingredient) → `to` (product) with `qty`, `facility`, `skill` and `xp` fields. The graph is a DAG except for three deliberate metal-recycling loops (Bronze/Silver/Gold Bar ⇄ Leaf); a cycle audit lives at `scripts/audit-cycles.mjs`.
+- [found-in.js](https://rudeboy.dev/dragonwilds-crafting-atlas/found-in.js): per-region gather annotations for Ashenfall's populated regions — which items are found where and how they are gathered.
+- [quests.js](https://rudeboy.dev/dragonwilds-crafting-atlas/quests.js): the quest layer — every quest on the wiki's Quests page with its type, region, "Where to Start" line and reward items (`window.DW_QUESTS`).
+- [mounts.js](https://rudeboy.dev/dragonwilds-crafting-atlas/mounts.js): the mount layer — per mount its base type, the quest(s) that unlock it, how to obtain it and its lore (`window.DW_MOUNTS`).
 - [data.graphml](https://rudeboy.dev/dragonwilds-crafting-atlas/data.graphml): the same graph as typed GraphML, importable into yEd, Gephi, NetworkX, igraph or Cytoscape.
 - [data.cyjs](https://rudeboy.dev/dragonwilds-crafting-atlas/data.cyjs): Cytoscape.js JSON export with a baked-in layered seed layout.
 

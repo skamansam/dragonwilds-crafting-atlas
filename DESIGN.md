@@ -1,7 +1,7 @@
 # DESIGN.md — Dragonwilds ✦ Crafting Atlas
 
 The durable visual system of the site. Everything here is harvested from the
-shipped code (`site/style.css`, `site/index.html`) — when adding UI, follow this
+shipped code (`src/style.css`, `index.html`) — when adding UI, follow this
 file; when this file and the code disagree, the code wins and this file should
 be updated. Mode: **Operate** — visitors complete tasks (find items, explore
 recipes, plan what to craft); scanability and consistency outrank expression.
@@ -21,7 +21,7 @@ photographic assets (the only imagery is item icon PNGs from the wiki).
   brand choice**, not an accident — keep it on identity elements only (titles,
   armed search, the pathbar), never on body copy or dense chrome.
 
-## Color tokens (`:root` in style.css — never hard-code hex in new CSS)
+## Color tokens (`:root` in `src/styles/base.css`, imported by `src/style.css` — never hard-code hex in new CSS)
 
 | Token | Value | Role |
 |---|---|---|
@@ -46,11 +46,15 @@ Layered surfaces go `--bg0 → bg1 → bg2 → bg3`; floating chrome uses transl
 weapon `#c96a4a` · armour `#7fa8c9` · tool `#c9a86a` · station `#58c9b9` ·
 ammo `#b0b0b0` · trinket `#a58cf0` · food `#8fbf6a` · potion `#e0709a` ·
 drink `#6ab0c9` · material `#e2b95c` · resource `#9a8f77` · spell `#6ea8ff` ·
-skill `#f7dd9a` · implicit `#6d6a5e` · other `#8a8577` · region `#7fc9a6`.
+skill `#f7dd9a` · implicit `#6d6a5e` · other `#8a8577` · region `#7fc9a6` ·
+quest `#d9a13f` (gold octagon, `❖`) · mount `#c9a0e0` (violet, `⚑`).
 Edge kinds: recipe = ink (default), skill gates `--gold` (hidden by default),
-region links `rgba(140,200,170,.30)` (hidden by default). These colors are
-user-facing vocabulary — the legend, panels and exports all repeat them; do not
-redefine them locally.
+region links `rgba(140,200,170,.30)` (hidden by default), quest links
+`rgba(217,161,63,.36)` gold — region → quest → reward — and their mount spokes
+`rgba(201,160,224,.40)` violet, **both on by default** (the quest layer is the
+map's spine, not a side-layer) under one legend row, LINKS → Quest links. These
+colors are user-facing vocabulary — the legend, panels and exports all repeat
+them; do not redefine them locally.
 
 ## Typography
 
@@ -61,8 +65,8 @@ redefine them locally.
   Base 15px/1.45; secondary 12–13px; meta 10–11px (the floor for readable text).
 - Hierarchy is driven by size + color (`ink → muted → faint`) rather than
   weight alone; bold is reserved for labels, buttons and the gold display face.
-- Self-hosted via `site/fonts.css` (Google Fonts subsets); no external font CDN
-  at runtime beyond that file.
+- Self-hosted via `public/fonts.css` (Google Fonts subsets, served verbatim from
+  `public/fonts/`); no external font CDN at runtime beyond that file.
 
 ## Spacing, shape, elevation
 
@@ -90,6 +94,10 @@ redefine them locally.
 | Wide annotation tables | docs/checklists generators — prettier-aligned `\|` tables, `x` marks, Notes prose |
 | Toasts (with optional Undo) | `toastWithUndo` / `.toast-undo` — 5s life, gold border button |
 | Complexity callout (help + welcome) | `.h-note` / `#welcome .w-note` — gold-wash box, gold display label, the "it is necessarily complicated itself" note (same copy in both places) |
+| Owned emphasis (codex) | `#panel.owned` — gold border + gold inset wash when the selected item is in the ledger; the header's ☆/★ is the toggle |
+| Next level's unlock (skill hub) | `.p-section.next-unlock` — teal-wash box above the full ladder, `.nu-lv` names the level and your current one |
+| Requirement status (skill gates) | `.unlock-row.met` + `.gate-ok` (teal ✓) / `.gate-miss` (ember "needs N — you have M"); `.recipe-unlock.needs` for an unowned unlock item |
+| Story layer in the codex (region / quest / mount) | `renderPanelBody`'s early branches — a region lists "What you find here" + "Quests here", a quest leads with **Where to start** then jumpable reward rows (`❖` rune pin, no ☆), a mount gets `.mount-card` with "How to get it" + requirements. All rows are `data-goto` jumps, same as found-in rows |
 
 Buttons: `.s-btn` vocabulary — default (quiet, `--line` border), `.gold`
 (primary), `.danger` (red hover). Icon-only buttons carry `title` +

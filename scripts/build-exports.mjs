@@ -1,9 +1,9 @@
 // Builds the Cytoscape export bundle from window.DW_DATA:
-//   site/data.cyjs     — Cytoscape.js JSON network, array style (Desktop 3.1+,
+//   public/data.cyjs     — Cytoscape.js JSON network, array style (Desktop 3.1+,
 //                        manual §7.2; import via File ▸ Import ▸ Network ▸ File)
-//   site/data.graphml  — GraphML (wider tool compatibility: yEd, Gephi, NetworkX,
+//   public/data.graphml  — GraphML (wider tool compatibility: yEd, Gephi, NetworkX,
 //                        igraph, Cytoscape itself; typed keys, NMTOKEN-safe ids)
-//   site/atlas-style.xml — vizmap XML style for Cytoscape Desktop (manual §12):
+//   public/atlas-style.xml — vizmap XML style for Cytoscape Desktop (manual §12):
 //                        nodes colored/shaped by `kind`, edges by `interaction`.
 //                        Import via File ▸ Import ▸ Style from File…, then select
 //                        the style "Dragonwilds Atlas".
@@ -29,20 +29,27 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 
-// site/data.js is a plain `window.DW_DATA = {...}` object literal — eval it.
-// site/found-in.js (window.DW_FOUND_IN) is optional: region hubs only export
+// public/data.js is a plain `window.DW_DATA = {...}` object literal — eval it.
+// public/found-in.js (window.DW_FOUND_IN) is optional: region hubs only export
 // when it exists.
 const ctx = { window: {} };
 vm.createContext(ctx);
-vm.runInContext(fs.readFileSync(path.join(ROOT, 'site/data.js'), 'utf8'), ctx);
+vm.runInContext(fs.readFileSync(path.join(ROOT, 'public/data.js'), 'utf8'), ctx);
 const D = ctx.window.DW_DATA;
-let FI = null;
-try {
-  const fctx = { window: {} };
-  vm.createContext(fctx);
-  vm.runInContext(fs.readFileSync(path.join(ROOT, 'site/found-in.js'), 'utf8'), fctx);
-  FI = fctx.window.DW_FOUND_IN || null;
-} catch { /* found-in.js absent — skip region hubs */ }
+// public/found-in.js (window.DW_FOUND_IN), public/quests.js (window.DW_QUESTS) and
+// public/mounts.js (window.DW_MOUNTS) are optional overlays: region hubs export
+// only when found-in exists, the quest layer only when quests.js exists.
+const overlay = (file, key) => {
+  try {
+    const c = { window: {} };
+    vm.createContext(c);
+    vm.runInContext(fs.readFileSync(path.join(ROOT, file), 'utf8'), c);
+    return c.window[key] || null;
+  } catch { return null; }
+};
+const FI = overlay('public/found-in.js', 'DW_FOUND_IN');
+const Q = overlay('public/quests.js', 'DW_QUESTS');
+const M = overlay('public/mounts.js', 'DW_MOUNTS');
 
 const idSet = new Set(D.nodes.map(n => n.id));
 const skillNames = new Set((D.skills || []).map(s => s.name));
@@ -149,10 +156,10 @@ for (const n of nodes) {
 // Full Ashenfall location list (dragonwilds wiki page order — the same list the
 // hand-annotation checklists use). Exports only emit hubs for regions that
 // actually appear in found-in data, so new locations light up as they're
-// annotated; the app (site/app.js) keeps its own identical copy.
+// annotated; the app (src/app.js) keeps its own identical copy.
 const CANON_REGIONS = [
-  // divisions (never found-in values, kept out): Brynmoor, the north, the far
-  // north, the mountainous reach, the far south-east
+  // other divisions (never found-in values, kept out): the north, the far north,
+  // the mountainous reach, the far south-east
   'Temple Woods', 'Bramblemead Valley', 'Whispering Swamp', 'Ghornfell',
   'Fractured Plains', 'Bloodblight Swamp', 'Stormtouched Highlands',
   'Fellhollow', 'Bleakfields Valley', 'Forgotten Temple', "Dragon's Run",
@@ -161,74 +168,179 @@ const CANON_REGIONS = [
   'The Courtyard', 'The Nexus', 'The Library', 'The Grand Hall', 'The Garrison',
   'The Pastures', 'The Menagerie', 'The Bastion', 'Umbral Sands',
   'Alcarrid Oasis', 'Dunes of Uzzer', 'Manafem Plains', 'The Burning Spire',
+  // quest-only regions (P7): named by the Quests page, never by location prose
+  'Brynmoor', 'Scorned Wilderness',
 ];
 const METHOD_LABEL = {
   mined: 'mined', chopped: 'chopped', picked: 'picked', farmed: 'farmed',
   caught: 'fished', drops: 'drops', chest: 'in chests', dungeon: 'in dungeons', other: 'found',
 };
 const posById = new Map(nodes.map(n => [n.data.id, n.position]));
-if (FI) {
-  const regionMembers = new Map(); // region -> Map(item -> Set(method))
-  for (const [item, list] of Object.entries(FI)) {
-    for (const f of list) {
-      if (!f.region || !CANON_REGIONS.includes(f.region)) continue;
-      if (!regionMembers.has(f.region)) regionMembers.set(f.region, new Map());
-      const m = regionMembers.get(f.region);
-      if (!m.has(item)) m.set(item, new Set());
-      m.get(item).add(METHOD_LABEL[f.method] || f.method || 'found');
-    }
+const regionMembers = new Map(); // region -> Map(item -> Set(method))
+for (const [item, list] of Object.entries(FI || {})) {
+  for (const f of list) {
+    if (!f.region || !CANON_REGIONS.includes(f.region)) continue;
+    if (!regionMembers.has(f.region)) regionMembers.set(f.region, new Map());
+    const m = regionMembers.get(f.region);
+    if (!m.has(item)) m.set(item, new Set());
+    m.get(item).add(METHOD_LABEL[f.method] || f.method || 'found');
   }
-  for (const region of CANON_REGIONS) {
-    const members = regionMembers.get(region);
-    if (!members || !members.size) continue; // empty region → no hub (matches the app)
-    const items = [...members.keys()].sort();
-    let sx = 0, sy = 0;
-    for (const it of items) { const p = posById.get(it); sx += p.x; sy += p.y; }
-    nodes.push({
-      selected: false,
-      data: {
-        id: region,
-        name: region,
-        shared_name: region,
-        kind: 'region',
-        itemType: null,
-        category: 'region',
-        wiki: null,
-        pageid: null,
-        weight: null,
-        stacklimit: null,
-        repaircost: null,
-        catalogue: null,
-        description: `Region of Ashenfall — ${items.length} annotated finds (from the wiki's location prose; a map aid, not a crafting step)`.replace(/—/g, '-'),
-        stats: null,
-        icon: null,
-        foundHere: items.map(it => `${it} (${[...members.get(it)].sort().join(', ')})`).join('; '),
-      },
-      position: { x: Math.round(sx / items.length), y: Math.round(sy / items.length) },
-    });
-    for (const it of items) {
-      edges.push({
-        selected: false,
-        data: {
-          id: `r${edges.length}`,
-          source: region,
-          target: it,
-          interaction: 'region',
-          shared_interaction: 'region',
-          name: `${region} (found here) ${it}`,
-          shared_name: `${region} (found here) ${it}`,
-          qty: null,
-          facility: null,
-          skill: null,
-          xp: null,
-          blueprint: null,
-          variant: null,
-          deprecated: false,
-          sourceRecipe: null,
-        },
-      });
-    }
+}
+
+// ---------- quest layer (P7) ----------
+// The same overlay src/app.js synthesizes at boot: one hub per region that has
+// finds OR a quest set in it, a node per quest (kind=quest, NOT in DW_DATA), and
+// region → quest → reward spokes. Mount nodes already live in DW_DATA.
+const regionQuests = new Map(); // region -> [quest name]
+const questById = new Map();
+for (const name of ((Q && Q.order) || [])) {
+  const q = Q.quests[name];
+  if (!q) continue;
+  questById.set(name, q);
+  for (const r of q.regions || []) {
+    if (!regionQuests.has(r)) regionQuests.set(r, []);
+    regionQuests.get(r).push(name);
   }
+}
+const hubPos = new Map(); // region -> position (for seeding its quests)
+let loneHub = 0;
+for (const region of CANON_REGIONS) {
+  const members = regionMembers.get(region) || new Map();
+  const quests = regionQuests.get(region) || [];
+  if (!members.size && !quests.length) continue; // empty region → no hub (matches the app)
+  const items = [...members.keys()].sort();
+  let sx = 0, sy = 0;
+  for (const it of items) { const p = posById.get(it); sx += p.x; sy += p.y; }
+  const position = items.length
+    ? { x: Math.round(sx / items.length), y: Math.round(sy / items.length) }
+    : { x: loneHub++ * 420, y: -LAYER_H * 2 }; // quest-only region — no centroid to use
+  hubPos.set(region, position);
+  posById.set(region, position);
+  const bits = [];
+  if (items.length) bits.push(`${items.length} annotated finds`);
+  if (quests.length) bits.push(`${quests.length} quest${quests.length > 1 ? 's' : ''}`);
+  nodes.push({
+    selected: false,
+    data: {
+      id: region,
+      name: region,
+      shared_name: region,
+      kind: 'region',
+      itemType: null,
+      category: 'region',
+      wiki: null,
+      pageid: null,
+      weight: null,
+      stacklimit: null,
+      repaircost: null,
+      catalogue: null,
+      description: `Region of Ashenfall - ${bits.join(' · ')} (from the wiki's location prose and quest tables; a map aid, not a crafting step)`,
+      stats: null,
+      icon: null,
+      foundHere: items.length ? items.map(it => `${it} (${[...members.get(it)].sort().join(', ')})`).join('; ') : null,
+      questsHere: quests.length ? quests.slice().sort().join('; ') : null,
+    },
+    position,
+  });
+  for (const it of items) edges.push(regionEdge(region, it));
+}
+
+const QUEST_EDGES = [];
+let qi = 0;
+for (const [name, q] of questById) {
+  const rewards = (q.rewards || []).map(r => r.item).filter(it => posById.has(it));
+  const hubs = (q.regions || []).filter(r => hubPos.has(r));
+  let x = 0, y = 0, n = 0;
+  for (const it of rewards) { const p = posById.get(it); x += p.x; y += p.y; n++; }
+  for (const r of hubs) { const p = hubPos.get(r); x += p.x; y += p.y; n++; }
+  const position = n
+    ? { x: Math.round(x / n), y: Math.round(y / n) - 160 } // between its region and its rewards
+    : { x: loneHub * 420 + qi * 60, y: -LAYER_H * 2 - 200 };
+  qi++;
+  posById.set(name, position);
+  nodes.push({
+    selected: false,
+    data: {
+      id: name,
+      name,
+      shared_name: name,
+      kind: 'quest',
+      itemType: null,
+      category: 'quest',
+      wiki: null,
+      pageid: null,
+      weight: null,
+      stacklimit: null,
+      repaircost: null,
+      catalogue: null,
+      description: q.whereToStart || null,
+      stats: null,
+      icon: null,
+      tier: q.tier || null,
+      whereToStart: q.whereToStart || null,
+      rewards: (q.rewards || []).map(r => r.item).join('; ') || null,
+    },
+    position,
+  });
+  for (const region of hubs) QUEST_EDGES.push({ id: `${region} -> ${name}`, source: region, target: name, interaction: 'quest', label: `${region} (quest here) ${name}`, kind: 'region' });
+  for (const r of (q.rewards || [])) {
+    if (!posById.has(r.item)) continue;
+    QUEST_EDGES.push({ id: `${name} -> ${r.item}`, source: name, target: r.item, interaction: 'quest', label: `${name} (rewards) ${r.item}`, kind: 'reward' });
+  }
+}
+// quest → mount: the Mount page's requirements column, violet in the app (same layer)
+for (const [mountId, m] of Object.entries((M && M.mounts) || {})) {
+  if (!posById.has(mountId)) continue;
+  for (const quest of m.quests || []) {
+    if (!questById.has(quest)) continue;
+    QUEST_EDGES.push({ id: `${quest} -> ${mountId}`, source: quest, target: mountId, interaction: 'mount', label: `${quest} (unlocks mount) ${mountId}`, kind: 'mount' });
+  }
+}
+for (const qe of QUEST_EDGES) {
+  edges.push({
+    selected: false,
+    data: {
+      id: `q${edges.length}`,
+      source: qe.source,
+      target: qe.target,
+      interaction: qe.interaction,
+      shared_interaction: qe.interaction,
+      name: qe.label,
+      shared_name: qe.label,
+      qty: null,
+      facility: null,
+      skill: null,
+      xp: null,
+      blueprint: null,
+      variant: null,
+      deprecated: false,
+      sourceRecipe: null,
+    },
+  });
+}
+
+// a region → item 'found here' spoke (shared by both hubs)
+function regionEdge(region, item) {
+  return {
+    selected: false,
+    data: {
+      id: `r${edges.length}`,
+      source: region,
+      target: item,
+      interaction: 'region',
+      shared_interaction: 'region',
+      name: `${region} (found here) ${item}`,
+      shared_name: `${region} (found here) ${item}`,
+      qty: null,
+      facility: null,
+      skill: null,
+      xp: null,
+      blueprint: null,
+      variant: null,
+      deprecated: false,
+      sourceRecipe: null,
+    },
+  };
 }
 
 // ============================================================
@@ -240,11 +352,11 @@ const cyjs = {
     name: 'Dragonwilds Crafting Atlas',
     source: D.source,
     generatedAt: D.generatedAt,
-    description: `All items, stations, skills and spells of RuneScape: Dragonwilds as one dependency graph. interaction: craft | spell | skill-gate${FI ? ' | region' : ''}. Nodes with kind=region are map-aid hubs (found-here groupings from the wiki's location prose), not crafting steps.`,
+    description: `All items, stations, skills and spells of RuneScape: Dragonwilds as one dependency graph. interaction: craft | spell | skill-gate${FI ? ' | region' : ''}${Q ? ' | quest | mount' : ''}. Nodes with kind=region are map-aid hubs (found-here groupings from the wiki's location prose); nodes with kind=quest are the quests themselves (region -> quest -> reward, from the wiki's Quests page). Neither is a crafting step.`,
   },
   elements: { nodes, edges },
 };
-const cyjsDest = path.join(ROOT, 'site/data.cyjs');
+const cyjsDest = path.join(ROOT, 'public/data.cyjs');
 fs.writeFileSync(cyjsDest, JSON.stringify(cyjs));
 
 // ============================================================
@@ -288,8 +400,16 @@ const edgeKeys = [
   ['sourceRecipe', 'string'],
 ];
 const regionNodeKeys = [
-  // region-hub-only column: everything found in the region, "item (methods)" entries
+  // region-hub-only columns: everything found in the region ("item (methods)"
+  // entries) and the quests set in it
   ['foundHere', 'string'],
+  ['questsHere', 'string'],
+];
+const questNodeKeys = [
+  // quest-node-only columns (P7)
+  ['tier', 'string'],
+  ['whereToStart', 'string'],
+  ['rewards', 'string'],
 ];
 const asNum = v => (v === null || v === undefined || v === '' || isNaN(Number(v)) ? null : Number(v));
 const asText = v => (v === null || v === undefined ? null : String(v));
@@ -298,6 +418,7 @@ const keyLines = [
   '    <key id="d0" for="node" attr.name="name" attr.type="string"/>',
   ...nodeKeys.map(([n, t], i) => `    <key id="k${i}" for="node" attr.name="${n}" attr.type="${t}"/>`),
   ...regionNodeKeys.map(([n, t], i) => `    <key id="rk${i}" for="node" attr.name="${n}" attr.type="${t}"/>`),
+  ...questNodeKeys.map(([n, t], i) => `    <key id="qk${i}" for="node" attr.name="${n}" attr.type="${t}"/>`),
   '    <key id="e0" for="edge" attr.name="name" attr.type="string"/>',
   ...edgeKeys.map(([n, t], i) => `    <key id="ek${i}" for="edge" attr.name="${n}" attr.type="${t}"/>`),
   '    <key id="g0" for="graph" attr.name="name" attr.type="string"/>',
@@ -322,6 +443,11 @@ const nodeLines = nodes.map(n => {
     const v = asText(vals[name]);
     if (v === null) return;
     data.push(`        <data key="rk${i}">${xmlEsc(v)}</data>`);
+  });
+  questNodeKeys.forEach(([name], i) => {
+    const v = asText(vals[name]);
+    if (v === null) return;
+    data.push(`        <data key="qk${i}">${xmlEsc(v)}</data>`);
   });
   return `      <node id="${nid.get(d.id)}">\n${data.join('\n')}\n      </node>`;
 });
@@ -349,13 +475,13 @@ ${keyLines.join('\n')}
     <graph id="Dragonwilds Crafting Atlas" edgedefault="directed">
       <data key="g0">Dragonwilds Crafting Atlas</data>
       <data key="g1">${xmlEsc(D.generatedAt)}</data>
-      <data key="g2">All items, stations, skills and spells of RuneScape: Dragonwilds as one dependency graph. interaction: craft | spell | skill-gate${FI ? ' | region' : ''}. Nodes with kind=region are map-aid hubs (found-here groupings from the wiki's location prose), not crafting steps.</data>
+      <data key="g2">All items, stations, skills and spells of RuneScape: Dragonwilds as one dependency graph. interaction: craft | spell | skill-gate${FI ? ' | region' : ''}${Q ? ' | quest | mount' : ''}. Nodes with kind=region are map-aid hubs (found-here groupings from the wiki's location prose); nodes with kind=quest are the quests themselves (region -&gt; quest -&gt; reward, from the wiki's Quests page). Neither is a crafting step.</data>
 ${nodeLines.join('\n')}
 ${edgeLines.join('\n')}
     </graph>
 </graphml>
 `;
-const gmlDest = path.join(ROOT, 'site/data.graphml');
+const gmlDest = path.join(ROOT, 'public/data.graphml');
 fs.writeFileSync(gmlDest, graphml);
 
 // ============================================================
@@ -380,6 +506,8 @@ const KIND_STYLE = [
   ['implicit', '#6d6a5e', 'ELLIPSE'],
   ['other', '#a49d8c', 'ELLIPSE'],
   ['region', '#7fc9a6', 'HEXAGON'], // P4-1b region hubs — green hexagon
+  ['quest', '#d9a13f', 'OCTAGON'], // P7 quest nodes — gold octagon
+  ['mount', '#c9a0e0', 'ELLIPSE'], // P7 mounts — violet ellipse
 ];
 const INT_STYLE = [
   // [interaction, stroke, line type, width]
@@ -387,6 +515,8 @@ const INT_STYLE = [
   ['spell', '#8f9fd9', 'LONG_DASH', 1.6],
   ['skill-gate', '#6d6a5e', 'DASH', 1.2],
   ['region', '#8cc8aa', 'DASH', 1.0], // found-here spokes — soft green dash
+  ['quest', '#d9a13f', 'DASH', 1.6], // region → quest → reward spokes — gold dash
+  ['mount', '#c9a0e0', 'DOT', 1.4], // quest → mount unlocks — violet dot
 ];
 
 const vp = (name, def, inner = '') => `                <visualProperty default="${def}" name="${name}">${inner}</visualProperty>`;
@@ -429,7 +559,7 @@ const styleXML = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
     </visualStyle>
 </vizmap>
 `;
-const styleDest = path.join(ROOT, 'site/atlas-style.xml');
+const styleDest = path.join(ROOT, 'public/atlas-style.xml');
 fs.writeFileSync(styleDest, styleXML);
 
 // ============================================================
@@ -444,7 +574,7 @@ const dupeIds = back.elements.nodes.length !== ids.size;
 // XML well-formedness (both files) via DOMParser in a headless page
 let xmlOK = null, gmlNodes = 0, gmlEdges = 0;
 try {
-  const [{ chromium }] = await import('playwright');
+  const { chromium } = await import('playwright');
   const b = await chromium.launch();
   const p = await b.newPage();
   xmlOK = await p.evaluate(([sx, gx]) => {

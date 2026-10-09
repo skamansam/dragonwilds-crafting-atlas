@@ -9,7 +9,7 @@
  * persisted settings, guided-tour deep links, URL deep links, URL graph
  * options, and a clean console.
  *
- * Config: playwright.config.ts serves site/ via `node scripts/test-ui.mjs
+ * Config: playwright.config.ts serves src/ via the Vite dev server
  * --serve-only` on :8491 (no build step). Each test gets a fresh browser context,
  * so localStorage (dw.*) starts empty unless a test sets it.
  */
@@ -50,15 +50,32 @@ test.describe("Crafting Atlas", () => {
 
 	test("boots the full graph", async ({ page }) => {
 		await boot(page);
-		const { nodes, data } = await page.evaluate(() => {
+		// the dataset + the synthesized overlay (one region hub per region that
+		// found-in prose or a quest names, plus one node per quest). Every extra
+		// id must be one of those — nothing else may be invented at boot.
+		const { nodes, data, synth, stray } = await page.evaluate(() => {
 			const w = window as unknown as {
-				__cy: { nodes(): { length: number } };
-				DW_DATA: { nodes: unknown[] };
+				__cy: { nodes(): { id(): string; length: number } };
+				DW_DATA: { nodes: { id: string }[] };
+				DW_QUESTS?: { order: string[]; regionQuests: Record<string, string[]> };
+				DW_FOUND_IN?: Record<string, { region: string | null }[]>;
 			};
-			return { nodes: w.__cy.nodes().length, data: w.DW_DATA.nodes.length };
+			const dataset = new Set(w.DW_DATA.nodes.map((n) => n.id));
+			const synth = w.__cy.nodes().map((n) => n.id()).filter((id) => !dataset.has(id));
+			const quests = new Set(w.DW_QUESTS?.order ?? []);
+			const regions = new Set(Object.keys(w.DW_QUESTS?.regionQuests ?? {}));
+			for (const list of Object.values(w.DW_FOUND_IN ?? {})) {
+				for (const f of list) if (f.region) regions.add(f.region);
+			}
+			return {
+				nodes: w.__cy.nodes().length,
+				data: w.DW_DATA.nodes.length,
+				synth: synth.length,
+				stray: synth.filter((id) => !quests.has(id) && !regions.has(id)),
+			};
 		});
-		expect(nodes).toBeGreaterThanOrEqual(data);
-		expect(nodes - data).toBeLessThanOrEqual(7); // + region hubs
+		expect(nodes).toBe(data + synth);
+		expect(stray).toEqual([]);
 	});
 
 	test("search opens the codex panel", async ({ page }) => {

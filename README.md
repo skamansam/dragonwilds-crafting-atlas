@@ -20,16 +20,25 @@ skill trees, as one explorable map of how everything connects.
 
 ## Run it
 
-No build step and no internet needed — the dataset, 1,800+ item icons and the fonts are all
-vendored into `site/`:
+No internet needed at runtime and nothing to configure — the dataset, 1,800+ item icons and
+the fonts all ship in the repo. The front end is bundled by Vite, so start the dev server:
 
 ```bash
-cd site
-python3 -m http.server 8477
-# open http://localhost:8477
+npm install
+npm run dev            # http://localhost:5173
 ```
 
-(Any static file server works; double-clicking `index.html` also works in most browsers.)
+To look at exactly what ships, build the site and serve the result:
+
+```bash
+npm run build          # src/ + public/ → dist/
+npm run preview        # serves dist/
+```
+
+`src/` is the app (ES modules, split by concern, bundled and minified into `dist/assets/`);
+`public/` is everything copied verbatim into the build — the vendored Cytoscape bundles,
+icons, fonts, the layout worker and the generated data files. The deploy is that `dist/`
+folder, unchanged.
 
 ## Cytoscape Desktop exports
 
@@ -38,28 +47,36 @@ The exports bundle turns the atlas into a [Cytoscape Desktop](https://cytoscape.
 
 | File | Format | Import with |
 |------|--------|-------------|
-| `site/data.cyjs` | [Cytoscape.js JSON](https://manual.cytoscape.org/en/latest/Supported_Network_File_Formats.html), array style | *File ▸ Import ▸ Network ▸ File…* (format: *Cytoscape.js JSON*) — Desktop 3.1+ |
-| `site/data.graphml` | [GraphML](https://graphml.graphdrawing.org/), typed keys | same dialog (auto-detected), or yEd / Gephi / NetworkX / igraph / Cytoscape itself |
-| `site/atlas-style.xml` | Desktop vizmap style | *File ▸ Import ▸ Style from File…*, then select **Dragonwilds Atlas** in the Style panel |
+| `public/data.cyjs` | [Cytoscape.js JSON](https://manual.cytoscape.org/en/latest/Supported_Network_File_Formats.html), array style | *File ▸ Import ▸ Network ▸ File…* (format: *Cytoscape.js JSON*) — Desktop 3.1+ |
+| `public/data.graphml` | [GraphML](https://graphml.graphdrawing.org/), typed keys | same dialog (auto-detected), or yEd / Gephi / NetworkX / igraph / Cytoscape itself |
+| `public/atlas-style.xml` | Desktop vizmap style | *File ▸ Import ▸ Style from File…*, then select **Dragonwilds Atlas** in the Style panel |
 
 - Every item/station/skill/spell is a node named by its in-game name; all wiki metadata
   (kind, item type, wiki URL, stats, weight…) becomes a node **table column**, so you can
   style/filter by it. GraphML ids are NMTOKEN-safe hashes; `name` holds the game name.
 - Edges carry an **interaction** column — `craft` (recipe input, with qty/facility/skill/xp
-  columns), `spell` (cast cost), `skill-gate` (unlock ladder), `region` (found-here spoke) —
-  so the edge kinds can be styled or filtered independently.
-- **Region hubs** ship as their own node class: six `kind=region` nodes (one per Ashenfall
-  region with annotated finds) joined to member items by green-dashed `region` edges. Each
-  hub carries a **foundHere** column listing everything the wiki places there with the
-  gather method ("Ash Tree (chopped); …"). They are map aids, not crafting steps — filter
-  them out with `kind ≠ region` for pure recipe analysis.
+  columns), `spell` (cast cost), `skill-gate` (unlock ladder), `region` (found-here spoke),
+  `quest` (region → quest → reward) and `mount` (quest → mount unlock) — so the edge kinds
+  can be styled or filtered independently.
+- **Region hubs** ship as their own node class: eleven `kind=region` nodes (one per Ashenfall
+  region with annotated finds *or* a quest set in it) joined to member items by green-dashed
+  `region` edges. Each hub carries a **foundHere** column listing everything the wiki places
+  there with the gather method ("Ash Tree (chopped); …") and a **questsHere** column. They
+  are map aids, not crafting steps — filter them out with `kind ≠ region` for pure recipe
+  analysis.
+- **Quests and mounts** are nodes too: 37 `kind=quest` nodes (gold octagons) with their
+  `tier` and `whereToStart` columns and a `rewards` list, joined to their region and to the
+  items they grant by gold `quest` edges; 20 `kind=mount` nodes for the terrorbird and magic
+  carpet variants plus the base mounts, reached from the quests that unlock them by violet
+  `mount` edges.
 - A deterministic **layered seed layout** is baked in (raw materials at the bottom,
   end-game items on top; region hubs at the centroid of their members); re-layout any time
   from Desktop's Layout menu.
 - The style mirrors the web atlas: **nodes colored and shaped by `kind`** (materials gold,
-  stations blue rectangles, weapons red, skills bright octagons, regions green hexagons…),
-  **edges by `interaction`** (craft solid gold, spell long-dash blue, skill-gate thin
-  dashed grey, region soft-green dash), dark background.
+  stations blue rectangles, weapons red, skills bright octagons, regions green hexagons,
+  quests gold octagons, mounts violet ellipses…), **edges by `interaction`** (craft solid
+  gold, spell long-dash blue, skill-gate thin dashed grey, region soft-green dash, quest gold
+  dash, mount violet dots), dark background.
 
 Regenerate after a data refresh with `node scripts/build-exports.mjs`.
 
@@ -90,7 +107,7 @@ A `#` fragment never reaches the server, so the same link works on Pages, on the
 and from `file://` — and needs no 404 fallback or rewrite rules. A name that matches no item
 is reported with a toast rather than failing silently.
 
-The slug rules live in `site/routing.js` (loaded before `app.js`): accents stripped,
+The slug rules live in `src/routing.js` (loaded before `app.js`): accents stripped,
 apostrophes and quotes dropped (`Adventurer's Tunic` → `adventurers_tunic`), `&` spelled out
 as `and` (`Beef & Tomato Stew` → `beef_and_tomato_stew`), every other run of punctuation or
 spaces collapsed to one `_`. Two names that slug identically (the dataset has `Blue Dragon
@@ -129,7 +146,7 @@ the address bar is rewritten live as any option changes (`history.replaceState`,
 entry and no reload), which makes the URL a complete, shareable description of what is on screen.
 Unusable values are ignored with a toast rather than silently changing something else, and
 unrelated params such as `?tour=robes` are preserved. The parameter list lives in
-`site/routing.js` (`OPTION_PARAMS`).
+`src/routing.js` (`OPTION_PARAMS`).
 
 ### The map
 
@@ -201,6 +218,15 @@ unrelated params such as `?tour=robes` are preserved. The parameter list lives i
   everything the wiki places there. Region hubs are map aids, not crafting steps: recipes,
   plans and exports ignore them, their green spokes start hidden (**legend → LINKS →
   Region links** turns them on), and the hubs stay quiet until then. Regions are searchable too.
+- **Quests & mounts** (the map's third layer, on by default): every quest on the wiki's
+  [Quests](https://dragonwilds.runescape.wiki/w/Quests) page is a gold **quest node**, wired
+  **region → quest → reward** — the region it's set in, the items you get for finishing it,
+  and the **mounts** the Mount page says it unlocks. Open a quest to read its **Where to
+  start** line (the wiki's own wording) with every reward as a click-to-jump row; open a
+  mount for **How to get it**, the quests it needs and the vestige item that unlocks it. All
+  37 quests and 21 mounts, mined from the two wiki pages. Toggle the layer with the legend's
+  **Quests**/**Mounts** kinds or the **Quest links** row (LINKS). Quests and mounts are story
+  context, not crafting steps: recipes, plans, paths and counts ignore them.
 - **Isolate tree** (panel button): shows only the subtree, auto-revealing every category.
   The **depth input** beside it limits how many recipe steps the direction modes walk
   (empty = the whole tree to the leaves); the default **requires + 1 enable** walk ignores it
@@ -210,10 +236,11 @@ unrelated params such as `?tour=robes` are preserved. The parameter list lives i
   the top-left legend. **Crafts** — every item kind; **View** — **Dead ends** (items nothing
   crafts), **Show everything** (all items + all link kinds back on in one click) and
   **Possessions** with a live owned-item count badge (flip to see only what you can reach
-  from what you own); **Links** — **Recipe links** (cool blue) vs gold **Skill gates** (start
-  hidden on a fresh browser; choices persist) and **Region links**; then **↺ All — reset
-  view** back to the calm first-load state. The old header kind/link chips are retired
-  (hidden, still scriptable).
+  from what you own); **Links** — **Recipe links** (cool blue) vs gold **Skill gates**
+  (start hidden on a fresh browser; choices persist), **Region links** (hidden) and
+  **Quest links** (on — gold region → quest → reward spokes plus the violet quest → mount
+  unlocks); then **↺ All — reset view** back to the calm first-load state. The old header
+  kind/link chips are retired (hidden, still scriptable).
 
 ### Characters
 
@@ -246,7 +273,7 @@ unrelated params such as `?tour=robes` are preserved. The parameter list lives i
 - **animate toggle**: off jumps straight to the final arrangement — faster, less CPU, no
   motion sickness. Persisted.
 - **saved positions**: layouts with a precomputed snapshot (*elk-layered*,
-  *elk-layered-wide* and *cose-bilkent*, in `site/layouts/manifest.js`) apply instantly — the
+  *elk-layered-wide* and *cose-bilkent*, in `public/layouts/manifest.js`) apply instantly — the
   algorithm line shows **· saved**. Turn it off to always recompute live. Snapshots are
   generated by `scripts/gen-layouts.mjs`, and Desktop-authored positions can be added to the
   manifest in the same shape.
@@ -267,7 +294,7 @@ unrelated params such as `?tour=robes` are preserved. The parameter list lives i
 - **Share & curate snapshots**: **⤓** downloads the saved 💾 snapshot as a self-describing
   JSON file (`type: "dw-snapshot"`). Send it in and, after validation
   (`scripts/merge-snapshots.mjs` checks the bounding box, coordinates and node ids), it
-  ships in `site/layouts/curated.js` — every visitor gets the arrangement instantly,
+  ships in `public/layouts/curated.js` — every visitor gets the arrangement instantly,
   marked **· curated**. Precedence: your own 💾 snapshot → curated → bundled manifest.
 - **Graph settings** (the ⚙ dropdown in the header): holds **all** the graph options — the
   **algorithm select**, **force-directed**, **animate** and **saved positions** toggles, the
@@ -277,7 +304,7 @@ unrelated params such as `?tour=robes` are preserved. The parameter list lives i
   persisted) and **worker layout** (below). The panel reopens where you left it, and toggles
   that re-arrange the map toast an **Undo** link for a few seconds.
 - **Worker layout** (P1-2, on by default): the **worker layout** checkbox runs heavy layouts
-  in a background Web Worker (`site/layout-worker.js` — headless cytoscape with every vendor
+  in a background Web Worker (`public/layout-worker.js` — headless cytoscape with every vendor
   extension loaded) so the page keeps responding while physics computes. Positions come back
   identical to the main thread (bit-for-bit on elk-layered-wide), the capability probe covers
   all 18 layout families, and any worker failure/timeout falls back to the main thread
@@ -311,7 +338,8 @@ unrelated params such as `?tour=robes` are preserved. The parameter list lives i
 
 Data is a **manual snapshot** of the wiki as of the 1.0 update (15 September 2026).
 It is refreshed by hand after major game updates — there is no scheduled or automated
-re-scraping of the wiki, and the deploy workflow only uploads the existing `site/` folder.
+re-scraping of the wiki; the deploy workflow only rebuilds and uploads what is committed in
+`public/` and `src/`.
 
 The scraper is rate-limited to roughly one request per second (tune with `RATE_MS`)
 and identifies itself with a descriptive User-Agent — see `scripts/wiki-config.mjs`.
@@ -325,12 +353,14 @@ node scripts/fetch-wiki.mjs        # ~3,650 raw wiki pages → cache/raw/
 node scripts/fetch-xp-tables.mjs   # wiki XP data tables → cache/xp/ (resolves {{ConstructionXP|…}} recipe args)
 node scripts/parse-wiki.mjs        # infoboxes + Recipe templates → cache/parsed/dataset.json
 node scripts/fetch-icons.mjs       # resolve icon URLs → cache/icons/manifest.json
-node scripts/build-data.mjs        # nodes/edges/recipes/spells/skills → site/data.js + site/data.json (fetch-icon-files rewrites both with local icon paths)
-node scripts/build-found-in.mjs    # location prose in cache/raw → site/found-in.js
-node scripts/build-exports.mjs     # site/data.js → data.cyjs + data.graphml + atlas-style.xml
-node scripts/fetch-icon-files.mjs  # download icons → site/icons/ (then shrink >60 KB files)
-node scripts/test-site.mjs         # Playwright smoke test (site must be served on :8477)
-node scripts/test-ui.mjs           # full Playwright UI suite (serves site/ itself)
+node scripts/build-data.mjs        # nodes/edges/recipes/spells/skills → public/data.js + public/data.json (fetch-icon-files rewrites both with local icon paths)
+node scripts/build-found-in.mjs    # location prose in cache/raw → public/found-in.js
+node scripts/build-quests.mjs      # the wiki's Quests page → public/quests.js (fetch-page.mjs pulls the page on demand)
+node scripts/build-mounts.mjs      # the wiki's Mount page → public/mounts.js (needs quests.js first)
+node scripts/build-exports.mjs     # public/data.js → data.cyjs + data.graphml + atlas-style.xml
+node scripts/fetch-icon-files.mjs  # download icons → public/icons/ (then shrink >60 KB files)
+node scripts/test-site.mjs         # Playwright smoke test (a server must be running on :8477)
+node scripts/test-ui.mjs           # full Playwright UI suite (boots the Vite dev server itself)
 node scripts/build-location-checklists.mjs  # missing find spots → docs/checklists/*.md
 ```
 
@@ -350,18 +380,21 @@ node scripts/apply-edits.mjs dragonwilds-data.json             # replace from a 
 node scripts/apply-edits.mjs dragonwilds-edits.json --dry-run  # report, write nothing
 ```
 
-It rewrites `cache/final-dataset.json` and re-emits `site/data.json` + `site/data.js` in
+It rewrites `cache/final-dataset.json` and re-emits `public/data.json` + `public/data.js` in
 the same shape `build-data.mjs` uses.
 
 ### Tests
 
-Three layers, no build step:
+Three layers, all driving the `src/` sources through the Vite dev server:
 
 ```bash
 npx vitest run              # Gherkin/cucumber — highlight math, persistence, collapse, facilities, URL routing, data edits
-npx playwright test         # Playwright e2e — boots site/ via scripts/test-ui.mjs --serve-only
-node scripts/test-ui.mjs    # broad acceptance suite (serves site/ itself)
+npx playwright test         # Playwright e2e — webServer boots `npx vite --port 8491`
+node scripts/test-ui.mjs    # broad acceptance suite (boots the same dev server; --url= targets a build)
 ```
+
+CI is the exception: the deploy workflow builds `dist/` and then smoke-tests the live URL, so
+the minified bundle is exercised end to end in exactly one place.
 
 Every scenario is Gherkin (`tests/features/*.feature`) with its step definitions
 beside it (`tests/features/*.spec.ts`), driving the shared pure helpers in
@@ -395,18 +428,18 @@ from the cached wiki pages where possible: drop items read "killed from: cows,
 deer, and wolves" instead of a bare "monster drop". While playing, put an `x` in
 every column where you found the item and use **Notes** for anything richer
 (which monster, which chest, which tool); a merge-back script will fold filled-in
-rows into `site/found-in.js`.
+rows into `public/found-in.js`.
 Regenerating the checklists overwrites the files, so fold any filled-in answers
-back into `site/found-in.js` before re-running the generator (a merge-back script
+back into `public/found-in.js` before re-running the generator (a merge-back script
 is planned for exactly that).
 
 ## Contributing
 
 Two guides, depending on what you are changing:
 
-- **[CONTRIBUTOR.md](CONTRIBUTOR.md)** — the code: how `site/` is wired (classic
-  scripts, no build step), the conventions, the three test layers, and the
-  non-goals that decide what belongs here at all.
+- **[CONTRIBUTOR.md](CONTRIBUTOR.md)** — the code: how `src/` + `public/` are
+  wired and built, the conventions, the three test layers, and the non-goals
+  that decide what belongs here at all.
 - **[CONTRIBUTOR-DATA.md](CONTRIBUTOR-DATA.md)** — the data: correct a row in the
   app and ship it as a PR end to end, refresh from the wiki, or answer the
   location checklists.
@@ -420,9 +453,9 @@ built around.
 This repo mixes code, data, and game assets under different licenses:
 
 - **Code** (`scripts/`, site application) — [MIT](LICENSE)
-- **Dataset** (`site/data.js`) — [CC BY-NC-SA 3.0](https://creativecommons.org/licenses/by-nc-sa/3.0/),
+- **Dataset** (`public/data.js`) — [CC BY-NC-SA 3.0](https://creativecommons.org/licenses/by-nc-sa/3.0/),
   a derivative of the Dragonwilds Wiki's text
-- **Icons** (`site/icons/`) — Jagex Limited's game assets, used under the
+- **Icons** (`public/icons/`) — Jagex Limited's game assets, used under the
   [Fan Content Policy](https://www.jagex.com/en-GB/legal/fan-content); not open-licensed
 - **Fonts** — [SIL OFL 1.1](https://openfontlicense.org/)
 

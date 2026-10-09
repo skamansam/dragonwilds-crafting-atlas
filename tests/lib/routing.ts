@@ -1,5 +1,5 @@
 /**
- * Shared URL-routing math — replicated pure functions from site/routing.js
+ * Shared URL-routing math — replicated pure functions from src/routing.js
  * (slug, buildIndex, parseHash, buildHash). The Gherkin routing scenarios drive
  * these, so the exact slug rules the site ships are what the tests assert.
  *
@@ -11,7 +11,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 // the production dataset, so the index/collision scenarios test real names
-const dataPath = resolve(process.cwd(), "site", "data.json");
+const dataPath = resolve(process.cwd(), "public", "data.json");
 const D = JSON.parse(readFileSync(dataPath, "utf8"));
 
 export { D };
@@ -68,7 +68,7 @@ export function buildHash(slugs: (string | undefined | null)[]): string {
 	return parts.length ? `#/${parts.join("/")}` : "#/";
 }
 
-/* ── graph options in the query string (mirrors site/routing.js) ────────── */
+/* ── graph options in the query string (mirrors src/routing.js) ────────── */
 
 type OptionKind =
 	| "bool"
@@ -101,6 +101,7 @@ const OPTION_PARAMS: OptionParam[] = [
 	{ name: "links", kind: "bool" },
 	{ name: "skilllinks", kind: "bool" },
 	{ name: "regions", kind: "bool" },
+	{ name: "questlinks", kind: "bool" },
 	{ name: "possessions", kind: "bool" },
 	{ name: "iso", kind: "slug" },
 	{ name: "isodir", kind: "enum", values: ["both", "down", "needs", "up"] },

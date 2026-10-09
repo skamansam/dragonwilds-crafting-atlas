@@ -120,4 +120,4 @@ Feature: Graph options in the URL
   Scenario: The option set covers layout, legend and isolation
     When I list the option names
     Then the option names include "layout; cats; iso"
-    And there are 16 option names
+    And there are 17 option names

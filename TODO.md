@@ -69,7 +69,7 @@ full speed-up, use **saved positions** (next item) or **animate off**.
 able to store a preset config for layouts. I can use the cytoscape desktop app to configure
 these, but if you could give me a start with what you think a good heirarchical layout would look like,
 please do.
-— DONE: `scripts/gen-layouts.mjs` computes snapshots into `site/layouts/manifest.js`
+— DONE: `scripts/gen-layouts.mjs` computes snapshots into `public/layouts/manifest.js`
 (elk-layered hierarchical + cose-bilkent bundled); the **saved positions** checkbox applies
 them instantly. Desktop-authored configs: export positions and add them to the manifest as
 `"<algo>": { "<node id>": { "x": …, "y": … } }`.
@@ -90,7 +90,7 @@ thread-like construct?
 
 [x] Where is each item found? Add region / gather-method / tool annotations to the info panel.
     → DONE (2026-09-24): panels show a **Found in** section mined from the cached wiki
-    prose (scripts/build-found-in.mjs → site/found-in.js): region, gather method (mined /
+    prose (scripts/build-found-in.mjs → public/found-in.js): region, gather method (mined /
     chopped / picked / farmed / fished / chest / dungeon / drops) and the tool where the
     wiki names one (e.g. Ash Tree → Bramblemead Valley, chopped with a logging axe).
     575 items annotated (123 with regions, 452 method-only). Future: region pseudo-nodes
@@ -126,3 +126,21 @@ skill level for each base node.
 [x] We need to be able to edit the data in the app. The edits should be saved in the browser, then we should be able to save the data as  file. W e need a script that will update the data based on a saved file. For relationships, we should be able to search for the item to link to, along with the relationship. This is only for the node data so that it only shows makes or givves or whatever relationship and the node.
 
 
+
+[x] Owned items should stand out — both in the graph and in the info box (codex panel).
+    Paths between owned items should be a certain colour, and paths that go from one owned item
+    ("enables") to another should be another colour. I want a way to show what I own and the next
+    upcoming items I will get from it: if I have skill 32 and the next level unlocks something,
+    show that item next to the stuff I already own. For items that need something else to show up,
+    show that in a similar fashion.
+
+[x] We need to add quests as nodes to the graph. All the graph data is at
+    https://dragonwilds.runescape.wiki/w/Quests. The quests all provide rewards, so the links
+    should be <region> -> <quest> -> <item>. For the description of the quest, just add the
+    'where to start' bit from the tables on that page.
+    → DONE (2026-10-09, P7): 37 quest nodes from the wiki's Quests page (type, tier, region,
+    the 'Where to Start' line as the description) linked region -> quest -> reward (35 reward
+    items). Mounts are the other half: the wiki's Mount page gives each mount's requirements
+    and how to get it, so 20 mount nodes entered the dataset ({{Infobox Mount}}) and 21 mounts
+    carry a quest-requirement + acquisition line, wired quest -> mount. Both layers are ON by
+    default (the new 'Quest links' legend row is the first link layer that ships enabled).

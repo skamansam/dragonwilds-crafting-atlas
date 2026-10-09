@@ -1,5 +1,5 @@
 {
- "generatedAt": "2026-09-29T13:24:27.185Z",
+ "generatedAt": "2026-10-09T16:00:44.140Z",
  "source": "https://dragonwilds.runescape.wiki",
  "nodes": [
   {
@@ -21859,6 +21859,21 @@
    "pageid": 15218
   },
   {
+   "id": "Manafem Midnight",
+   "name": "Manafem Midnight",
+   "kind": "mount",
+   "itemType": "Mount",
+   "icon": "icons/Manafem_Midnight.png_79ada",
+   "wiki": "https://dragonwilds.runescape.wiki/w/Manafem_Midnight",
+   "description": [],
+   "stats": {},
+   "weight": null,
+   "stacklimit": null,
+   "repaircost": null,
+   "catalogue": null,
+   "pageid": 15225
+  },
+  {
    "id": "MOUNT: Scorchweave Rug",
    "name": "MOUNT: Scorchweave Rug",
    "kind": "other",
@@ -21874,6 +21889,278 @@
    "pageid": 15233
   },
   {
+   "id": "Terrorbird",
+   "name": "Terrorbird",
+   "kind": "mount",
+   "itemType": "Mount",
+   "icon": "icons/Terrorbird__28mount_29.png_b3d79",
+   "wiki": "https://dragonwilds.runescape.wiki/w/Terrorbird",
+   "description": [],
+   "stats": {
+    "carryweight": "200"
+   },
+   "weight": null,
+   "stacklimit": null,
+   "repaircost": null,
+   "catalogue": null,
+   "pageid": 15236
+  },
+  {
+   "id": "Infernal Blightbeak",
+   "name": "Infernal Blightbeak",
+   "kind": "mount",
+   "itemType": "Mount",
+   "icon": "icons/Infernal_Blightbeak.png_445ba",
+   "wiki": "https://dragonwilds.runescape.wiki/w/Infernal_Blightbeak",
+   "description": [],
+   "stats": {
+    "carryweight": "200"
+   },
+   "weight": null,
+   "stacklimit": null,
+   "repaircost": null,
+   "catalogue": null,
+   "pageid": 15266
+  },
+  {
+   "id": "Crimson Crybaby",
+   "name": "Crimson Crybaby",
+   "kind": "mount",
+   "itemType": "Mount",
+   "icon": "icons/Crimson_Crybaby.png_bde7d",
+   "wiki": "https://dragonwilds.runescape.wiki/w/Crimson_Crybaby",
+   "description": [],
+   "stats": {
+    "carryweight": "200"
+   },
+   "weight": null,
+   "stacklimit": null,
+   "repaircost": null,
+   "catalogue": null,
+   "pageid": 15272
+  },
+  {
+   "id": "Mossbeak Hunter",
+   "name": "Mossbeak Hunter",
+   "kind": "mount",
+   "itemType": "Mount",
+   "icon": "icons/Mossbeak_Hunter.png_49bcb",
+   "wiki": "https://dragonwilds.runescape.wiki/w/Mossbeak_Hunter",
+   "description": [],
+   "stats": {
+    "carryweight": "200"
+   },
+   "weight": null,
+   "stacklimit": null,
+   "repaircost": null,
+   "catalogue": null,
+   "pageid": 15273
+  },
+  {
+   "id": "Oakfeather Raptor",
+   "name": "Oakfeather Raptor",
+   "kind": "mount",
+   "itemType": "Mount",
+   "icon": "icons/Oakfeather_Raptor.png_ae501",
+   "wiki": "https://dragonwilds.runescape.wiki/w/Oakfeather_Raptor",
+   "description": [],
+   "stats": {
+    "carryweight": "200"
+   },
+   "weight": null,
+   "stacklimit": null,
+   "repaircost": null,
+   "catalogue": null,
+   "pageid": 15274
+  },
+  {
+   "id": "Coastal Sunbeak",
+   "name": "Coastal Sunbeak",
+   "kind": "mount",
+   "itemType": "Mount",
+   "icon": "icons/Coastal_Sunbeak.png_a4324",
+   "wiki": "https://dragonwilds.runescape.wiki/w/Coastal_Sunbeak",
+   "description": [],
+   "stats": {
+    "carryweight": "200"
+   },
+   "weight": null,
+   "stacklimit": null,
+   "repaircost": null,
+   "catalogue": null,
+   "pageid": 15275
+  },
+  {
+   "id": "Astralbeak Warbler",
+   "name": "Astralbeak Warbler",
+   "kind": "mount",
+   "itemType": "Mount",
+   "icon": "icons/Astralbeak_Warbler.png_4766b",
+   "wiki": "https://dragonwilds.runescape.wiki/w/Astralbeak_Warbler",
+   "description": [],
+   "stats": {
+    "carryweight": "200"
+   },
+   "weight": null,
+   "stacklimit": null,
+   "repaircost": null,
+   "catalogue": null,
+   "pageid": 15276
+  },
+  {
+   "id": "Zamorakian Pledgesaddle",
+   "name": "Zamorakian Pledgesaddle",
+   "kind": "mount",
+   "itemType": "Mount",
+   "icon": "icons/Zamorakian_Pledgesaddle.png_43c29",
+   "wiki": "https://dragonwilds.runescape.wiki/w/Zamorakian_Pledgesaddle",
+   "description": [],
+   "stats": {
+    "carryweight": "200"
+   },
+   "weight": null,
+   "stacklimit": null,
+   "repaircost": null,
+   "catalogue": null,
+   "pageid": 15277
+  },
+  {
+   "id": "Springdown Runner",
+   "name": "Springdown Runner",
+   "kind": "mount",
+   "itemType": "Mount",
+   "icon": "icons/Springdown_Runner.png_65efe",
+   "wiki": "https://dragonwilds.runescape.wiki/w/Springdown_Runner",
+   "description": [],
+   "stats": {
+    "carryweight": "200"
+   },
+   "weight": null,
+   "stacklimit": null,
+   "repaircost": null,
+   "catalogue": null,
+   "pageid": 15278
+  },
+  {
+   "id": "Grassfoot Screecher",
+   "name": "Grassfoot Screecher",
+   "kind": "mount",
+   "itemType": "Mount",
+   "icon": "icons/Grassfoot_Screecher.png_e0737",
+   "wiki": "https://dragonwilds.runescape.wiki/w/Grassfoot_Screecher",
+   "description": [],
+   "stats": {
+    "carryweight": "200"
+   },
+   "weight": null,
+   "stacklimit": null,
+   "repaircost": null,
+   "catalogue": null,
+   "pageid": 15279
+  },
+  {
+   "id": "Leafwood Strider",
+   "name": "Leafwood Strider",
+   "kind": "mount",
+   "itemType": "Mount",
+   "icon": "icons/Leafwood_Strider.png_e40a0",
+   "wiki": "https://dragonwilds.runescape.wiki/w/Leafwood_Strider",
+   "description": [],
+   "stats": {
+    "carryweight": "200"
+   },
+   "weight": null,
+   "stacklimit": null,
+   "repaircost": null,
+   "catalogue": null,
+   "pageid": 15280
+  },
+  {
+   "id": "Eclipseborn Sharpbeak",
+   "name": "Eclipseborn Sharpbeak",
+   "kind": "mount",
+   "itemType": "Mount",
+   "icon": "icons/Eclipseborn_Sharpbeak.png_d6ce8",
+   "wiki": "https://dragonwilds.runescape.wiki/w/Eclipseborn_Sharpbeak",
+   "description": [],
+   "stats": {
+    "carryweight": "200"
+   },
+   "weight": null,
+   "stacklimit": null,
+   "repaircost": null,
+   "catalogue": null,
+   "pageid": 15281
+  },
+  {
+   "id": "Sunkissed Clawfoot",
+   "name": "Sunkissed Clawfoot",
+   "kind": "mount",
+   "itemType": "Mount",
+   "icon": "icons/Sunkissed_Clawfoot.png_4b549",
+   "wiki": "https://dragonwilds.runescape.wiki/w/Sunkissed_Clawfoot",
+   "description": [],
+   "stats": {
+    "carryweight": "200"
+   },
+   "weight": null,
+   "stacklimit": null,
+   "repaircost": null,
+   "catalogue": null,
+   "pageid": 15282
+  },
+  {
+   "id": "Scorchsummer Ashbeak",
+   "name": "Scorchsummer Ashbeak",
+   "kind": "mount",
+   "itemType": "Mount",
+   "icon": "icons/ScorchsummerMount.png_bc720",
+   "wiki": "https://dragonwilds.runescape.wiki/w/Scorchsummer_Ashbeak",
+   "description": [],
+   "stats": {
+    "carryweight": "200"
+   },
+   "weight": null,
+   "stacklimit": null,
+   "repaircost": null,
+   "catalogue": null,
+   "pageid": 15283
+  },
+  {
+   "id": "Applefeather Mosstail",
+   "name": "Applefeather Mosstail",
+   "kind": "mount",
+   "itemType": "Mount",
+   "icon": "icons/Applefeather_Mosstail.png_445d6",
+   "wiki": "https://dragonwilds.runescape.wiki/w/Applefeather_Mosstail",
+   "description": [],
+   "stats": {
+    "carryweight": "200"
+   },
+   "weight": null,
+   "stacklimit": null,
+   "repaircost": null,
+   "catalogue": null,
+   "pageid": 15284
+  },
+  {
+   "id": "Summerbellied Wagtail",
+   "name": "Summerbellied Wagtail",
+   "kind": "mount",
+   "itemType": "Mount",
+   "icon": "icons/Summerbellied_Wagtail.png_8e7e8",
+   "wiki": "https://dragonwilds.runescape.wiki/w/Summerbellied_Wagtail",
+   "description": [],
+   "stats": {
+    "carryweight": "200"
+   },
+   "weight": null,
+   "stacklimit": null,
+   "repaircost": null,
+   "catalogue": null,
+   "pageid": 15285
+  },
+  {
    "id": "PLAN: Moon Garou Bed",
    "name": "PLAN: Moon Garou Bed",
    "kind": "other",
@@ -21887,6 +22174,23 @@
    "repaircost": null,
    "catalogue": null,
    "pageid": 15345
+  },
+  {
+   "id": "Uzzerian Umber",
+   "name": "Uzzerian Umber",
+   "kind": "mount",
+   "itemType": "Mount",
+   "icon": "icons/Uzzerian_Umber.png_1b1a1",
+   "wiki": "https://dragonwilds.runescape.wiki/w/Uzzerian_Umber",
+   "description": [],
+   "stats": {
+    "carryweight": "0"
+   },
+   "weight": null,
+   "stacklimit": null,
+   "repaircost": null,
+   "catalogue": null,
+   "pageid": 15395
   },
   {
    "id": "Blue Dragonhide",
@@ -22670,6 +22974,23 @@
    "repaircost": null,
    "catalogue": null,
    "pageid": 19487
+  },
+  {
+   "id": "Moonsilk Weave",
+   "name": "Moonsilk Weave",
+   "kind": "mount",
+   "itemType": "Mount",
+   "icon": "icons/Moonsilk_Weave.png_bc374",
+   "wiki": "https://dragonwilds.runescape.wiki/w/Moonsilk_Weave",
+   "description": [],
+   "stats": {
+    "carryweight": "0"
+   },
+   "weight": null,
+   "stacklimit": null,
+   "repaircost": null,
+   "catalogue": null,
+   "pageid": 19491
   },
   {
    "id": "Discordant Residue",
@@ -23949,6 +24270,21 @@
    "repaircost": null,
    "catalogue": null,
    "pageid": 20048
+  },
+  {
+   "id": "Scorchweave Rug",
+   "name": "Scorchweave Rug",
+   "kind": "mount",
+   "itemType": "Mount",
+   "icon": "icons/Scorchweave_Rug.png_66a6a",
+   "wiki": "https://dragonwilds.runescape.wiki/w/Scorchweave_Rug",
+   "description": [],
+   "stats": {},
+   "weight": null,
+   "stacklimit": null,
+   "repaircost": null,
+   "catalogue": null,
+   "pageid": 20149
   },
   {
    "id": "MOUNT: Manafem Midnight",

@@ -2,7 +2,7 @@
  * Cucumber/Gherkin spec for the graph options carried in the query string.
  *
  * Every step drives parseOptions/buildOptionsQuery from tests/lib/routing.ts,
- * which mirror the shipped logic in site/routing.js. app.js only wires the
+ * which mirror the shipped logic in src/routing.js. app.js only wires the
  * parsed values into its state (and never persists them), so this file is the
  * single home for the validation/round-trip rules.
  *
@@ -47,6 +47,7 @@ const WHOLE_STATE: Record<string, string> = {
 	links: "1",
 	skilllinks: "0",
 	regions: "0",
+	questlinks: "1",
 	possessions: "1",
 	iso: "iron_sword",
 	isodir: "up",

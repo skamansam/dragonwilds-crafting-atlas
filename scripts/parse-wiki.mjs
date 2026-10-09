@@ -10,7 +10,7 @@ fs.mkdirSync(OUT, { recursive: true });
 const files = fs.readdirSync(RAW).filter(f => f.endsWith('.json')).sort((a, b) => Number(a.slice(0, -5)) - Number(b.slice(0, -5)));
 console.log(`Parsing ${files.length} raw pages...`);
 
-const INFOBOX_NAMES = new Set(['Infobox Item', 'Infobox Weapon', 'Infobox Armour', 'Infobox Tool', 'Infobox Build', 'Infobox Spell', 'Infobox Resource Node', 'Infobox Skill']);
+const INFOBOX_NAMES = new Set(['Infobox Item', 'Infobox Weapon', 'Infobox Armour', 'Infobox Tool', 'Infobox Build', 'Infobox Spell', 'Infobox Resource Node', 'Infobox Skill', 'Infobox Mount']);
 
 // XP template tables: {{ConstructionXP|Build_Wall_Tier1}} → concrete XP number.
 // The wiki's own {{Skill experience}} module resolves these against JSON data pages
@@ -228,6 +228,7 @@ function normType(infoboxName, itemType, title) {
   if (infoboxName === 'Infobox Spell') return 'spell';
   if (infoboxName === 'Infobox Skill') return 'skill';
   if (infoboxName === 'Infobox Resource Node') return 'resource';
+  if (infoboxName === 'Infobox Mount') return 'mount';
   if (t.includes('weapon') || t.includes('bow') || t.includes('staff') || t.includes('sword')) return 'weapon';
   if (t.includes('armour') || t.includes('armor')) return 'armour';
   if (t.includes('ammo') || ti.includes('arrow') || ti.includes('bolt')) return 'ammo';
@@ -243,6 +244,7 @@ function normType(infoboxName, itemType, title) {
 const WEAPON_FIELDS = ['power', 'basedmg', 'additionaldmg', 'damagetype', 'attackstyle', 'durability', 'block', 'combo', 'criticalchance', 'reloadspeed', 'specialaction', 'specialeffect', 'runedamage'];
 const ARMOUR_FIELDS = ['power', 'meleedefence', 'rangeddefence', 'magicdefence', 'durability', 'block', 'carryweight', 'specialeffect'];
 const ITEM_FIELDS = ['image', 'item_type', 'weight', 'stacklimit', 'repaircost', 'health', 'duration', 'hydration', 'sustenance', 'compostvalue'];
+const MOUNT_FIELDS = ['carryweight']; // {{Infobox Mount}} — how much extra carry weight the mount grants
 
 for (const f of files) {
   const rec = JSON.parse(fs.readFileSync(path.join(RAW, f), 'utf8'));
@@ -307,7 +309,7 @@ for (const f of files) {
 
     // item-ish infoboxes
     const stats = {};
-    const fieldList = base === 'Infobox Weapon' ? WEAPON_FIELDS : base === 'Infobox Armour' ? ARMOUR_FIELDS : [];
+    const fieldList = base === 'Infobox Weapon' ? WEAPON_FIELDS : base === 'Infobox Armour' ? ARMOUR_FIELDS : base === 'Infobox Mount' ? MOUNT_FIELDS : [];
     for (const k of fieldList) {
       if (args[k] != null && args[k] !== '') {
         stats[k] = splitBr(args[k]).map(plainText).join('; ');
@@ -317,7 +319,7 @@ for (const f of files) {
       name: pageName,
       pageid: rec.pageid,
       type: normType(base, args.item_type, pageName),
-      itemType: plainText(args.item_type || '') || (base === 'Infobox Build' ? 'Station' : base === 'Infobox Resource Node' ? 'Resource Node' : ''),
+      itemType: plainText(args.item_type || '') || (base === 'Infobox Build' ? 'Station' : base === 'Infobox Resource Node' ? 'Resource Node' : base === 'Infobox Mount' ? 'Mount' : ''),
       image: (args.image || '').trim(),
       description: splitBr(args.description).map(plainText),
       weight: plainText(args.weight || '') || null,

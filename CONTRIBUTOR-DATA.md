@@ -10,9 +10,9 @@ For the code side of the project see [CONTRIBUTOR.md](CONTRIBUTOR.md).
 
 | You want to… | Do this | Ends up in |
 |---|---|---|
-| Fix a wrong name, kind, item type, wiki link, description or stat, or add a makes/gives/found-in relationship | Correct it **in the app**, export, `apply-edits.mjs`, PR — [Path A](#path-a-fix-the-data-in-the-app-then-ship-it-as-a-pr) | `site/data.*` |
-| Refresh everything from the wiki after a game update | Run the **scraper pipeline** in order — [Path B](#path-b-full-wiki-refresh) | `cache/` → `site/data.*` |
-| Answer "where is this found?" | Fill in a **checklist table** and merge it back — [Path C](#path-c-locations-the-hand-annotation-loop) | `site/found-in.js` |
+| Fix a wrong name, kind, item type, wiki link, description or stat, or add a makes/gives/found-in relationship | Correct it **in the app**, export, `apply-edits.mjs`, PR — [Path A](#path-a-fix-the-data-in-the-app-then-ship-it-as-a-pr) | `public/data.*` |
+| Refresh everything from the wiki after a game update | Run the **scraper pipeline** in order — [Path B](#path-b-full-wiki-refresh) | `cache/` → `public/data.*` |
+| Answer "where is this found?" | Fill in a **checklist table** and merge it back — [Path C](#path-c-locations-the-hand-annotation-loop) | `public/found-in.js` |
 
 Path A is the preferred way in: small, verifiable corrections beat a full
 re-scrape, which re-litigates rows someone already checked in game.
@@ -46,12 +46,14 @@ re-scrape, which re-litigates rows someone already checked in game.
 
 | File | Tracked? | Role |
 |---|---|---|
-| `site/data.js` | ✅ | **What the site loads.** `window.DW_DATA = {…}` — the authoritative shipped dataset |
-| `site/data.json` | ✅ | The same dataset as strict JSON (scripts, desktop tools, tests) |
-| `site/found-in.js` | ✅ | `window.DW_FOUND_IN` — region / gather-method / tool annotations |
-| `site/data.cyjs`, `site/data.graphml`, `site/atlas-style.xml` | ✅ | Cytoscape Desktop export bundle |
-| `site/layouts/{manifest,curated}.js` | ✅ | Precomputed + curated position snapshots |
-| `site/icons/` | ✅ | Item icons (Jagex assets) |
+| `public/data.js` | ✅ | **What the site loads.** `window.DW_DATA = {…}` — the authoritative shipped dataset |
+| `public/data.json` | ✅ | The same dataset as strict JSON (scripts, desktop tools, tests) |
+| `public/found-in.js` | ✅ | `window.DW_FOUND_IN` — region / gather-method / tool annotations |
+| `public/quests.js` | ✅ | `window.DW_QUESTS` — the quest layer (type, region, "Where to Start", reward items) |
+| `public/mounts.js` | ✅ | `window.DW_MOUNTS` — per mount its base type, unlocking quests, acquisition line and lore |
+| `public/data.cyjs`, `public/data.graphml`, `public/atlas-style.xml` | ✅ | Cytoscape Desktop export bundle |
+| `public/layouts/{manifest,curated}.js` | ✅ | Precomputed + curated position snapshots |
+| `public/icons/` | ✅ | Item icons (Jagex assets) |
 | `cache/final-dataset.json` | ❌ (gitignored) | The pipeline's working copy — `build-data.mjs` writes it, `apply-edits.mjs` and `fetch-icon-files.mjs` read it |
 | `cache/raw/`, `cache/parsed/`, `cache/icons/`, `cache/xp/` | ❌ (gitignored) | Regenerable scraper intermediates |
 | `docs/checklists/*.md`, `*.csv` | ✅ | The hand-annotation tables |
@@ -61,7 +63,7 @@ re-scrape, which re-litigates rows someone already checked in game.
 
 ## Dataset shape
 
-`site/data.json` top-level keys, with real samples:
+`public/data.json` top-level keys, with real samples:
 
 ```jsonc
 {
@@ -93,15 +95,23 @@ Conventions that matter:
   skill node. Only recipe edges take part in crafting walks.
 - **Ids are the display names** (`"Iron Bar"`), because panels, snapshots,
   found-in and the tests all key off them. Routing turns them into snake_case
-  slugs for URLs (`site/routing.js`) — don't rename ids to slugs.
+  slugs for URLs (`src/routing.js`) — don't rename ids to slugs.
 - **`kind` is a closed vocabulary** (the legend, colours and filters key off it):
   `weapon armour tool station ammo trinket food potion drink material resource
-  spell skill implicit other region`. `kindColor`/`kindLabel` in `site/app.js`
-  are the source of truth for the palette and labels — a new kind needs a colour
-  there, a legend entry, and a `DESIGN.md` line.
-- **Region hubs** (`kind: "region"`) are map aids mined from location prose, not
-  crafting steps: recipes, plans, paths and exports ignore them, and their green
-  spokes start hidden.
+  spell skill mount implicit other region quest`. `kindColor`/`kindLabel` in
+  `src/app.js` are the source of truth for the palette and labels — a new kind
+  needs a colour there, a legend entry, and a `DESIGN.md` line.
+- **Three kinds are dataset members; two are overlays.** `mount` nodes come from
+  the wiki's `{{Infobox Mount}}` pages and are normal dataset nodes (recipes,
+  counts and exports see them). `region` and `quest` are **synthesized at boot**
+  from `found-in.js` / `quests.js` and are *not* in `data.json`: recipes, plans,
+  paths and counts never see them. Their spokes start hidden for regions and
+  **on** for quests.
+- **The quest layer pairs with mounts.** `quests.js` supplies region → quest →
+  reward; `mounts.js` supplies quest → mount (the Mount page's Requirements
+  column) plus how each mount is obtained. `build-mounts.mjs` reads
+  `public/quests.js` to know which requirement lines name a real quest, so run
+  `build-quests.mjs` first.
 
 ---
 
@@ -114,17 +124,18 @@ site and bring only `dragonwilds-edits.json` to a clone.
 
 ### 1. Open the app
 
-Either use the deployed site, or run the tracked `site/` folder locally:
+Either use the deployed site, or run the sources locally:
 
 ```bash
 git clone https://github.com/skamansam/dragonwilds-crafting-atlas
 cd dragonwilds-crafting-atlas && npm install
-cd site && python3 -m http.server 8477      # open http://localhost:8477
+npm run dev                                 # open http://localhost:5173
 ```
 
-(Any static server works; `npm run dev` is currently broken — see CONTRIBUTOR.md.
-Edits live in **your browser's** storage under the `dw.edits` key, so if you edit
-on the live site, export before clearing site data or switching browsers.)
+(`npm run build && npm run preview` serves the deployable `dist/` instead, on
+`:4173`. Edits live in **your browser's** storage under the `dw.edits` key, so if
+you edit on the live site, export before clearing site data or switching
+browsers.)
 
 ### 2. Review first
 
@@ -193,7 +204,7 @@ badge on the ⚙ entry. Use it to:
   Only for a large overhaul; it replaces the graph wholesale.
 
 The export carries `exportedAt` and **`baseGeneratedAt`** — the `generatedAt` of
-the dataset your edits were made against. Check it against `site/data.json`'s
+the dataset your edits were made against. Check it against `public/data.json`'s
 `generatedAt`: if they differ, the base has moved since you started, and you
 should re-check your rows after merging (mention it in the PR).
 
@@ -201,7 +212,7 @@ should re-check your rows after merging (mention it in the PR).
 
 ```bash
 git checkout -b data/fix-iron-bar-item-type
-mkdir -p cache && cp site/data.json cache/final-dataset.json   # fresh clone: no cache exists
+mkdir -p cache && cp public/data.json cache/final-dataset.json   # fresh clone: no cache exists
 ```
 
 The `cp` is the bootstrap — `cache/` is gitignored, and every apply/build script
@@ -216,14 +227,14 @@ node scripts/apply-edits.mjs dragonwilds-edits.json             # write
 
 ```
 edits overlay: 1 node(s) updated, 1 added, 1 link(s) added
-wrote cache/final-dataset.json + site/data.json + site/data.js
+wrote cache/final-dataset.json + public/data.json + public/data.js
 ```
 
-The script merges field by field and re-emits `site/data.json` + `site/data.js`
+The script merges field by field and re-emits `public/data.json` + `public/data.js`
 in exactly the shape `build-data.mjs` uses. What it does (and refuses to do):
 
 - merges only the editable fields — `name kind itemType wiki description stats`
-  (mirroring `EDIT_FIELDS` in `site/app.js`; **keep the two lists in step**);
+  (mirroring `EDIT_FIELDS` in `src/app.js`; **keep the two lists in step**);
 - skips unknown node ids and reports them instead of creating nodes;
 - prunes a hidden node **and its edges**;
 - accepts a link only with a known relationship (`makes`/`gives`/`found-in`) and
@@ -240,7 +251,7 @@ Field-only fixes need nothing more. If you added, removed or renamed a node, or
 changed relationships, regenerate the artifacts derived from the graph:
 
 ```bash
-node scripts/build-exports.mjs    # site/data.cyjs + data.graphml + atlas-style.xml
+node scripts/build-exports.mjs    # public/data.cyjs + data.graphml + atlas-style.xml
 node scripts/build-found-in.mjs   # only if you touched location annotations
 node scripts/audit-links.mjs      # attribution coverage — new nodes need a wiki URL
 node scripts/audit-cycles.mjs     # new edges can create craft loops; check the report
@@ -262,7 +273,7 @@ cause — never widen an assertion to make it pass.
 ### 12. Commit and open the PR
 
 ```bash
-git add site/data.json site/data.js site/data.cyjs site/data.graphml site/atlas-style.xml
+git add public/data.json public/data.js public/data.cyjs public/data.graphml public/atlas-style.xml
 git commit -m "$(cat <<'EOF'
 Fix Iron Bar's item type and link it to Ash Logs
 
@@ -288,7 +299,7 @@ Observed in game on 2026-10-08; the wiki infobox agrees.
 - `node scripts/build-exports.mjs` regenerated
 
 ## Base
-`baseGeneratedAt`: 2026-09-15… — matches `site/data.json` at the time of export.
+`baseGeneratedAt`: 2026-09-15… — matches `public/data.json` at the time of export.
 
 ## Checks
 - [x] `npx vitest run` — 358 passed
@@ -331,24 +342,34 @@ Needs internet. Run in order; each step reads the previous step's cache.
 | 2 | `node scripts/fetch-xp-tables.mjs` | `cache/xp/*.json` — the wiki's `Module:Skill experience/data/<Skill>.json` tables, so `{{ConstructionXP\|…}}` recipe args resolve to real XP |
 | 3 | `node scripts/parse-wiki.mjs` | `cache/parsed/dataset.json` — infoboxes + `{{Recipe}}` templates → items, recipes, stations, skills, spells, level unlocks, image refs |
 | 4 | `node scripts/fetch-icons.mjs` | `cache/icons/manifest.json` — icon file names → URLs via the imageinfo API |
-| 5 | `node scripts/build-data.mjs` | **`site/data.js` + `site/data.json`** + `cache/final-dataset.json` — deduped recipes, canonical nodes, edges, `skillLevelForItem`, `generatedAt` |
-| 6 | `node scripts/fetch-icon-files.mjs` | downloads icons into `site/icons/` and rewrites the icon fields in `data.js`/`data.json` to local paths |
-| 7 | `node scripts/build-found-in.mjs` | `site/found-in.js` |
-| 8 | `node scripts/build-exports.mjs` | `site/data.cyjs`, `site/data.graphml`, `site/atlas-style.xml` |
-| 9 | `node scripts/build-location-checklists.mjs` | regenerates `docs/checklists/*.md` (see Path C — **fold answers back first**) |
-| 10 | `node scripts/audit-links.mjs` · `node scripts/audit-cycles.mjs` | coverage + craft-loop report to eyeball |
+| 5 | `node scripts/build-data.mjs` | **`public/data.js` + `public/data.json`** + `cache/final-dataset.json` — deduped recipes, canonical nodes, edges, `skillLevelForItem`, `generatedAt` |
+| 6 | `node scripts/fetch-icon-files.mjs` | downloads icons into `public/icons/` and rewrites the icon fields in `data.js`/`data.json` to local paths |
+| 7 | `node scripts/build-found-in.mjs` | `public/found-in.js` |
+| 8 | `node scripts/build-quests.mjs` | `public/quests.js` — the Quests page parsed into quest records (fetched on demand through `scripts/fetch-page.mjs`; `--refresh` re-pulls it) |
+| 9 | `node scripts/build-mounts.mjs` | `public/mounts.js` — the Mount page parsed into per-mount requirements/acquisition (needs step 8 first; `--refresh` re-pulls it) |
+| 10 | `node scripts/build-exports.mjs` | `public/data.cyjs`, `public/data.graphml`, `public/atlas-style.xml` (incl. the quest nodes, `interaction: quest \| mount`) |
+| 11 | `node scripts/build-location-checklists.mjs` | regenerates `docs/checklists/*.md` (see Path C — **fold answers back first**) |
+| 12 | `node scripts/audit-links.mjs` · `node scripts/audit-cycles.mjs` | coverage + craft-loop report to eyeball |
 
 Notes and traps:
 
 - **Icons**: `fetch-icon-files.mjs` writes local paths into the dataset, so it
   must run **after** `build-data.mjs`. Icons above ~60 KB are meant to be shrunk
   before committing; ~95% of nodes have one, the rest fall back to a category
-  glyph.
+  glyph. `fetch-icons.mjs` re-resolves the whole manifest from the wiki, so a
+  file the wiki has since moved or deleted silently drops that node's icon — if
+  a refresh would strip icons you did not mean to touch, merge the handful of new
+  entries into `cache/icons/manifest.json` by hand instead of re-running it.
+- **Infobox types are a closed list too.** `parse-wiki.mjs`'s `INFOBOX_NAMES`
+  decides which pages become items — a `{{Infobox Mount}}` page was invisible
+  until the mount work added it. A new infobox on the wiki needs an entry there
+  (plus a `normType` branch and an `itemType` fallback) or its pages silently
+  never appear.
 - **The site must still boot with no cache at all.** If a generated file is
   missing, the app falls back gracefully (`found-in.js` is guarded) — don't
   introduce a hard dependency on a cache file.
 - **Re-running `build-location-checklists.mjs` overwrites `docs/checklists/`.**
-  If the previous tables had answers, merge them back into `site/found-in.js`
+  If the previous tables had answers, merge them back into `public/found-in.js`
   first.
 - The wiki is a **manual snapshot** (currently the 1.0 update, 15 Sept 2026);
   there is no scheduled re-scrape. Say so in the PR if you move the snapshot
@@ -388,28 +409,28 @@ nearest method sentence. What it can't resolve becomes a checklist row.
    Locations take `x`/blank; leaving **How** blank keeps the generator's text,
    so clearing a cell means "keep what it said".
 4. **Merge the answers into the data.** Fold the filled rows into
-   `site/found-in.js` (the intended home for hand-verified finds — the
+   `public/found-in.js` (the intended home for hand-verified finds — the
    merge-back step is still manual, and a script for it is a welcome
    contribution), regenerating that file from the wiki prose only *after* the
    answers are in. Then re-run the checklists and confirm the answered rows
    disappear.
-5. Commit `site/found-in.js` + the annotated tables (and the CSV if you used it)
+5. Commit `public/found-in.js` + the annotated tables (and the CSV if you used it)
    with the same PR shape as Path A — evidence in the body, counts reported.
 
 ## Other data surfaces
 
 - **Precomputed layouts** — `node scripts/gen-layouts.mjs [algo …]` runs the
-  algorithms headlessly and merges positions into `site/layouts/manifest.js`
+  algorithms headlessly and merges positions into `public/layouts/manifest.js`
   (`window.DW_LAYOUTS = { <algo>: { <nodeId>: {x,y} } }`), never clobbering
   existing algos. **Saved positions** then apply them instantly.
 - **Shared layouts** — export a 💾 snapshot from the site and merge it:
   `node scripts/merge-snapshots.mjs dw-snapshot-….json [--label "…"]` (plus
   `--list` / `--drop "<preset>@<dens>"`). It validates bounding box, finite
   coordinates and that the node ids exist before touching
-  `site/layouts/curated.js`. Never put metadata inside a position map — sibling
+  `public/layouts/curated.js`. Never put metadata inside a position map — sibling
   `"<key>~meta"` objects only.
 - **Desktop exports** — `node scripts/build-exports.mjs` regenerates
-  `data.cyjs` + `data.graphml` + `atlas-style.xml` from `site/data.js`. Every
+  `data.cyjs` + `data.graphml` + `atlas-style.xml` from `public/data.js`. Every
   dataset field becomes a column, edges carry an `interaction` column
   (`craft` / `spell` / `skill-gate` / `region`), and a deterministic layered
   seed layout is baked in. Re-run it whenever the graph changes.
@@ -428,7 +449,7 @@ nearest method sentence. What it can't resolve becomes a checklist row.
 - [ ] No invented recipes, drops, locations or stats — unknown stays unknown
 - [ ] Names/ids unchanged unless the rename is the point (ids are the graph's
       keys; renaming breaks snapshots, found-in and links)
-- [ ] `site/data.json` and `site/data.js` are in lockstep (both rewritten by the
+- [ ] `public/data.json` and `public/data.js` are in lockstep (both rewritten by the
       same script — never hand-edit one)
 - [ ] Exports regenerated if the graph changed; checklists folded back before a
       regenerate

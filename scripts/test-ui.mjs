@@ -1,11 +1,13 @@
-// Permanent Playwright UI suite for the Crafting Atlas. Self-contained: serves
-// site/ in-process (no external server needed), runs every check, prints a
-// pass/fail summary, and exits non-zero on any failure.
+// Permanent Playwright UI suite for the Crafting Atlas. Self-contained: it
+// boots the app through Vite's own dev server against the src/ SOURCES — the
+// same transform pipeline, public/ mapping and HMR a developer gets from
+// `npm run dev` — runs every check, prints a pass/fail summary, and exits
+// non-zero on any failure.
 //
 //   node scripts/test-ui.mjs              # full suite
-//   node scripts/test-ui.mjs smoke        # one section (smoke|panel|undo|layouts|tours|route|options)
+//   node scripts/test-ui.mjs smoke        # one section (smoke|panel|edits|undo|layouts|tours|route|options|quests|characters)
 //   node scripts/test-ui.mjs --url=...    # run against a deployed site instead
-//   node scripts/test-ui.mjs --serve-only # just serve site/ on :8491 and stay up
+//   node scripts/test-ui.mjs --serve-only # just serve the atlas on :8491 and stay up
 //                                         # (playwright.config.ts uses this as its webServer)
 //
 // Sections:
@@ -17,49 +19,49 @@
 //   route    #/<item> selects an item; #/<item>/<item> draws the path between them
 //   options  ?layout=/?cats=/?iso=… set the graph view from the URL without
 //            persisting anything, and the URL tracks every change made by hand
+//   quests   the wiki's Quests/Mount pages as a graph layer: region → quest →
+//            reward spokes, quest → mount unlocks, the codex and the legend rows
 //   characters  per-character graph state: the first-run prompt (incl. the
 //            attach-existing-data path), skill levels + total, switching, delete
-import http from 'node:http';
 import fs from 'node:fs';
-import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 
-const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'site');
+const REPO = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const PORT = 8491;
 const urlArg = process.argv.find(a => a.startsWith('--url='));
-// --serve-only: serve site/ and stay up (used by playwright.config.ts webServer)
+// --serve-only: serve the atlas and stay up (used by playwright.config.ts webServer)
 const serveOnly = process.argv.includes('--serve-only');
 const BASE = urlArg ? urlArg.slice(6).replace(/\/$/, '') : `http://localhost:${PORT}`;
-const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.png': 'image/png', '.woff2': 'font/woff2', '.ico': 'image/x-icon', '.svg': 'image/svg+xml' };
 
 let srv = null;
 if (!urlArg) {
-  srv = http.createServer(async (req, res) => {
-    try {
-      const url = new URL(req.url, 'http://x');
-      let p = path.join(ROOT, decodeURIComponent(url.pathname));
-      if (p.endsWith('/') || p.endsWith(path.sep)) p = path.join(p, 'index.html');
-      const data = await readFile(p);
-      res.writeHead(200, { 'Content-Type': MIME[path.extname(p)] || 'application/octet-stream' });
-      res.end(data);
-    } catch {
-      res.writeHead(404); res.end('nope');
-    }
+  // Serve the SOURCES through Vite's own dev server rather than a hand-rolled
+  // static server over one folder: src/ modules get transformed, public/ is
+  // mounted at the root, and the harness therefore exercises exactly what
+  // `npm run dev` serves. The config file and root are pinned to this repo so
+  // the run does not depend on the caller's cwd (Vite's dev base is "/").
+  const { createServer } = await import('vite');
+  srv = await createServer({
+    configFile: path.join(REPO, 'vite.config.js'),
+    root: REPO,
+    logLevel: 'warn',
+    server: { port: PORT, strictPort: true, open: false },
   });
-  await new Promise(r => srv.listen(PORT, r));
+  await srv.listen();
   if (serveOnly) {
-    console.log(`serving site/ in-process on :${PORT} (serve-only — Ctrl+C to stop)`);
+    console.log(`serving the atlas at http://localhost:${PORT}/ (serve-only — Ctrl+C to stop)`);
     await new Promise(() => {}); // stay alive for an external runner (playwright test)
   }
 }
 
 const only = process.argv.slice(2).filter(a => !a.startsWith('--'))[0] || null;
-const sections = ['smoke', 'panel', 'edits', 'undo', 'layouts', 'tours', 'route', 'options', 'characters'].filter(s => !only || s === only);
+const sections = ['smoke', 'panel', 'edits', 'undo', 'layouts', 'tours', 'route', 'options', 'quests', 'characters'].filter(s => !only || s === only);
 
 const results = [];
 let page, browser;
+let currentSection = null; // which section was running when a page error landed
 const ok = (name, cond, detail = '') => {
   results.push({ name, pass: !!cond, detail });
   console.log(`${cond ? '  ✓' : '  ✗ FAIL'} ${name}${detail ? ' — ' + detail : ''}`);
@@ -147,8 +149,27 @@ async function tapEmptyCanvas() {
 async function secSmoke() {
   console.log('smoke:');
   await boot();
-  const bootCnt = await page.evaluate(() => ({ nodes: window.__cy.nodes().length, data: window.DW_DATA.nodes.length }));
-  ok('boot: cy nodes == dataset + region hubs', bootCnt.nodes >= bootCnt.data && bootCnt.nodes - bootCnt.data <= 7, `${bootCnt.nodes} vs ${bootCnt.data}`);
+  // the boot graph = the dataset + the synthesized overlay: one region hub per
+  // region found-in prose OR a quest names, plus one node per quest. Nothing
+  // else may be invented, so every extra id must be explainable.
+  const bootCnt = await page.evaluate(() => {
+    const dataset = new Set(window.DW_DATA.nodes.map(n => n.id));
+    const synth = window.__cy.nodes().map(n => n.id()).filter(id => !dataset.has(id));
+    const quests = new Set((window.DW_QUESTS && window.DW_QUESTS.order) || []);
+    const regions = new Set(Object.keys((window.DW_QUESTS && window.DW_QUESTS.regionQuests) || {}));
+    for (const list of Object.values(window.DW_FOUND_IN || {})) {
+      for (const f of list) if (f.region) regions.add(f.region);
+    }
+    return {
+      nodes: window.__cy.nodes().length, data: window.DW_DATA.nodes.length,
+      synth: synth.length,
+      questNodes: synth.filter(id => quests.has(id)).length,
+      stray: synth.filter(id => !quests.has(id) && !regions.has(id)),
+    };
+  });
+  ok('boot: cy nodes == dataset + region hubs + quests',
+    bootCnt.nodes === bootCnt.data + bootCnt.synth && bootCnt.questNodes === 37 && bootCnt.stray.length === 0,
+    `${bootCnt.nodes} vs ${bootCnt.data} + ${bootCnt.synth} overlay (${bootCnt.questNodes} quests, stray: ${bootCnt.stray.join(', ') || 'none'})`);
 
   // the "necessarily complicated" note lives in the welcome card and in the
   // help window, and the welcome card's button opens that help
@@ -362,6 +383,56 @@ async function secPanel() {
       .find(r => r.querySelector('.lg-check') && r.textContent.includes('Possessions')).click();
   });
   await page.waitForTimeout(400);
+
+  // owned items stand out at all times, not only in Possessions mode (owned-items TODO)
+  const marks = await page.evaluate(() => {
+    const c = window.__cy;
+    return {
+      furnace: c.getElementById('Furnace').hasClass('ownedMark'),
+      campfire: c.getElementById('Campfire').hasClass('ownedMark'),
+      marked: c.nodes('.ownedMark').length,
+    };
+  });
+  ok('owned items wear a gold mark', marks.furnace && marks.campfire, JSON.stringify(marks));
+  ok('only owned items are marked', marks.marked === 2, `marked=${marks.marked}`);
+
+  // owned→owned edges are gold; the next thing an owned item enables is teal
+  for (const item of ['Iron Bar', 'Iron Ore']) {
+    await page.fill('#search', item);
+    await page.keyboard.press('Enter');
+    await page.waitForTimeout(500);
+    await page.click('#btnOwn');
+    await page.waitForTimeout(400);
+  }
+  const ownedEdges = await page.evaluate(() => {
+    const c = window.__cy;
+    let gold = 0, teal = 0;
+    c.edges().forEach(e => { if (e.hasClass('ownedEdge')) gold++; else if (e.hasClass('ownedEnable')) teal++; });
+    return { gold, teal };
+  });
+  ok('owned→owned edges are gold', ownedEdges.gold > 0, JSON.stringify(ownedEdges));
+  ok('owned→enabled edges are teal', ownedEdges.teal > 0, JSON.stringify(ownedEdges));
+  ok('an owned item marks its codex', await page.$eval('#panel', el => el.classList.contains('owned')));
+
+  // a skill hub offers the next level's unlock
+  await page.fill('#search', 'Artisan');
+  await page.keyboard.press('Enter');
+  await page.waitForTimeout(600);
+  ok('skill hub shows the next unlock', await page.$eval('#panelBody', el =>
+    !!el.querySelector('.p-section.next-unlock .nu-lv')));
+
+  // restore the ledger — later sections assume only the panel section's
+  // original Furnace + Campfire are owned (the edits section opens Iron Bar
+  // and expects its ☆ to start empty)
+  for (const item of ['Iron Ore', 'Iron Bar']) {
+    await page.fill('#search', item);
+    await page.keyboard.press('Enter');
+    await page.waitForTimeout(500);
+    await page.click('#btnOwn');
+    await page.waitForTimeout(300);
+  }
+  ok('ledger restored after the owned checks', await page.evaluate(() =>
+    JSON.parse(localStorage.getItem('dw.owned') || '[]').length === 2));
 
   await page.fill('#search', 'Iron Bar');
   await page.keyboard.press('Enter');
@@ -988,6 +1059,17 @@ async function secRoute() {
     return /nothing matches/i.test(t.textContent) && t.classList.contains('show');
   }, null, { timeout: 10000, polling: 100 }).then(() => true).catch(() => false);
   ok('an unknown slug is reported, not fatal', bogus);
+
+  // a route that arrives WHILE the graph is still booting must not be dropped:
+  // the document is already loaded, so setting the fragment is a same-document
+  // navigation whose hashchange fires before populate().
+  await page.goto(`${BASE}/`, { waitUntil: 'domcontentloaded', timeout: 60000 });
+  await page.evaluate(() => { window.location.hash = '#/iron_sword'; });
+  const midBoot = await page.waitForFunction(
+    () => document.getElementById('panelTitle').textContent === 'Iron Sword',
+    null, { timeout: 60000, polling: 100 }).then(() => true).catch(() => false);
+  ok('a route arriving mid-boot still selects its item', midBoot,
+    await page.$eval('#panelTitle', el => el.textContent || '(none)'));
 }
 
 /* ── characters (per-character state, TODO #24) ─────────────────────────── */
@@ -1256,12 +1338,154 @@ async function secOptions() {
   ok('an unusable option value is reported', warned);
 }
 
+/* ── quests & mounts (the wiki's Quests/Mount pages as a graph layer, P7) ── */
+async function secQuests() {
+  console.log('quests:');
+  await boot();
+  await clearStorage(['dw.legendKinds', 'dw.showQuestEdges', 'dw.showOrphans',
+    'dw.showMatEdges', 'dw.showSkillEdges', 'dw.showRegionEdges']);
+  await boot();
+
+  const layer = await page.evaluate(() => {
+    const cy = window.__cy;
+    const Q = window.DW_QUESTS;
+    const quests = cy.nodes().filter(n => n.data('meta').kind === 'quest');
+    const mounts = cy.nodes().filter(n => n.data('meta').kind === 'mount');
+    const q = cy.getElementById('Dragon Slayer');
+    const edge = id => cy.getElementById(id);
+    const shown = id => edge(id).nonempty() && !edge(id).hasClass('hidden');
+    return {
+      total: Q.order.length,
+      questNodes: quests.length,
+      questVisible: q.nonempty() && !q.hasClass('hidden') && !q.hasClass('orphan'),
+      mountNodes: mounts.length,
+      mountVisible: mounts.filter(n => !n.hasClass('hidden') && !n.hasClass('orphan')).length,
+      regionHub: edge('Brynmoor').nonempty() && !edge('Brynmoor').hasClass('hidden'),
+      regionToQuest: shown('Brynmoor ✧ Dragon Slayer'),
+      questToReward: shown("Dragon Slayer ✧ Anti-Dragon Shield"),
+      questToMount: shown('The Wild Hunt ✧ Terrorbird'),
+      openQuestEdges: cy.edges('.questEdge').filter(e => !e.hasClass('hidden')).length,
+      stored: localStorage.getItem('dw.showQuestEdges'),
+      legend: [...document.querySelectorAll('#legend .lg-row')].map(r => r.textContent),
+    };
+  });
+  ok('every quest on the wiki page is a node', layer.questNodes === layer.total && layer.questNodes >= 35,
+    `${layer.questNodes} of ${layer.total}`);
+  ok('quest nodes are shown by default and are never dead ends', layer.questVisible === true);
+  ok('the mount nodes added to the dataset are all in the graph', layer.mountNodes >= 20 && layer.mountVisible === layer.mountNodes,
+    `${layer.mountVisible}/${layer.mountNodes} visible`);
+  ok('a region → quest spoke comes off the region hub', layer.regionHub && layer.regionToQuest,
+    `hub=${layer.regionHub} edge=${layer.regionToQuest}`);
+  ok('a quest → reward spoke reaches the item', layer.questToReward);
+  ok('a quest → mount spoke reaches the unlock', layer.questToMount);
+  ok('the legend carries the Quests and Mounts kinds, both on',
+    layer.legend.includes('onlyQuests') && layer.legend.includes('onlyMounts'));
+  ok('the legend carries a Quest links row, on by default',
+    layer.legend.includes('Quest links') && layer.openQuestEdges > 0);
+  ok('a bare boot does not persist the quest-link pref', layer.stored === null, String(layer.stored));
+
+  // the codex — "Where to start" is the quest's description, rewards jump
+  await page.evaluate(() => window.selectNode('Dragon Slayer'));
+  await page.waitForTimeout(300);
+  const qPanel = await page.evaluate(() => ({
+    type: document.getElementById('panelType').textContent,
+    body: document.getElementById('panelBody').textContent,
+    rewards: [...document.querySelectorAll('#panelBody .fi-jump')].map(e => e.dataset.goto),
+    regionJump: [...document.querySelectorAll('#panelBody [data-goto]')].map(e => e.dataset.goto),
+    ownedHidden: document.getElementById('btnOwn').hidden,
+  }));
+  ok('the quest panel is typed as a quest, with its regions',
+    /^Quest · Primary · Brynmoor \/ Ghornfell$/.test(qPanel.type), qPanel.type);
+  ok('the quest panel shows the wiki\'s "Where to start" text',
+    /Speak to the Wise Old Man in Bramblemead Village\./.test(qPanel.body));
+  ok('every reward is a jumpable row',
+    qPanel.rewards.includes('Anti-Dragon Shield') && qPanel.rewards.includes('Noxious Draconic Visage'),
+    qPanel.rewards.join(', '));
+  ok('the quest jumps back to its region', qPanel.regionJump.includes('Brynmoor') && qPanel.regionJump.includes('Ghornfell'));
+  ok('a quest cannot be marked owned', qPanel.ownedHidden === true);
+
+  // a quest that unlocks a mount says so
+  await page.evaluate(() => window.selectNode('The Wild Hunt'));
+  await page.waitForTimeout(250);
+  const mountUnlock = await page.evaluate(() => ({
+    rows: [...document.querySelectorAll('#panelBody [data-goto]')].map(e => e.dataset.goto),
+    body: document.getElementById('panelBody').textContent,
+  }));
+  ok('a quest lists the mounts it unlocks',
+    mountUnlock.rows.includes('Terrorbird') && /Unlocks mounts/.test(mountUnlock.body), mountUnlock.rows.join(', '));
+
+  // the mount's own codex — how to get it, and from which quest
+  await page.evaluate(() => window.selectNode('Terrorbird'));
+  await page.waitForTimeout(250);
+  const mPanel = await page.evaluate(() => ({
+    type: document.getElementById('panelType').textContent,
+    body: document.getElementById('panelBody').textContent,
+    rows: [...document.querySelectorAll('#panelBody [data-goto]')].map(e => e.dataset.goto),
+  }));
+  ok('the mount panel is typed as a mount', /^Mount · terrorbird · unlocked by The Wild Hunt$/.test(mPanel.type), mPanel.type);
+  ok('the mount panel says where and how to get it',
+    /How to get it:/.test(mPanel.body) && /automatically unlocked when completing The Wild Hunt/.test(mPanel.body));
+  ok('the mount panel requires its quest', mPanel.rows.includes('The Wild Hunt'), mPanel.rows.join(', '));
+
+  // the region hub lists the quests set in it
+  await page.evaluate(() => window.selectNode('Brynmoor'));
+  await page.waitForTimeout(250);
+  const rPanel = await page.evaluate(() => ({
+    body: document.getElementById('panelBody').textContent,
+    rows: [...document.querySelectorAll('#panelBody [data-goto]')].map(e => e.dataset.goto),
+  }));
+  ok('the region hub lists the quests set in it',
+    /Quests here \(6\)/.test(rPanel.body) && rPanel.rows.includes('Goblin Diplomacy'), rPanel.rows.slice(0, 4).join(', '));
+
+  // the legend row toggles the whole layer (and persists the choice)
+  await page.evaluate(() => window.selectNode(''));
+  const clickQuestRow = () => page.evaluate(() => {
+    [...document.querySelectorAll('#legend .lg-row')].find(r => r.textContent.trim() === 'Quest links').click();
+  });
+  await clickQuestRow();
+  await page.waitForTimeout(250);
+  const off = await page.evaluate(() => ({
+    open: window.__cy.edges('.questEdge').filter(e => !e.hasClass('hidden')).length,
+    stored: localStorage.getItem('dw.showQuestEdges'),
+  }));
+  ok('the Quest links row hides the layer', off.open === 0 && off.stored === '0', `${off.open} left`);
+  await boot();
+  const offReload = await page.evaluate(() => ({
+    open: window.__cy.edges('.questEdge').filter(e => !e.hasClass('hidden')).length,
+    rowOff: [...document.querySelectorAll('#legend .lg-row')].find(r => r.textContent.trim() === 'Quest links').classList.contains('off'),
+  }));
+  ok('the choice survives a reload', offReload.open === 0 && offReload.rowOff === true);
+  await clickQuestRow();
+  await page.waitForTimeout(250);
+  ok('clicking again brings the quest layer back',
+    await page.evaluate(() => window.__cy.edges('.questEdge').filter(e => !e.hasClass('hidden')).length) > 0);
+  await clearStorage(['dw.showQuestEdges']);
+
+  // a quest has its own URL identity, like any other node
+  // (cleared storage means the fragment is the ONLY thing describing the view)
+  await clearStorage(['dw.characters', 'dw.layout', 'dw.legendKinds', 'dw.showQuestEdges']);
+  await boot('#/dragon_slayer');
+  const deepQuest = await page.evaluate(() => ({
+    title: document.getElementById('panelTitle').textContent,
+    open: document.getElementById('panel').classList.contains('open'),
+    hash: location.hash,
+    nodePresent: window.__cy.getElementById('Dragon Slayer').nonempty(),
+  }));
+  ok('a quest is addressable by its own slug', deepQuest.title === 'Dragon Slayer' && deepQuest.open,
+    `${deepQuest.title || '(none)'}${deepQuest.open ? '' : ' (panel closed)'} @ ${deepQuest.hash} · node=${deepQuest.nodePresent}`);
+  await boot('#/brynmoor');
+  ok('a quest-only region hub is addressable too',
+    await page.evaluate(() => document.getElementById('panelTitle').textContent) === 'Brynmoor');
+}
+
 try {
   browser = await chromium.launch();
   page = await browser.newPage({ viewport: { width: 1600, height: 950 } });
-  page.on('pageerror', e => errors.push('PAGEERROR: ' + e.message.split('\n')[0]));
-  page.on('console', m => { if (m.type() === 'error') errors.push('CONSOLE: ' + m.text().split('\n')[0]); });
-  if (!urlArg) console.log(`serving site/ in-process on :${PORT}`);
+  // errors are tagged with the section that was running, so a failure in the
+  // summary names where to look instead of just what the browser said
+  page.on('pageerror', e => errors.push(`[${currentSection || 'boot'}] PAGEERROR: ` + e.message.split('\n')[0]));
+  page.on('console', m => { if (m.type() === 'error') errors.push(`[${currentSection || 'boot'}] CONSOLE: ` + m.text().split('\n')[0]); });
+  if (!urlArg) console.log(`serving the atlas (vite dev server) on :${PORT}`);
   console.log(`target: ${BASE}\n`);
 
   // The first-run character prompt (TODO #24) overlays the viewport, so it would
@@ -1273,6 +1497,7 @@ try {
   fs.mkdirSync('cache/shots-ui', { recursive: true });
 
   for (const s of sections) {
+    currentSection = s;
     if (s === 'smoke') await secSmoke();
     else if (s === 'panel') await secPanel();
     else if (s === 'edits') await secEdits();
@@ -1281,6 +1506,7 @@ try {
     else if (s === 'tours') await secTours();
     else if (s === 'route') await secRoute();
     else if (s === 'options') await secOptions();
+    else if (s === 'quests') await secQuests();
     else if (s === 'characters') await secCharacters();
   }
 } catch (e) {
@@ -1289,7 +1515,7 @@ try {
   process.exitCode = 1;
 } finally {
   if (browser) await browser.close();
-  if (srv) srv.close();
+  if (srv) await srv.close();
 }
 
 console.log('\n──────────────────────────────');
