@@ -250,6 +250,12 @@ for (const f of files) {
   const rec = JSON.parse(fs.readFileSync(path.join(RAW, f), 'utf8'));
   const wt = rec.wikitext || '';
   const title = rec.title;
+  // fetch-wiki.mjs also caches namespace 10 so build-found-in.mjs can read loot
+  // tables from templates. Templates are not content: their /doc subpages are
+  // full of example infoboxes in <pre> blocks, and parsing them as items
+  // manufactured phantom nodes ("Template:Infobox Item/doc" etc.). Only the
+  // article namespace produces items, stations and recipes.
+  if (/^Template:/i.test(title)) continue;
   pagesIndex[title] = { pageid: rec.pageid };
 
   // level-up table pages: "Skill/Level up table"
@@ -339,7 +345,12 @@ for (const f of files) {
   // Recipes
   for (const tpl of findTemplates(wt, '\\{\\{\\s*Recipe\\s*[|}]')) {
     const { args } = parseTemplateArgs(tpl.full);
-    if (args.bucket === 'no') continue;
+    // NB: |bucket = no is NOT "this recipe does not exist" — the template doc
+    // (Template:Recipe/doc) defines it as "prevent the recipe information from
+    // being added to Bucket data", i.e. a wiki-query bookkeeping flag. Skipping
+    // these dropped 66 real recipes (Healing Potion, Smithing Anvil, Berry
+    // Compote, the Wardstones, the skill capes…) and left those items with no
+    // incoming edge at all. The recipe is parsed like any other.
     const inputs = [];
     for (let i = 1; i <= 30; i++) {
       const mn = args[`mat${i}`];

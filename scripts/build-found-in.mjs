@@ -28,6 +28,20 @@ const D = JSON.parse(fs.readFileSync(path.join(ROOT, 'public/data.json'), 'utf8'
 // ancestor at all in the graph.
 const REGION_RE = regionRe('g');
 
+// Versioned entity infoboxes split the location per version and put it on
+// |location1… / |location2… rather than a single |location = — and when those
+// lines are blank the region rides on |version1… instead (Deer: "|version1 =
+// Brynmoor", "|location1 =", "|location3 = [[Dowdun Reach]]"). Reading only
+// the plain |location = line silently lost every one of these pages — deer, cow,
+// giant rat, the rats — so the materials dropped by them had no region at all.
+function infoboxRegions(w, { versions = false } = {}) {
+  const named = [];
+  const keys = versions ? /locations?|version/ : /locations?/;
+  for (const m of w.matchAll(new RegExp(`^\\s*\\|\\s*(?:${keys.source})\\d*\\s*=\\s*(.+)$`, 'gm')))
+    for (const r of m[1].matchAll(REGION_RE)) named.push(r[1]);
+  return [...new Set(named)];
+}
+
 // The prose that may name a location: the lead section, plus an explicit
 // ==Location==/==Locations==/==Item sources== section. Deliberately NOT the
 // whole page — Journal and Update history sections name regions in lore and
@@ -108,8 +122,7 @@ for (const n of D.nodes) {
     hits.push({ region, method, tool: tool || null });
   };
   // 1) infobox location (authoritative) + infobox tool (fallback for mined/chopped)
-  const loc = w.match(/^\s*\|\s*location\s*=\s*(.+)$/m);
-  if (loc) for (const r of [...loc[1].matchAll(REGION_RE)]) pushHit(r[1], 'other', null);
+  for (const r of infoboxRegions(w)) pushHit(r, 'other', null);
   const ibTool = (() => {
     const t = w.match(/^\s*\|\s*tool\s*=\s*(.+)$/m);
     return t ? stripLinks(t[1]).replace(/\s*\([^)]*\)\s*/g, '').trim() : null;
@@ -188,10 +201,8 @@ for (const f of fs.readdirSync(path.join(ROOT, 'cache/raw'))) {
   const lower = j.title.toLowerCase();
   allPages.set(lower, j.wikitext || '');
   titleOf.set(lower, j.title);
-  const named = [];
-  const loc = (j.wikitext || '').match(/^\s*\|\s*location\s*=\s*(.+)$/m);
-  if (loc) for (const m of loc[1].matchAll(REGION_RE)) named.push(m[1]);
-  if (named.length) placeLoc.set(lower, [...new Set(named)]);
+  const named = infoboxRegions(j.wikitext || '', { versions: true });
+  if (named.length) placeLoc.set(lower, named);
   const chest = j.title.match(/^Chest \(([^)]+)\)$/);
   if (chest) chestName.set(lower, chest[1]);
 }
