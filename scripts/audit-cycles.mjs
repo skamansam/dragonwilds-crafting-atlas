@@ -20,7 +20,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
-const data = JSON.parse(readFileSync(join(root, 'site', 'data.json'), 'utf8'));
+const data = JSON.parse(readFileSync(join(root, 'public', 'data.json'), 'utf8'));
 
 // ---- build adjacency (dedupe parallel recipe edges for cycle detection) ----
 const adj = new Map();
