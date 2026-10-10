@@ -11,6 +11,7 @@
 import './routing.js';
 import './characters.js';
 import './tours.js';
+import { CANON_REGIONS } from './regions.js';
 import { esc, fmtLayoutDur, parseStats, fmtEditVal, fuzzyScore, highlight } from './util.js';
 import {
   charActive, charSkillSectionHTML, refreshSkillLabels, refreshCharUI, initCharactersUI,
@@ -397,23 +398,11 @@ const QUEST_EDGE_COLOR = 'rgba(217,161,63,0.36)';  // gold — the story spine (
 const QUEST_EDGE_SWATCH = '#d9a13f';
 const MOUNT_EDGE_COLOR = 'rgba(201,160,224,0.40)'; // violet — a quest unlocking a mount
 const MOUNT_EDGE_SWATCH = '#c9a0e0';
-// Full Ashenfall location list (wiki page order — same list as
-// scripts/build-exports.mjs and the hand-annotation checklists). Hubs only
-// materialize for regions that found-in data names OR a quest is set in, so
-// this can grow ahead of the data without adding empty nodes. Brynmoor and
-// Scorned Wilderness only ever appear as quest regions — the location prose
-// never names them.
-const CANON_REGIONS = [
-  'Temple Woods', 'Bramblemead Valley', 'Whispering Swamp', 'Ghornfell',
-  'Fractured Plains', 'Bloodblight Swamp', 'Stormtouched Highlands',
-  'Fellhollow', 'Bleakfields Valley', 'Forgotten Temple', "Dragon's Run",
-  'Emberwood', 'Witchwillow Range', "Hope's Fall", 'Lake of Lost Souls',
-  'Silverthorn Keep', 'Coalridge Pass', 'Dowdun Reach', 'The Approach',
-  'The Courtyard', 'The Nexus', 'The Library', 'The Grand Hall', 'The Garrison',
-  'The Pastures', 'The Menagerie', 'The Bastion', 'Umbral Sands',
-  'Alcarrid Oasis', 'Dunes of Uzzer', 'Manafem Plains', 'The Burning Spire',
-  'Brynmoor', 'Scorned Wilderness',
-];
+// Full Ashenfall location list — imported, not copied: src/regions.js is the
+// one definition shared by this app, scripts/build-exports.mjs and
+// scripts/build-found-in.mjs. Hubs only materialize for regions that found-in
+// data names OR a quest is set in, so the list can grow ahead of the data
+// without adding empty nodes.
 
 /* ── quest layer (P7) ──────────────────────────────────────────
    Quests and mounts come from two generated overlays — public/quests.js
@@ -439,6 +428,10 @@ for (const name of ((questData && questData.order) || [])) {
 const regionMembers = new Map(); // region → Map(item → Set(method))
 if (foundIn.size) {
   for (const [itemId, list] of foundIn) {
+    // a member the visitor has hidden (P6-1 remove) is gone from the graph by
+    // now, and cytoscape rejects an edge to a missing target — which used to
+    // take the whole populate() batch down with it
+    if (!nodeById.has(itemId)) continue;
     for (const f of list) {
       if (!f.region || !CANON_REGIONS.includes(f.region)) continue;
       if (!regionMembers.has(f.region)) regionMembers.set(f.region, new Map());
@@ -501,8 +494,10 @@ if (questById.size) {
         classes: 'questEdge',
       });
     }
-    // quest → reward item (the wiki's unique-rewards tables)
+    // quest → reward item (the wiki's unique-rewards tables). Guarded the same
+    // way as region members: a hidden reward must not dangle.
     for (const r of rewards) {
+      if (!nodeById.has(r.item)) continue;
       eles.push({
         group: 'edges',
         data: { id: name + ' ✧ ' + r.item, source: name, target: r.item, meta: { quest: true, reward: true, post: r.post, during: r.during }, lineColor: QUEST_EDGE_COLOR },

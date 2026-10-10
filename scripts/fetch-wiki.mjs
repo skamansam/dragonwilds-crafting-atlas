@@ -1,6 +1,13 @@
-// Fetches all RuneScape: Dragonwilds wiki main-namespace pages (wikitext) via the MediaWiki API.
+// Fetches RuneScape: Dragonwilds wiki pages (wikitext) via the MediaWiki API.
 // Output: cache/raw/<pageid>.json  (title + wikitext)
 // Etiquette: ~1 req/s by default (RATE_MS env to override) + descriptive User-Agent.
+//
+// Namespaces: articles (0) and templates (10). Templates matter because the
+// article pages delegate a lot of their content to them — the shared loot
+// tables ({{AnimalMaterialsDropTable}}), {{Drop sources list}} (which monster
+// drops an item) and {{Uses recipe list}} (what an item is made from). Without
+// namespace 10 those resolve to nothing locally, so an item's region and its
+// recipe are both invisible to the offline generators.
 import fs from 'node:fs';
 import path from 'node:path';
 import { USER_AGENT, RATE_MS, sleep } from './wiki-config.mjs';
@@ -29,18 +36,24 @@ async function getJson(url, attempt = 1) {
   }
 }
 
-// 1. List all pages in namespace 0 (non-redirects), paginated
-console.log('Listing all pages...');
+// 1. List pages in each namespace (non-redirects), paginated
+const NAMESPACES = [0, 10]; // 0 = articles, 10 = templates
 const pages = [];
-let apfrom = '';
-while (true) {
-  const url = `${API}?action=query&list=allpages&apnamespace=0&apfilterredir=nonredirects&aplimit=max&format=json${apfrom ? `&apfrom=${encodeURIComponent(apfrom)}` : ''}`;
-  const d = await getJson(url);
-  for (const p of d.query.allpages) pages.push(p);
-  if (d.continue && d.continue.apcontinue) {
-    apfrom = d.continue.apcontinue;
-    await sleep(RATE_MS);
-  } else break;
+for (const ns of NAMESPACES) {
+  console.log(`Listing namespace ${ns}...`);
+  let apfrom = '';
+  let count = 0;
+  while (true) {
+    const url = `${API}?action=query&list=allpages&apnamespace=${ns}&apfilterredir=nonredirects&aplimit=max&format=json${apfrom ? `&apfrom=${encodeURIComponent(apfrom)}` : ''}`;
+    const d = await getJson(url);
+    for (const p of d.query.allpages) pages.push(p);
+    count += d.query.allpages.length;
+    if (d.continue && d.continue.apcontinue) {
+      apfrom = d.continue.apcontinue;
+      await sleep(RATE_MS);
+    } else break;
+  }
+  console.log(`  namespace ${ns}: ${count} pages`);
 }
 console.log(`Total pages: ${pages.length}`);
 

@@ -15,13 +15,35 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { CANON_REGIONS, regionRe } from '../src/regions.js';
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const D = JSON.parse(fs.readFileSync(path.join(ROOT, 'public/data.json'), 'utf8'));
 
-// canonical playable regions (Ashenfall is the whole world — not a region node)
-const REGIONS = ['Temple Woods', 'Bramblemead Valley', 'Fractured Plains', 'Bloodblight Swamp', 'Whispering Swamp', 'Ghornfell', 'Bleakfields Valley'];
-const REGION_RE = new RegExp('\\b(' + REGIONS.map(r => r.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + ')\\b', 'g');
+// The full canonical region list, shared with the app and the exporter
+// (src/regions.js). This used to be a hand-written 7-region list, which meant
+// every region added after launch — Stormtouched Highlands, Fellhollow, Umbral
+// Sands, Dowdun Reach — was invisible here: prose that named them produced a
+// "method known, no region named" hit, and those items ended up with no
+// ancestor at all in the graph.
+const REGION_RE = regionRe('g');
+
+// The prose that may name a location: the lead section, plus an explicit
+// ==Location==/==Locations==/==Item sources== section. Deliberately NOT the
+// whole page — Journal and Update history sections name regions in lore and
+// patch-note asides ("one of [[Brynmoor]]'s nobility in the [[Third Age]]") that
+// are not places the item is found, and treating them as locations invents
+// edges. Only the lead and the location-bearing sections are trustworthy.
+function scanScope(w) {
+  const lead = w.split(/^==/m)[0];
+  const extra = [];
+  for (const m of w.matchAll(/^==+\s*(Locations?|Item sources)\s*==+$/gim)) {
+    extra.push(w.slice(m.index + m[0].length).split(/^==/m)[0]);
+  }
+  return [lead, ...extra].join('\n');
+}
+
+const wikiLinks = text => [...text.matchAll(/\[\[([^\]|#]+)(?:\|[^\]]*)?\]\]/g)].map(m => m[1].trim());
 
 const METHODS = [
   { key: 'mined', re: /\bmin(?:e|ed|ing)\b/i },
@@ -70,7 +92,7 @@ function clauseScan(clause) {
 }
 
 const out = {};
-let pages = 0, withRegions = 0, withMethodOnly = 0;
+let pages = 0, withRegions = 0;
 for (const n of D.nodes) {
   if (!n.pageid) continue;
   const f = path.join(ROOT, 'cache/raw', n.pageid + '.json');
@@ -79,7 +101,7 @@ for (const n of D.nodes) {
   const w = j.wikitext || '';
   if (!w) continue;
   pages++;
-  const intro = w.split(/^==/m)[0];
+  const intro = scanScope(w);
   const hits = [];
   const pushHit = (region, method, tool) => {
     if (hits.some(h => h.region === region && h.method === method)) return;
@@ -133,13 +155,126 @@ for (const n of D.nodes) {
         const tool = (mh.key === 'mined' || mh.key === 'chopped') && tBefore.length ? tBefore[tBefore.length - 1].tool : null;
         pushHit(null, mh.key, tool);
       }
-      if (hits.length) { withMethodOnly++; break; }
+      if (hits.length) break;
     }
   }
   if (hits.length) {
     for (const h of hits) if ((h.method === 'mined' || h.method === 'chopped') && !h.tool && ibTool) h.tool = ibTool;
     out[n.id] = hits.sort((a, b) => (a.region || '').localeCompare(b.region || ''));
-    if (hits.some(h => h.region)) withRegions++;
+  }
+}
+
+/* ---------- pass 2: borrow a region from the entity the item comes from ------
+
+   An item that names no region usually names its *source* instead — "mined from
+   [[clay node]]s", "gathered from animals like [[cow]]s, [[deer]] and
+   [[Wolf|wolves]]", "found in [[Chest (Stormtouched Highlands)|chests]]". The
+   source's own page (or its own found-in hits) normally does name a region, so
+   the item's region can be borrowed across that link.
+
+   This only fills in entries the parser already recognised as gatherable or
+   looted — it never invents a "found in" for an item that had no method hit at
+   all, since a crafted item links to its materials and would otherwise inherit
+   the region its ore was mined in. */
+const regionForTitle = new Map(); // lowercase page title -> [region]
+const allPages = new Map();       // lowercase page title -> wikitext
+const titleOf = new Map();        // lowercase page title -> title as written
+const placeLoc = new Map();       // lowercase page title -> [region] from |location =
+const chestName = new Map();      // lowercase "Chest (X)" page -> X
+for (const f of fs.readdirSync(path.join(ROOT, 'cache/raw'))) {
+  if (!f.endsWith('.json')) continue;
+  let j; try { j = JSON.parse(fs.readFileSync(path.join(ROOT, 'cache/raw', f), 'utf8')); } catch { continue; }
+  if (!j.title) continue;
+  const lower = j.title.toLowerCase();
+  allPages.set(lower, j.wikitext || '');
+  titleOf.set(lower, j.title);
+  const named = [];
+  const loc = (j.wikitext || '').match(/^\s*\|\s*location\s*=\s*(.+)$/m);
+  if (loc) for (const m of loc[1].matchAll(REGION_RE)) named.push(m[1]);
+  if (named.length) placeLoc.set(lower, [...new Set(named)]);
+  const chest = j.title.match(/^Chest \(([^)]+)\)$/);
+  if (chest) chestName.set(lower, chest[1]);
+}
+// A chest page names the container it sits in, not always the region: the
+// dragonkin-vault chests are "Chest (Skeklac Kara)" / "Chest (Chaktan Kara)".
+// The scenery page for the vault carries the region, so resolve through it.
+for (const [lower, name] of chestName) {
+  if (CANON_REGIONS.includes(name)) regionForTitle.set(lower, [name]);
+  else if (placeLoc.has(name.toLowerCase())) regionForTitle.set(lower, placeLoc.get(name.toLowerCase()));
+}
+// every other page that states its region in its own infobox
+for (const [lower, regions] of placeLoc) {
+  if (!regionForTitle.has(lower)) regionForTitle.set(lower, regions);
+}
+// an item's own placed region outranks a region borrowed off its page
+for (const [id, hits] of Object.entries(out)) {
+  const placed = hits.find(h => h.region);
+  if (placed) regionForTitle.set(id.toLowerCase(), [placed.region]);
+}
+
+let borrowed = 0;
+for (const [id, hits] of Object.entries(out)) {
+  if (hits.some(h => h.region)) continue; // already placed by prose
+  const w = allPages.get(id.toLowerCase());
+  if (!w) continue;
+  for (const link of wikiLinks(scanScope(w))) {
+    const region = regionForTitle.get(link.toLowerCase())?.[0];
+    if (!region) continue;
+    const first = hits[0] || { method: 'other', tool: null };
+    hits.push({ region, method: first.method || 'other', tool: first.tool || null, via: link });
+    borrowed++;
+    break;
+  }
+}
+
+/* ---------- pass 3: expand the shared loot-table templates ------------------
+
+   Article pages delegate their loot lists to templates — a chest page says
+   {{AnimalMaterialsDropTable}} instead of listing the animal materials itself.
+   Now that fetch-wiki.mjs caches namespace 10 those templates are readable
+   wikitext, so a page sitting in a known region hands that region to every
+   {{DropsLine|name=…}} in the tables it transcludes.
+
+   {{Drop sources list}} and {{Uses recipe list}} are Lua ({{#invoke:…}}) and
+   cannot be resolved from wikitext — left alone rather than guessed at. */
+const dropNames = text => [...text.matchAll(/\{\{\s*DropsLine\s*\|([^}]*)\}\}/gi)]
+  .map(m => (m[1].match(/(?:^|\|)\s*name\s*=\s*([^|}\n]+)/i) || [])[1])
+  .filter(Boolean)
+  .map(s => stripLinks(s.trim()).split('|')[0].trim())
+  .filter(Boolean);
+
+const templateItems = new Map(); // lowercase template title -> [item name]
+for (const [title, w] of allPages) {
+  if (!title.startsWith('template:')) continue;
+  const names = dropNames(w);
+  if (names.length) templateItems.set(title, names);
+}
+const transcluded = text => [...text.matchAll(/\{\{\s*([A-Za-z0-9 _'-]+?)\s*[|}]/g)]
+  .map(m => 'template:' + m[1].trim().toLowerCase().replace(/\s+/g, ' '));
+
+const nodeIds = new Set(D.nodes.map(n => n.id));
+let tableResolved = 0;
+for (const [pageTitle, regions] of regionForTitle) {
+  const w = allPages.get(pageTitle);
+  if (!w) continue;
+  const isChest = /^chest \(/.test(pageTitle);
+  const members = new Set(dropNames(w));
+  for (const t of transcluded(w)) {
+    const list = templateItems.get(t);
+    if (list) for (const nm of list) members.add(nm);
+  }
+  if (!members.size) continue; // a page with no drop table tells us nothing
+  const method = isChest ? 'chest'
+    : /\bdrops?\b|dropped by/i.test(w.split(/^==/m)[0]) ? 'drops' : 'other';
+  for (const nm of members) {
+    if (!nodeIds.has(nm)) continue; // only ids that exist in the graph
+    const existing = out[nm];
+    if (existing?.some(h => h.region)) continue; // never override a placed item
+    const hits = existing || [];
+    if (hits.some(h => h.region === regions[0] && h.method === method)) continue;
+    hits.push({ region: regions[0], method, tool: null, via: titleOf.get(pageTitle) || pageTitle });
+    out[nm] = hits;
+    tableResolved++;
   }
 }
 
@@ -149,7 +284,11 @@ const regionCounts = {};
 for (const v of Object.values(out)) for (const h of v) if (h.region) regionCounts[h.region] = (regionCounts[h.region] || 0) + 1;
 const methods = {};
 for (const v of Object.values(out)) for (const h of v) methods[h.method] = (methods[h.method] || 0) + 1;
-console.log(`pages parsed: ${pages} · items annotated: ${Object.keys(out).length} (with regions: ${withRegions}, method-only: ${withMethodOnly})`);
+// counted after pass 2, so the two numbers describe the file we just wrote
+withRegions = Object.values(out).filter(hits => hits.some(h => h.region)).length;
+console.log(`pages parsed: ${pages} · items annotated: ${Object.keys(out).length} (with regions: ${withRegions}, method-only: ${Object.keys(out).length - withRegions})`);
+console.log(`regions borrowed via a source entity (pass 2): ${borrowed}`);
+console.log(`regions resolved from loot-table templates (pass 3): ${tableResolved} (${templateItems.size} tables in the cache)`);
 console.log('per region:', JSON.stringify(regionCounts, null, 1));
 console.log('per method:', JSON.stringify(methods, null, 1));
 // spot-check the user's examples

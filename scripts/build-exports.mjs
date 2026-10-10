@@ -26,6 +26,7 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { CANON_REGIONS } from '../src/regions.js';
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -153,24 +154,10 @@ for (const n of nodes) {
 // Canonical Ashenfall regions become kind=region hubs with interaction=region
 // spokes to member items. Deterministic order: canonical region list, then
 // member items sorted. Hubs sit at the centroid of their laid-out members.
-// Full Ashenfall location list (dragonwilds wiki page order — the same list the
-// hand-annotation checklists use). Exports only emit hubs for regions that
-// actually appear in found-in data, so new locations light up as they're
-// annotated; the app (src/app.js) keeps its own identical copy.
-const CANON_REGIONS = [
-  // other divisions (never found-in values, kept out): the north, the far north,
-  // the mountainous reach, the far south-east
-  'Temple Woods', 'Bramblemead Valley', 'Whispering Swamp', 'Ghornfell',
-  'Fractured Plains', 'Bloodblight Swamp', 'Stormtouched Highlands',
-  'Fellhollow', 'Bleakfields Valley', 'Forgotten Temple', "Dragon's Run",
-  'Emberwood', 'Witchwillow Range', "Hope's Fall", 'Lake of Lost Souls',
-  'Silverthorn Keep', 'Coalridge Pass', 'Dowdun Reach', 'The Approach',
-  'The Courtyard', 'The Nexus', 'The Library', 'The Grand Hall', 'The Garrison',
-  'The Pastures', 'The Menagerie', 'The Bastion', 'Umbral Sands',
-  'Alcarrid Oasis', 'Dunes of Uzzer', 'Manafem Plains', 'The Burning Spire',
-  // quest-only regions (P7): named by the Quests page, never by location prose
-  'Brynmoor', 'Scorned Wilderness',
-];
+// Full Ashenfall location list (dragonwilds wiki page order) — imported from
+// src/regions.js so the app, this exporter and the found-in generator share one
+// definition. Exports only emit hubs for regions that actually appear in
+// found-in data, so new locations light up as they are annotated.
 const METHOD_LABEL = {
   mined: 'mined', chopped: 'chopped', picked: 'picked', farmed: 'farmed',
   caught: 'fished', drops: 'drops', chest: 'in chests', dungeon: 'in dungeons', other: 'found',
