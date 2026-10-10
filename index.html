@@ -336,6 +336,13 @@
             <h3>Map</h3>
             <p>Wheel = zoom, drag = pan. The breadcrumb shows lineage; the minimap (bottom right)
             shows where you are — click it to jump.</p>
+            <h3>Fixing the data</h3>
+            <p>A wrong name, a missing link or a find spot the wiki never wrote down can be
+            corrected in place: <b>✎</b> in an item's panel opens its <b>edit form</b>, and
+            <b>⚙ → Your data edits</b> collects every difference against the bundled dataset and
+            exports it as a file. <b>scripts/open-edits-pr.mjs</b> turns that file into a pull
+            request for the project. The whole loop is written up in
+            <a href="CONTRIBUTOR-DATA.md" target="_blank" rel="noopener">CONTRIBUTOR-DATA.md</a>.</p>
           </div>
         </div>
 
@@ -417,6 +424,10 @@ exactly what you are looking at.</p>
         <button id="editsExportFull" class="btn" title="Download the whole edited dataset as dragonwilds-data.json">⤓ Export full data</button>
         <button id="editsClear" class="btn danger">Clear all my edits</button>
       </div>
+      <p class="edits-guide">The whole loop — correct a row, <b>⤓ Export edits</b>, bake the file in
+      with <b>scripts/apply-edits.mjs</b> or let <b>scripts/open-edits-pr.mjs</b> merge it and open the
+      pull request — is written up in
+      <a href="CONTRIBUTOR-DATA.md" target="_blank" rel="noopener">CONTRIBUTOR-DATA.md</a>.</p>
       <div class="h-legal">Clearing (or reverting a row) reloads the atlas from its bundled data.</div>
     </div>
   </div>

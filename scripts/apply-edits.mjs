@@ -12,6 +12,7 @@
 // fetch-icon-files.mjs use, so the browser keeps reading the same files.
 import fs from 'node:fs';
 import { mergeEditsOverlay, validateDatasetExport, applyDatasetExport } from './apply-edits-core.mjs';
+import { readWorkingDataset, writeDatasetFiles } from './dataset-io.mjs';
 
 const args = process.argv.slice(2);
 const dryRun = args.includes('--dry-run');
@@ -21,11 +22,7 @@ if (!file) {
   process.exit(2);
 }
 
-const dataPath = new URL('../cache/final-dataset.json', import.meta.url).pathname;
-const jsonPath = new URL('../public/data.json', import.meta.url).pathname;
-const jsPath = new URL('../public/data.js', import.meta.url).pathname;
-
-const dataset = JSON.parse(fs.readFileSync(dataPath, 'utf8'));
+const dataset = readWorkingDataset();
 const input = JSON.parse(fs.readFileSync(file, 'utf8'));
 
 if (input && Array.isArray(input.nodes)) {
@@ -49,7 +46,5 @@ if (input && Array.isArray(input.nodes)) {
 
 if (dryRun) { console.log('dry run — nothing written'); process.exit(0); }
 
-fs.writeFileSync(dataPath, JSON.stringify(dataset, null, 1));
-fs.writeFileSync(jsonPath, JSON.stringify(dataset, null, 1));
-fs.writeFileSync(jsPath, 'window.DW_DATA = ' + JSON.stringify(dataset) + ';');
+writeDatasetFiles(dataset);
 console.log('wrote cache/final-dataset.json + public/data.json + public/data.js');

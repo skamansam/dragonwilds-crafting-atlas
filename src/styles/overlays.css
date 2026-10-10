@@ -104,6 +104,14 @@ body.has-update #toast { bottom: 74px; }
   margin-top: 18px; padding-top: 12px; border-top: 1px solid var(--line);
   text-align: center; color: var(--faint); font-size: 10.5px; line-height: 1.5;
 }
+/* links inside the help + edits windows — the contributor guides. vite.config.js
+   serves CONTRIBUTOR(-DATA).md from the repo root in dev and emits them beside
+   index.html in a build, so these hrefs are relative and base-path-agnostic. */
+.help-card a {
+  color: var(--gold); text-decoration: none;
+  border-bottom: 1px solid var(--gold-dim);
+}
+.help-card a:hover { color: var(--gold-bright); border-bottom-color: var(--gold); }
 
 /* ── in-app data editing (P6-1) ────────────────────────────── */
 /* the codex edit form */
@@ -149,6 +157,15 @@ body.has-update #toast { bottom: 74px; }
 }
 .edits-card #editsClose:hover { color: var(--ink); border-color: var(--gold-dim); }
 .edits-card .char-modal-actions { margin-top: 10px; }
+/* the "full walkthrough" pointer to CONTRIBUTOR-DATA.md, in the same gold-wash
+   language as the help note it mirrors */
+.edits-guide {
+  margin: 12px 0 0; padding: 9px 11px;
+  border: 1px solid var(--gold-dim); border-radius: 9px;
+  background: rgba(226, 185, 92, 0.07);
+  color: var(--muted); font-size: 12.5px; line-height: 1.5;
+}
+.edits-guide b { color: var(--ink); }
 .edits-list { max-height: 46vh; overflow-y: auto; overscroll-behavior: contain; margin: 0 0 12px; }
 .edits-empty {
   color: var(--faint); font-size: 13px; text-align: center; padding: 22px 10px;

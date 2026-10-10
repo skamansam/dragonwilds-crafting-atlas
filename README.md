@@ -441,8 +441,9 @@ Two guides, depending on what you are changing:
   wired and built, the conventions, the three test layers, and the non-goals
   that decide what belongs here at all.
 - **[CONTRIBUTOR-DATA.md](CONTRIBUTOR-DATA.md)** — the data: correct a row in the
-  app and ship it as a PR end to end, refresh from the wiki, or answer the
-  location checklists.
+  app and ship it as a PR end to end (`node scripts/open-edits-pr.mjs
+  dragonwilds-edits.json` merges the export, branches, commits, pushes and opens
+  the PR), refresh from the wiki, or answer the location checklists.
 
 Small corrections are always welcome — a wrong stat, a missing link or a find
 spot you verified in game is exactly the kind of contribution this project is

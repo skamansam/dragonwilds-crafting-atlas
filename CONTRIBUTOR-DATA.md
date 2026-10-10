@@ -10,7 +10,7 @@ For the code side of the project see [CONTRIBUTOR.md](CONTRIBUTOR.md).
 
 | You want to… | Do this | Ends up in |
 |---|---|---|
-| Fix a wrong name, kind, item type, wiki link, description or stat, or add a makes/gives/found-in relationship | Correct it **in the app**, export, `apply-edits.mjs`, PR — [Path A](#path-a-fix-the-data-in-the-app-then-ship-it-as-a-pr) | `public/data.*` |
+| Fix a wrong name, kind, item type, wiki link, description or stat, or add a makes/gives/found-in relationship | Correct it **in the app**, export, then `open-edits-pr.mjs` (or `apply-edits.mjs` + PR by hand) — [Path A](#path-a-fix-the-data-in-the-app-then-ship-it-as-a-pr) | `public/data.*` |
 | Refresh everything from the wiki after a game update | Run the **scraper pipeline** in order — [Path B](#path-b-full-wiki-refresh) | `cache/` → `public/data.*` |
 | Answer "where is this found?" | Fill in a **checklist table** and merge it back — [Path C](#path-c-locations-the-hand-annotation-loop) | `public/found-in.js` |
 
@@ -120,7 +120,13 @@ Conventions that matter:
 You edit in the browser, the app hands you a JSON file, and you run one script to
 fold it into the dataset. No wiki scraping, no SQL, no cache rebuild required.
 Steps 1–7 need **no repository at all** — you can prepare the edits on the live
-site and bring only `dragonwilds-edits.json` to a clone.
+site and bring only `dragonwilds-edits.json` to a clone. (Step 9b is the whole
+back half as one command.)
+
+This guide is published with the site, at
+[`CONTRIBUTOR-DATA.md`](https://rudeboy.dev/dragonwilds-crafting-atlas/CONTRIBUTOR-DATA.md),
+and both the ⚙ → **Your data edits** window and the **?** help link to it from
+the app.
 
 ### 1. Open the app
 
@@ -244,6 +250,45 @@ in exactly the shape `build-data.mjs` uses. What it does (and refuses to do):
 
 The same logic is unit-tested in `tests/features/edits-apply.*`, so
 `npx vitest run` after a merge is a real check, not a formality.
+
+### 9b. Or let one command do steps 8–12
+
+Everything above — the bootstrap, the merge, regenerating the exports, the
+branch, the commit, the push and the pull request — is one script:
+
+```bash
+node scripts/open-edits-pr.mjs dragonwilds-edits.json --dry-run
+node scripts/open-edits-pr.mjs dragonwilds-edits.json
+```
+
+| Flag | Effect |
+|---|---|
+| `--dry-run` | say what would change and stop — writes nothing, no branch, no commit |
+| `--title "…"` | commit subject and PR title (default: derived from the edits) |
+| `--branch <name>` | branch to create (default: `data/<slug of the change>`) |
+| `--base <branch>` | PR base (default: `main`) |
+| `--no-exports` | don't regenerate `data.cyjs`/`data.graphml`/`atlas-style.xml` |
+| `--no-pr` | commit and push, then print the compare URL instead of running `gh` |
+| `--yes` | don't ask before pushing (for non-interactive runs) |
+
+The first thing it prints is the plan — every change, one line each, `before →
+after`. Then it seeds `cache/final-dataset.json` if the clone has none, merges
+with the same `apply-edits-core.mjs` `apply-edits.mjs` uses, writes
+`public/data.json` + `public/data.js` **and** the desktop exports when nodes or
+edges moved, and commits on a new branch. It never commits to the branch you
+are on, never force-pushes, and refuses a dirty tree (untracked files are fine —
+that is where your exported `dragonwilds-edits.json` lives). If a step fails
+before the push it rolls the branch back and restores the data files.
+
+Then it pushes and runs `gh pr create` with a body describing the change and the
+`baseGeneratedAt` comparison. No `gh`, or not authenticated? The branch is
+pushed anyway and it prints the GitHub compare URL; `--no-pr` does the same on
+purpose. Either way, the **PR body's checklist is not pre-ticked** — run the
+checks and tick what actually passed, exactly as in step 11.
+
+The pure half (what the change *is*, how it is worded, the branch name) lives in
+`scripts/open-edits-pr-core.mjs` and is tested by
+`tests/features/edits-pr.*`.
 
 ### 10. Re-derive what depends on the data
 

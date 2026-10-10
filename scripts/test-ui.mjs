@@ -181,6 +181,18 @@ async function secSmoke() {
   ok('welcome note opens the online help', await page.$eval('#helpModal', el => !el.hidden));
   ok('help window carries the same complexity note', await page.$eval('#helpModal .h-note', el =>
     /necessarily complicated/i.test(el.textContent) && /guided tours/i.test(el.textContent)));
+
+  // the data-contribution guide: linked from the help, and served beside the
+  // page (vite.config.js answers it in dev and emits it into every build, so
+  // this also checks the link is not broken on the deployed site)
+  ok('help links the data-contribution guide', await page.$eval('#helpModal a[href="CONTRIBUTOR-DATA.md"]', el =>
+    /CONTRIBUTOR-DATA\.md/.test(el.textContent) && el.target === '_blank'));
+  const guide = await page.evaluate(async () => {
+    const r = await fetch('CONTRIBUTOR-DATA.md');
+    return { ok: r.ok, head: (await r.text()).slice(0, 24) };
+  });
+  ok('the guide is served beside the page', guide.ok && guide.head.startsWith('# CONTRIBUTOR-DATA.md'),
+    guide.ok ? guide.head : 'fetch failed');
   await page.click('#helpClose');
   await page.waitForTimeout(250);
   ok('help closes and leaves the welcome card standing', await page.evaluate(() =>
@@ -604,6 +616,9 @@ async function secEdits() {
   await page.click('#editsBtn');
   await page.waitForTimeout(250);
   ok('edits window opens', await page.$eval('#editsModal', el => !el.hidden));
+  ok('edits window links the guide + the PR script', await page.$eval('#editsModal .edits-guide a', el =>
+    el.getAttribute('href') === 'CONTRIBUTOR-DATA.md' && el.target === '_blank') &&
+    await page.$eval('#editsModal .edits-guide', el => /open-edits-pr\.mjs/.test(el.textContent)));
   ok('edits window lists the changed node', await page.$eval('#editsList', el => el.innerText.includes('Iron Bar ✎')));
   ok('edits window shows a field diff', await page.$eval('#editsList', (el, orig) =>
     [...el.querySelectorAll('.edit-diff')].some(d => d.textContent.includes(orig) && d.textContent.includes('Iron Bar ✎')), original));

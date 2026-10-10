@@ -1,3 +1,4 @@
+import fs from "node:fs";
 import { defineConfig } from "vite";
 
 /* Deploy base path. GitHub Pages serves this repo as a PROJECT site on the
@@ -47,9 +48,42 @@ function versionStamp() {
   };
 }
 
+/* ── contributor guides on the site ────────────────────────────
+   CONTRIBUTOR.md and CONTRIBUTOR-DATA.md live at the repo root, where GitHub is
+   the only thing that renders them. The app's data-editing UI links to the guide
+   (⚙ → Your data edits, and the ? help), so the deployed site needs a URL for it:
+   this plugin answers both files in dev and emits them beside index.html in a
+   build. public/ is copied verbatim and holds generated data, so the guides stay
+   at the root as the single source — nothing is duplicated, nothing can drift. */
+const CONTRIBUTOR_GUIDES = ["CONTRIBUTOR.md", "CONTRIBUTOR-DATA.md"];
+const guideSource = (name) => fs.readFileSync(new URL(`./${name}`, import.meta.url), "utf8");
+
+function contributorGuides() {
+  return {
+    name: "dw-contributor-guides",
+    // dev: there is no emitted file, so serve the root markdown directly
+    configureServer: (server) => {
+      server.middlewares.use((req, res, next) => {
+        const path = (req.url || "").split("?")[0];
+        const name = CONTRIBUTOR_GUIDES.find(f => path === `/${f}`);
+        if (!name) return next();
+        res.setHeader("Content-Type", "text/plain; charset=utf-8");
+        res.end(guideSource(name));
+      });
+    },
+    // build: emit each guide beside index.html (index.html links them relatively,
+    // so the deploy base path needs no special casing)
+    generateBundle() {
+      for (const name of CONTRIBUTOR_GUIDES) {
+        this.emitFile({ type: "asset", fileName: name, source: guideSource(name) });
+      }
+    },
+  };
+}
+
 export default defineConfig(({ command }) => ({
   base: command === "build" ? withSlashes(PAGES_BASE) : "/",
-  plugins: [versionStamp()],
+  plugins: [versionStamp(), contributorGuides()],
 
   // public/ is copied verbatim into the build: vendor bundles, icons, fonts,
   // the generated data files and the layout Web Worker. None of it is

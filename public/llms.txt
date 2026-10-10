@@ -52,14 +52,25 @@ cyjs files are exports of it for desktop graph tools.
 Repository documentation, served raw from GitHub:
 
 - [README](https://raw.githubusercontent.com/skamansam/dragonwilds-crafting-atlas/main/README.md): what the Atlas is for, how to run it locally, and the Cytoscape export workflow.
+- [CONTRIBUTOR.md](https://raw.githubusercontent.com/skamansam/dragonwilds-crafting-atlas/main/CONTRIBUTOR.md): the code — how `src/` + `public/` are wired and built, the conventions, the three test layers, the PR checklist.
+- [CONTRIBUTOR-DATA.md](https://raw.githubusercontent.com/skamansam/dragonwilds-crafting-atlas/main/CONTRIBUTOR-DATA.md): the data — correct a row in the app and ship it as a pull request end to end (edit → export → `scripts/apply-edits.mjs` or `scripts/open-edits-pr.mjs` → PR), refresh from the wiki, or answer the location checklists. Also served beside this file, as [`CONTRIBUTOR-DATA.md`](https://rudeboy.dev/dragonwilds-crafting-atlas/CONTRIBUTOR-DATA.md) and [`CONTRIBUTOR.md`](https://rudeboy.dev/dragonwilds-crafting-atlas/CONTRIBUTOR.md).
 - [PLAN.md](https://raw.githubusercontent.com/skamansam/dragonwilds-crafting-atlas/main/PLAN.md): the change log — every shipped increment and what is planned next.
 - [DESIGN.md](https://raw.githubusercontent.com/skamansam/dragonwilds-crafting-atlas/main/DESIGN.md): the design system — colour tokens, the Cinzel/Alegreya type pairing, spacing, component reference.
 - [PRODUCT.md](https://raw.githubusercontent.com/skamansam/dragonwilds-crafting-atlas/main/PRODUCT.md): product intent — audience, success criteria, non-goals, performance budget, legal constraints.
 
 ## Contributing
 
-The dataset has known gaps, tracked as hand-editable checklists that keep human
-knowledge outside the generated pipeline:
+Fixes can be made **in the app**: the ✎ in an item's codex panel opens an edit form
+(fields and links), ⚙ → **Your data edits** lists every difference against the
+bundled dataset, and **⤓ Export edits** downloads them as `dragonwilds-edits.json`.
+
+`node scripts/open-edits-pr.mjs dragonwilds-edits.json` merges that file into the
+dataset, branches, commits, pushes and opens the pull request (it takes the same
+overlay `scripts/apply-edits.mjs` does, and shares its merge logic);
+`scripts/apply-edits.mjs` remains the apply-only step.
+
+The dataset also has known gaps, tracked as hand-editable checklists that keep
+human knowledge outside the generated pipeline:
 
 - [needs-locations.md](https://raw.githubusercontent.com/skamansam/dragonwilds-crafting-atlas/main/docs/checklists/needs-locations.md): 233 items with no found-in region on the wiki — each row wants a location.
 - [unknown-source.md](https://raw.githubusercontent.com/skamansam/dragonwilds-crafting-atlas/main/docs/checklists/unknown-source.md): 435 rows whose source is described only vaguely (e.g. "looted from metal salvage hotspots") — each wants a concrete region.
