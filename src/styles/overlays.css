@@ -8,6 +8,38 @@
 }
 #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
+/* ── newer-build banner ─────────────────────────────────────── */
+/* bottom-centre pill; when it is up the toast climbs above it so a layout
+   message never lands on top of the notice */
+#updateBanner {
+  position: fixed; left: 50%; bottom: 18px;
+  transform: translateX(-50%) translateY(10px);
+  display: flex; align-items: center; gap: 12px;
+  max-width: min(560px, calc(100vw - 28px));
+  padding: 9px 10px 9px 15px;
+  background: var(--panel); border: 1px solid var(--gold-dim); border-radius: 12px;
+  box-shadow: var(--shadow); backdrop-filter: blur(8px);
+  color: var(--ink); font-size: 13px;
+  opacity: 0; transition: opacity 0.25s var(--ease-out), transform 0.25s var(--ease-out);
+  z-index: 90;
+}
+#updateBanner[hidden] { display: none; }
+#updateBanner.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+#updateBanner .ub-rune { flex: none; color: var(--gold-bright); font-size: 15px; }
+#updateBanner .ub-text { flex: 1 1 auto; min-width: 0; }
+#updateBanner .ub-reload {
+  flex: none; padding: 7px 15px; border-radius: 8px; cursor: pointer;
+  border: 1px solid var(--gold); background: var(--gold); color: var(--bg0);
+  font-family: var(--font-body); font-size: 12.5px; font-weight: 700;
+}
+#updateBanner .ub-reload:hover { background: var(--gold-bright); border-color: var(--gold-bright); }
+#updateBanner .ub-dismiss {
+  flex: none; width: 26px; height: 26px; border-radius: 7px; cursor: pointer;
+  border: 1px solid var(--line); background: none; color: var(--muted); font-size: 12px;
+}
+#updateBanner .ub-dismiss:hover { color: var(--ink); border-color: var(--gold-dim); }
+body.has-update #toast { bottom: 74px; }
+
 /* ── help button + modal ────────────────────────────────────── */
 /* right-edge cluster: ⚙ settings + ? help hug the right edge */
 .header-right { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; }

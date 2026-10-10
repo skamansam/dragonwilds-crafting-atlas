@@ -369,6 +369,32 @@ async function secSmoke() {
     return others;
   });
   ok('"only" on an OFF row restores every kind on the second click', recovered > 0, `${recovered} non-food node(s) visible again`);
+
+  // ── newer-build notice ──────────────────────────────────────
+  // the build stamps an id into the page and emits the same id as version.json;
+  // the banner only appears when the deployed file reports a DIFFERENT id
+  const stamped = await page.$eval('meta[name="dw-build"]', el => el.content).catch(() => null);
+  ok('page carries a build stamp', !!stamped, stamped || 'no <meta name="dw-build">');
+  ok('update banner starts hidden', await page.$eval('#updateBanner', el => el.hidden));
+  const served = await page.evaluate(async () => {
+    const r = await fetch(new URL('version.json', document.baseURI).href, { cache: 'no-store' });
+    return { ok: r.ok, id: (await r.json()).id };
+  });
+  ok('version.json is served and matches this build', served.ok && served.id === stamped, `${served.id} vs ${stamped}`);
+
+  // fake a deploy: answer the poll with a different id, then force a check
+  await page.route('**/version.json', route => route.fulfill({
+    status: 200, contentType: 'application/json', body: JSON.stringify({ id: 'deployed-elsewhere' }),
+  }));
+  await page.evaluate(() => window.__checkForUpdate());
+  await page.waitForTimeout(300);
+  ok('banner appears when a newer version is deployed',
+    await page.$eval('#updateBanner', el => !el.hidden && el.classList.contains('show')));
+  ok('banner offers a Reload action', await page.$eval('#updateBanner .ub-reload', el => /reload/i.test(el.textContent)));
+  await page.click('#updateBanner .ub-dismiss');
+  await page.waitForTimeout(400);
+  ok('banner can be dismissed', await page.$eval('#updateBanner', el => el.hidden));
+  await page.unroute('**/version.json');
 }
 
 /* ── panel ─────────────────────────────────────────────────────────────── */

@@ -370,6 +370,15 @@ exactly what you are looking at.</p>
     <div id="minimap" hidden><canvas id="mmCanvas"></canvas><div class="mm-viewport" id="mmViewport"></div></div>
   </div>
 
+  <!-- newer-build notice — revealed by src/version.js when the deployed
+       version.json reports an id other than the one this page was built with -->
+  <div id="updateBanner" role="status" aria-live="polite" hidden>
+    <span class="ub-rune" aria-hidden="true">✦</span>
+    <span class="ub-text">A newer version of the Atlas is available</span>
+    <button class="ub-reload" type="button">Reload</button>
+    <button class="ub-dismiss" type="button" aria-label="Dismiss update notice">✕</button>
+  </div>
+
   <div id="charModal" role="dialog" aria-modal="true" aria-label="Choose your character" hidden>
     <div class="char-card">
       <div class="h-rune">⚉</div>

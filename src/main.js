@@ -12,3 +12,4 @@
 
 import './style.css';
 import './app.js';
+import './version.js';
