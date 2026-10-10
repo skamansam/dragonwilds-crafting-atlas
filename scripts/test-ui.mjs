@@ -332,6 +332,43 @@ async function secSmoke() {
     return others;
   });
   ok('a second "only" click restores every kind', restored > 0, `${restored} non-food node(s) visible again`);
+
+  // "only" on a row that is currently OFF must still solo that kind (regression:
+  // the loop never re-added the clicked kind, so every kind was deleted and the
+  // map blanked permanently — a second click could not recover it)
+  const rowFor = label => page.evaluate(lbl => {
+    const r = [...document.querySelectorAll('#legend .lg-row')]
+      .find(x => x.querySelector('span:last-child')?.textContent === lbl);
+    r.click(); // toggle it off
+    return r.classList.contains('off');
+  }, label);
+  ok('Food row reads OFF after toggling it off', await rowFor('Food'));
+  await page.waitForTimeout(400);
+  await page.evaluate(() => {
+    [...document.querySelectorAll('#legend .lg-row')]
+      .find(r => r.querySelector('span:last-child')?.textContent === 'Food')
+      .querySelector('.lg-only').click();
+  });
+  await page.waitForTimeout(700);
+  const soloFromOff = await page.evaluate(() => {
+    let food = 0, others = 0;
+    window.__cy.nodes(':visible').forEach(n => { n.data('meta').kind === 'food' ? food++ : others++; });
+    return { food, others };
+  });
+  ok('"only" on an OFF row still shows that kind', soloFromOff.food > 0, `${soloFromOff.food} food node(s) visible`);
+  ok('"only" on an OFF row hides every other kind', soloFromOff.others === 0, `${soloFromOff.others} non-food node(s) visible`);
+  await page.evaluate(() => {
+    [...document.querySelectorAll('#legend .lg-row')]
+      .find(r => r.querySelector('span:last-child')?.textContent === 'Food')
+      .querySelector('.lg-only').click();
+  });
+  await page.waitForTimeout(700);
+  const recovered = await page.evaluate(() => {
+    let others = 0;
+    window.__cy.nodes(':visible').forEach(n => { if (n.data('meta').kind !== 'food') others++; });
+    return others;
+  });
+  ok('"only" on an OFF row restores every kind on the second click', recovered > 0, `${recovered} non-food node(s) visible again`);
 }
 
 /* ── panel ─────────────────────────────────────────────────────────────── */

@@ -1230,8 +1230,14 @@ for (const k of Object.keys(kindColor)) {
   lgRows[k].querySelector('.lg-only').onclick = e => {
     e.stopPropagation();
     const solo = activeCats.size === 1 && activeCats.has(k);
-    // never drop the row's own kind — the kind we're soloing must survive
-    for (const kk of Object.keys(kindLabel)) if (kk !== k) activeCats[solo ? 'add' : 'delete'](kk);
+    // never drop the row's own kind — the kind we're soloing must survive.
+    // If the row was OFF, "only" still means show just this kind, so force it
+    // in: otherwise every kind (including this one) is deleted and the map
+    // blanks with no way to recover by clicking again.
+    for (const kk of Object.keys(kindLabel)) {
+      if (kk === k) activeCats.add(kk);
+      else activeCats[solo ? 'add' : 'delete'](kk);
+    }
     if (!solo) showOrphans = false; // a solo view means exactly one kind, no dead ends
     for (const kk of Object.keys(lgRows)) lgSyncKind(kk);
     lgDeadRow.classList.toggle('off', !showOrphans);
