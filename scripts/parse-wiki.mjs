@@ -386,6 +386,23 @@ for (const f of files) {
   addImages(wt.slice(0, 2000));
 }
 
+// ---------- normalise names ----------
+// Wikitext sometimes carries a double space ("Blue  Dragon Leather", "Pristine
+// Monkfish  Trophy"). Names are node identities, so an un-collapsed double space
+// becomes a second, phantom node that shadows the real one and has no source of
+// its own. Collapse internal whitespace everywhere a name identifies a node.
+const sq = s => (typeof s === 'string' ? s.replace(/\s+/g, ' ').trim() : s);
+for (const it of items) it.name = sq(it.name);
+for (const st of stations) st.name = sq(st.name);
+for (const sp of spells) sp.name = sq(sp.name);
+for (const r of recipes) {
+  r.output = sq(r.output);
+  for (const i of r.inputs) i.name = sq(i.name);
+  r.facility = sq(r.facility);
+  r.blueprint = sq(r.blueprint);
+}
+const normalizedReferenced = new Set([...referenced].map(sq));
+
 // ---------- write ----------
 const dataset = {
   generatedAt: new Date().toISOString(),
@@ -397,7 +414,7 @@ const dataset = {
   skills,
   levelUnlocks,
   pages: pagesIndex,
-  referencedNames: [...referenced].sort(),
+  referencedNames: [...normalizedReferenced].sort(),
   imageFiles: [...imageFiles].sort(),
 };
 fs.writeFileSync(path.join(OUT, 'dataset.json'), JSON.stringify(dataset, null, 1));

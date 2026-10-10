@@ -38,8 +38,8 @@ Feature: URL routing (hash deep links)
     Then every node slug resolves back to that node
 
   Scenario: Colliding names get a numeric suffix
-    Given the routing index is built from the atlas data
-    Then the colliding names resolve to different ids
+    Given an index built from two nodes that slug the same way
+    Then the two colliding names resolve to different ids
 
   # hash parsing (src/routing.js parseHash)
   Scenario: A one-item hash selects that item

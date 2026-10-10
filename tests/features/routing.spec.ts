@@ -134,13 +134,21 @@ describeFeature(feature, ({ Scenario, Background }) => {
 	});
 
 	Scenario("Colliding names get a numeric suffix", ({ Given, Then }) => {
-		Given("the routing index is built from the atlas data", async () => {
-			state.slugIndex = buildIndex(D.nodes);
+		// The slug function folds every run of non-alphanumerics, so two distinct
+		// names can still slug the same way. The index must keep both addressable.
+		// This is deliberately a fixture rather than a real data pair: the dataset
+		// used to carry such a pair by accident (a stray double space), and a test
+		// that depends on that would silently stop covering the rule once the data
+		// was cleaned up.
+		Given("an index built from two nodes that slug the same way", async () => {
+			state.slugIndex = buildIndex([
+				{ id: "Blue Dragon Leather", name: "Blue Dragon Leather" },
+				{ id: "Blue  Dragon Leather", name: "Blue  Dragon Leather" },
+			]);
 		});
-		Then("the colliding names resolve to different ids", async () => {
+		Then("the two colliding names resolve to different ids", async () => {
 			const idx = state.slugIndex;
 			if (!idx) throw new Error("index not built");
-			// the dataset really does carry two names that slug the same way
 			expect(slug("Blue Dragon Leather")).toBe(slug("Blue  Dragon Leather"));
 			const first = idx.toId.get("blue_dragon_leather");
 			const second = idx.toId.get("blue_dragon_leather_2");
