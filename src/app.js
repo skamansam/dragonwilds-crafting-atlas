@@ -1223,7 +1223,7 @@ function lgSyncKind(k) {
 for (const k of Object.keys(kindColor)) {
   lgRows[k] = lgMakeRow({
     swatch: `<span class="lg-swatch" style="background:${kindColor[k]}"></span>` +
-      `<span class="lg-only" title="show ONLY ${kindLabel[k]} — click again to bring every kind back">only</span>`,
+      `<span class="lg-only" title="show ONLY ${kindLabel[k]} — ↺ All brings every kind back">only</span>`,
     label: kindLabel[k],
     on: activeCats.has(k),
     onclick: () => {
@@ -1232,19 +1232,25 @@ for (const k of Object.keys(kindColor)) {
       applyCategoryVisibility();
     },
   });
-  // "only" = solo filter: hide every other kind in one click; click again to restore
+  // "only" = sticky solo filter: show exactly this kind. Deliberately one-way —
+  // a second click does NOT bring the other kinds back (↺ All is the way out),
+  // so "only" always means the same thing and a stray second click cannot undo
+  // the filter the visitor just asked for.
   lgRows[k].querySelector('.lg-only').onclick = e => {
     e.stopPropagation();
-    const solo = activeCats.size === 1 && activeCats.has(k);
+    if (activeCats.size === 1 && activeCats.has(k)) { // already solo on this kind
+      toast(`Already showing only ${kindLabel[k].toLowerCase()}`);
+      return;
+    }
     // never drop the row's own kind — the kind we're soloing must survive.
     // If the row was OFF, "only" still means show just this kind, so force it
     // in: otherwise every kind (including this one) is deleted and the map
-    // blanks with no way to recover by clicking again.
+    // blanks with no way to recover.
     for (const kk of Object.keys(kindLabel)) {
       if (kk === k) activeCats.add(kk);
-      else activeCats[solo ? 'add' : 'delete'](kk);
+      else activeCats.delete(kk);
     }
-    if (!solo) showOrphans = false; // a solo view means exactly one kind, no dead ends
+    showOrphans = false; // a solo view means exactly one kind, no dead ends
     for (const kk of Object.keys(lgRows)) lgSyncKind(kk);
     lgDeadRow.classList.toggle('off', !showOrphans);
     lgDeadRow.querySelector('.lg-check').textContent = showOrphans ? '◆' : '◇';
@@ -1252,12 +1258,9 @@ for (const k of Object.keys(kindColor)) {
     if (oc) oc.classList.toggle('on', showOrphans);
     applyCategoryVisibility();
     // a solo click must re-arrange regardless of the re-layout setting — keeping
-    // full-map positions would scatter the handful of shown nodes into specks.
-    // Restoring keeps the pre-solo positions unless auto-reflow is off (the solo
-    // run overwrote them with a tight cluster).
-    if (!solo || !autoRelayoutOn()) runLayout(currentLayout, { skipSaved: true, visibleOnly: true, reflow: false });
-    toast(solo ? 'Every kind is showing again'
-               : `Showing only ${kindLabel[k].toLowerCase()} — click “only” again to bring the rest back`);
+    // full-map positions would scatter the handful of shown nodes into specks
+    runLayout(currentLayout, { skipSaved: true, visibleOnly: true, reflow: false });
+    toast(`Showing only ${kindLabel[k].toLowerCase()} — ↺ All brings the rest back`);
   };
 }
 // ── VIEW section: map-wide toggles that used to live in the header ──

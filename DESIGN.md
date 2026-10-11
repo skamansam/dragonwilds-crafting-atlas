@@ -106,7 +106,7 @@ Buttons: `.s-btn` vocabulary — default (quiet, `--line` border), `.gold`
 ## Voice & microcopy
 
 - In-world, spare, second person: "Attuning the Atlas", "Showing only weapons
-  — click “only” again to bring the rest back".
+  — ↺ All brings the rest back".
 - Toasts state the effect and, when a toggle changed something destructive,
   offer **Undo** in the toast itself.
 - British spellings in game nouns (armour), plain English elsewhere.

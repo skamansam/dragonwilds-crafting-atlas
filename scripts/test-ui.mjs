@@ -331,23 +331,25 @@ async function secSmoke() {
   });
   ok('"only" keeps the clicked kind visible', solo.food > 0, `${solo.food} food node(s) visible`);
   ok('"only" hides every other kind', solo.others === 0, `${solo.others} non-food node(s) visible`);
-  // a second click restores every kind
+  // sticky: a second click must NOT bring the rest back — "only" always means
+  // show just this kind, and ↺ All is the only way out
   await page.evaluate(() => {
     [...document.querySelectorAll('#legend .lg-row')]
       .find(r => r.querySelector('span:last-child')?.textContent === 'Food')
       .querySelector('.lg-only').click();
   });
   await page.waitForTimeout(700);
-  const restored = await page.evaluate(() => {
-    let others = 0;
-    window.__cy.nodes(':visible').forEach(n => { if (n.data('meta').kind !== 'food') others++; });
-    return others;
+  const stillSolo = await page.evaluate(() => {
+    let food = 0, others = 0;
+    window.__cy.nodes(':visible').forEach(n => { n.data('meta').kind === 'food' ? food++ : others++; });
+    return { food, others };
   });
-  ok('a second "only" click restores every kind', restored > 0, `${restored} non-food node(s) visible again`);
+  ok('a second "only" click stays soloed', stillSolo.food > 0 && stillSolo.others === 0,
+    `${stillSolo.food} food / ${stillSolo.others} other node(s) visible`);
 
   // "only" on a row that is currently OFF must still solo that kind (regression:
   // the loop never re-added the clicked kind, so every kind was deleted and the
-  // map blanked permanently — a second click could not recover it)
+  // map blanked permanently)
   const rowFor = label => page.evaluate(lbl => {
     const r = [...document.querySelectorAll('#legend .lg-row')]
       .find(x => x.querySelector('span:last-child')?.textContent === lbl);
@@ -369,18 +371,15 @@ async function secSmoke() {
   });
   ok('"only" on an OFF row still shows that kind', soloFromOff.food > 0, `${soloFromOff.food} food node(s) visible`);
   ok('"only" on an OFF row hides every other kind', soloFromOff.others === 0, `${soloFromOff.others} non-food node(s) visible`);
+  // sticky solo leaves the map on that one kind, so the smoke section restores
+  // the calm first-load view here for the sections that follow
   await page.evaluate(() => {
     [...document.querySelectorAll('#legend .lg-row')]
-      .find(r => r.querySelector('span:last-child')?.textContent === 'Food')
-      .querySelector('.lg-only').click();
+      .find(r => r.querySelector('span:last-child')?.textContent === '↺ All — reset view').click();
   });
-  await page.waitForTimeout(700);
-  const recovered = await page.evaluate(() => {
-    let others = 0;
-    window.__cy.nodes(':visible').forEach(n => { if (n.data('meta').kind !== 'food') others++; });
-    return others;
-  });
-  ok('"only" on an OFF row restores every kind on the second click', recovered > 0, `${recovered} non-food node(s) visible again`);
+  await page.waitForTimeout(900);
+  const afterSoloReset = await page.evaluate(() => window.__cy.nodes(':visible').length);
+  ok('↺ All leaves the solo view', afterSoloReset > soloFromOff.food, `${afterSoloReset} node(s) visible`);
 
   // ── newer-build notice ──────────────────────────────────────
   // the build stamps an id into the page and emits the same id as version.json;
