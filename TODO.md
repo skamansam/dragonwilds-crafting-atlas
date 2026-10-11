@@ -144,3 +144,24 @@ skill level for each base node.
     and how to get it, so 20 mount nodes entered the dataset ({{Infobox Mount}}) and 21 mounts
     carry a quest-requirement + acquisition line, wired quest -> mount. Both layers are ON by
     default (the new 'Quest links' legend row is the first link layer that ships enabled).
+    
+[x] We need to add an agents.md file. We need to add bits about good development style:
+    → DONE (2026-10-11): **AGENTS.md** at the repo root — naming (semantic full-word
+    names, no single letters outside a single-line lambda), self-documenting code
+    (comments answer WHY, the code answers WHAT), required JSDoc with real types
+    (@typedef at the top of the file for complex shapes), and house practice for
+    JS (ESM, `dw.` state keys, `esc()` before innerHTML, worker/caps for heavy work),
+    CSS (tokens not hex, user-facing colour vocabulary, transform/opacity only,
+    touch parity) and HTML (stable ids, real buttons, aria-label, classic scripts
+    before the module entry), plus the verify-before-you-land protocol.
+   - always use symantic names for varaibles and functions regarding what they are for. For instance, instead of saying `convertAlephtoBin`, say `convertAlphabetToBinary`
+   - never use single letters for variables or functions except when in a single-line lambda
+   - the code should be self-documenting
+     - comments are for WHY not WHAT
+     - the WHAT is answered in the code
+     - the WHY is answered in the comments
+     - always use jsdoc to document variables and functions\
+     - always use proper types in jsdoc. for complex types, create those types in jsdoc comments at the top  of the file
+   - add any other good practices to follow in js/css/html development
+
+[] We need to add ALL regions to the dataset. currently, there are only a few,  but the page at https://dragonwilds.runescape.wiki/w/Ashenfall says there are 5 main regions with at least 3 territories each. Every page for the regions and territories says what resources are available in each one. These regions and item links whould be added to the dataset.

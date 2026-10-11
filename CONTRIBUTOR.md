@@ -6,6 +6,10 @@ end in `src/` + `public/`, the pipeline in `scripts/`, and the three test layers
 Contributing **data** (items, recipes, locations, icons, layouts) is a different
 loop with its own rules and licences — see [CONTRIBUTOR-DATA.md](CONTRIBUTOR-DATA.md).
 
+Making the change with an AI agent? [AGENTS.md](AGENTS.md) fronts the same ground
+for that reader: naming, self-documenting code, the required JSDoc, JS/CSS/HTML
+practice, and the verify-before-you-land protocol.
+
 ## Ground rules
 
 Read [PRODUCT.md](PRODUCT.md) first; the non-goals there are load-bearing:
@@ -158,7 +162,10 @@ Consequences worth knowing:
 ## Conventions
 
 Match the file you are editing; the pre-existing style wins over a formatter
-argument you are not prepared to have across ~15 files.
+argument you are not prepared to have across ~15 files. **Naming, comment and
+JSDoc rules live in [AGENTS.md](AGENTS.md)** — semantic full-word names, no
+single-letter variables outside a single-line lambda, comments for the *why*,
+and JSDoc with real types on what you write or touch.
 
 - `src/*.js` and `scripts/*.mjs` are written **2-space indent, single quotes,
   em-dash-heavy comments in sentence case**. Comments explain *why*, with the
