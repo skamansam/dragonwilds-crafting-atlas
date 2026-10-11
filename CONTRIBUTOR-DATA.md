@@ -202,6 +202,31 @@ badge on the ⚙ entry. Use it to:
 - notice edits marked **in dataset** — the shipped data has since caught up with
   your value, so there is nothing to submit and the row can be cleared.
 
+#### After an update: duplicates and stale overrides
+
+Two things can happen to a saved correction once the dataset moves, and both are
+asked about on the next load rather than left to be discovered by accident:
+
+1. **It becomes identical to the shipped value** — one of your corrections
+   landed upstream. The row is flagged **in dataset**, and the first question is
+   whether to drop the now-duplicate local copies.
+2. **The dataset changes the same field underneath the edit.** Your saved value
+   still wins on that browser, which is how a good correction turns into a stale
+   one. The second question asks whether to drop those too; removing them puts
+   the shipped value back.
+
+Nothing here touches the shipped files: both answers only edit `dw.edits` in
+**your** browser. The answer is remembered per dataset (`dw.cleanup` keeps the
+`generatedAt` it was answered for), so an update asks once rather than on every
+load — and declining is fine, because the rows stay and can still be reverted one
+at a time in ⚙ → Your data edits.
+
+The second question needs to know what the dataset said **when the edit was
+saved**, so each save records the shipped values it was made against
+(`dw.edits.base[id]`). An edit saved before that existed has no baseline yet, so
+the app assumes the dataset had not moved under it and adopts today's shipped
+values — the override question starts working for those on the next update.
+
 ### 7. Export the file
 
 - **⤓ Export edits** → `dragonwilds-edits.json` — just your changes. **This is

@@ -27,7 +27,9 @@ import {
 import {
   LINK_RELS, LINK_LABEL, dataEdits, addedNodeIds, bundledNodes, snapshotNodeFields,
   persistEdits, applyEditsToData, editFieldDiff, customEdgeId, customEdgeElement,
+  dropNodeEdit, recordEditBase, adoptMissingBases,
 } from './edits.js';
+import { maybeAskToCleanupEdits, dismissCleanup } from './cleanup.js';
 import {
   initHighlight, resetHighlightState, forgetHighlight, restoreHighlight, highlightActive,
   hasHighlight, showRequires, showEnables, stepBackHighlight, clearHighlight,
@@ -1104,6 +1106,10 @@ function populate() {
   setTimeout(hideVeil, 850);
   setTimeout(hideVeil, 2500); // hard fallback
   notifyMergedEdits(); // badge the ⚙ edits entry + flag any edits now in the dataset
+  // and, once the dataset has moved, ask whether to drop the local edits it has
+  // caught up with — then the ones overriding a row it changed (src/cleanup.js)
+  adoptMissingBases();
+  maybeAskToCleanupEdits({ nameOf: id => nodeById.get(id)?.name || id, datasetAt: D.generatedAt });
 }
 setTimeout(populate, 60); // rAF can stall in hidden/backgrounded tabs
 
@@ -2057,11 +2063,15 @@ function renderNodeEditor(n) {
       description: val('peDesc').split('\n').map(s => s.trim()).filter(Boolean),
       stats: parseStats(val('peStats')),
     };
+    // capture the pristine bundle value the first time this node is edited, so
+    // the edits window always has a baseline to diff against — and record what
+    // the bundle said as of this save, so a later boot can tell that the dataset
+    // changed the row underneath this edit (P6-7). Both before persistEdits(),
+    // which is the write that has to carry them.
+    if (!bundledNodes.has(n.id)) bundledNodes.set(n.id, snapshotNodeFields(nodeById.get(n.id)));
+    recordEditBase(n.id, Object.keys(patch));
     dataEdits.nodes[n.id] = patch;
     persistEdits();
-    // capture the pristine bundle value the first time this node is edited,
-    // so the edits window always has a baseline to diff against
-    if (!bundledNodes.has(n.id)) bundledNodes.set(n.id, snapshotNodeFields(nodeById.get(n.id)));
     Object.assign(nodeById.get(n.id), patch); // keep the lookup object in step
     applyNodeEditLive(n.id);                   // graph element + filters + title
     editingNodeId = null;
@@ -2072,7 +2082,7 @@ function renderNodeEditor(n) {
   document.getElementById('peCancel').onclick = () => { editingNodeId = null; renderPanelBody(n); };
   const rst = document.getElementById('peReset');
   if (rst) rst.onclick = () => {
-    delete dataEdits.nodes[n.id];
+    dropNodeEdit(n.id); // the patch and its recorded baseline
     persistEdits();
     location.reload(); // the bundle is the baseline — a reload re-reads it clean
   };
@@ -2157,7 +2167,7 @@ function renderEditsModal() {
   if (exb) exb.disabled = none;
   list.querySelectorAll('[data-revert]').forEach(b => {
     b.onclick = () => {
-      delete dataEdits.nodes[b.dataset.revert];
+      dropNodeEdit(b.dataset.revert);
       persistEdits();
       location.reload();
     };
@@ -2226,6 +2236,7 @@ function exportFullData() {
     dataEdits.links = [];
     dataEdits.added = {};
     dataEdits.removed = [];
+    dataEdits.base = {};
     persistEdits();
     location.reload();
   };
@@ -2886,6 +2897,7 @@ if (editsModalEl) editsModalEl.addEventListener('click', (e) => { if (e.target =
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && !helpModal.hidden) { toggleHelp(false); return; }
   if (e.key === 'Escape' && editsModalEl?.hidden === false) { openEditsModal(false); return; }
+  if (e.key === 'Escape' && document.getElementById('cleanupModal')?.hidden === false) { dismissCleanup(); return; }
   if (e.target === searchInput || e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
   if (e.key === '/') { e.preventDefault(); searchInput.focus(); searchInput.select(); }
   else if (e.key === '?') { e.preventDefault(); toggleHelp(); }

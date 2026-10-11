@@ -113,6 +113,28 @@ body.has-update #toast { bottom: 74px; }
 }
 .help-card a:hover { color: var(--gold-bright); border-bottom-color: var(--gold); }
 
+/* the post-update cleanup dialog (P6-7) — same card language as the edits
+   window, asked on boot when the dataset has moved under a saved edit */
+#cleanupModal {
+  position: fixed; inset: 0; z-index: 220;
+  display: grid; place-items: center;
+  background: rgba(5, 6, 10, 0.72); backdrop-filter: blur(6px);
+}
+#cleanupModal[hidden] { display: none; }
+.cleanup-card { width: min(560px, calc(100vw - 40px)); }
+.cleanup-card #cleanupClose {
+  position: absolute; top: 12px; right: 12px; width: 30px; height: 30px;
+  border-radius: 8px; border: 1px solid var(--line); background: none;
+  color: var(--muted); font-size: 13px; cursor: pointer;
+}
+.cleanup-card #cleanupClose:hover { color: var(--ink); border-color: var(--gold-dim); }
+.cleanup-card .char-modal-actions { margin-top: 14px; }
+.cleanup-list {
+  max-height: 34vh; overflow-y: auto; overscroll-behavior: contain;
+  border: 1px solid var(--line); border-radius: 10px; padding: 9px 11px; background: var(--bg1);
+}
+.cleanup-list:empty { display: none; }
+
 /* ── in-app data editing (P6-1) ────────────────────────────── */
 /* the codex edit form */
 .edit-form .p-label { color: var(--gold); }

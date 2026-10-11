@@ -431,6 +431,24 @@ exactly what you are looking at.</p>
       <div class="h-legal">Clearing (or reverting a row) reloads the atlas from its bundled data.</div>
     </div>
   </div>
+
+  <!-- post-update cleanup of the local data edits (src/cleanup.js): first the
+       edits the dataset now ships identically, then the ones overriding a row
+       the dataset has changed underneath -->
+  <div id="cleanupModal" role="dialog" aria-modal="true" aria-label="Clean up your data edits" hidden>
+    <div class="help-card cleanup-card">
+      <button id="cleanupClose" title="Close" aria-label="Close">✕</button>
+      <div class="h-rune">✎</div>
+      <h2 id="cleanupTitle">YOUR DATA EDITS</h2>
+      <p class="h-tag" id="cleanupText"></p>
+      <div id="cleanupList" class="cleanup-list"></div>
+      <div class="char-modal-actions">
+        <button id="cleanupYes" class="btn">Remove</button>
+        <button id="cleanupNo" class="btn">Keep them</button>
+      </div>
+      <div class="h-legal" id="cleanupStep"></div>
+    </div>
+  </div>
 </div>
 
 <!-- Everything below is served VERBATIM from public/ — vendor bundles are UMD

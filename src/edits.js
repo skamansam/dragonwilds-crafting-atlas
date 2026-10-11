@@ -13,6 +13,13 @@
 // derived structure (lookups, degrees, colours, filters) sees the edited
 // values. The shipped `public/data.*` files are never touched.
 export const EDITS_KEY = 'dw.edits';
+// When the shipped dataset catches up with an edit the local copy is noise, and
+// when it changes a row underneath one the local copy silently wins over newer
+// data. src/cleanup.js offers to drop both after an update; this key remembers
+// that it asked for a given dataset (generatedAt) so it does not nag. App-wide,
+// like the overlay itself, and deliberately not per character (see
+// CONTRIBUTOR.md's `dw.` state conventions — it is data state, not graph state).
+export const CLEANUP_KEY = 'dw.cleanup';
 // custom relationships the user adds from a node's codex (P6-3): the link goes
 // current → target with the chosen relationship
 export const LINK_RELS = ['makes', 'gives', 'found-in'];
@@ -27,10 +34,12 @@ export function loadEdits() {
         links: Array.isArray(raw.links) ? raw.links : [],
         added: raw.added && typeof raw.added === 'object' ? raw.added : {},
         removed: Array.isArray(raw.removed) ? raw.removed : [],
+        // the values the dataset had when each edit was saved (see recordEditBase)
+        base: raw.base && typeof raw.base === 'object' ? raw.base : {},
       };
     }
   } catch { /* corrupt storage → clean slate */ }
-  return { nodes: {}, links: [], added: {}, removed: [] };
+  return { nodes: {}, links: [], added: {}, removed: [], base: {} };
 }
 
 export function persistEdits() {
@@ -110,6 +119,95 @@ export function editFieldDiff(id) {
     }
   }
   return { rows, merged: rows.length === 0 };
+}
+
+/* ── post-update cleanup (P6-7) ─────────────────────────────────────
+   Two things happen to a local edit when the dataset moves:
+     • it becomes **identical** to the shipped value (merged upstream) → the
+       local copy is redundant;
+     • or the dataset **changed the same field** since the edit was saved → the
+       local copy silently overrides fresher data.
+   Neither is visible as "wrong" in the atlas, so the app asks about both after
+   an update (src/cleanup.js). Detecting the second one needs the value the
+   dataset had *at save time*, which is what `base` records. */
+
+// Drop one node's patch AND its recorded baseline (revert / reset / cleanup).
+export function dropNodeEdit(id) {
+  delete dataEdits.nodes[id];
+  if (dataEdits.base) delete dataEdits.base[id];
+}
+
+// Remember what the bundled node said when this edit was saved, so a later boot
+// can tell that the dataset has moved that field.
+export function recordEditBase(id, fields) {
+  const bundled = bundledNodes.get(id);
+  if (!bundled) return;
+  if (!dataEdits.base) dataEdits.base = {};
+  if (!dataEdits.base[id]) dataEdits.base[id] = {};
+  const rec = dataEdits.base[id];
+  for (const f of fields) rec[f] = bundled[f] ?? null;
+}
+
+/* Edits saved before the baseline existed have none, so assume the dataset has
+   not moved under them yet and adopt today's shipped values as their baseline.
+   Without this, a legacy edit could never be reported as overwriting an update. */
+export function adoptMissingBases() {
+  let adopted = 0;
+  for (const [id, patch] of Object.entries(dataEdits.nodes)) {
+    if (!patch) continue;
+    if (dataEdits.base?.[id]) continue;
+    if (!bundledNodes.has(id)) continue;
+    recordEditBase(id, EDIT_FIELDS.filter(f => patch[f] !== undefined));
+    adopted++;
+  }
+  if (adopted) persistEdits();
+  return adopted;
+}
+
+// value comparison as everywhere else in the overlay (null and undefined match)
+const sameVal = (a, b) => JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
+
+/* Classify node patches against the shipped data. Pure — the caller supplies the
+   bundled values (id → fields) and the recorded baselines — so this is the part
+   the unit tests drive directly. */
+export function classifyEdits(nodes, base = {}, bundled = new Map()) {
+  const merged = [];
+  const moved = [];
+  for (const [id, patch] of Object.entries(nodes || {})) {
+    const shipped = bundled.get(id);
+    if (!patch || !shipped) continue;
+    const fields = EDIT_FIELDS.filter(f => patch[f] !== undefined);
+    if (!fields.length) continue;
+    if (fields.every(f => sameVal(patch[f], shipped[f]))) { merged.push(id); continue; }
+    const rec = base[id];
+    if (rec && fields.some(f => rec[f] !== undefined && !sameVal(rec[f], shipped[f]))) moved.push(id);
+  }
+  return { merged, moved };
+}
+
+// The two lists the cleanup dialog works from: what is now identical, and what
+// still differs because the dataset changed that field (an identical edit is
+// step one's business, so it is not repeated in step two).
+export function editsCleanup() {
+  const { merged, moved } = classifyEdits(dataEdits.nodes, dataEdits.base, bundledNodes);
+  const already = new Set(merged);
+  return { merged, moved: moved.filter(id => !already.has(id)) };
+}
+
+// Drop the listed node edits and their baselines in one write.
+export function removeEdits(ids) {
+  for (const id of ids) dropNodeEdit(id);
+  persistEdits();
+}
+
+// the `generatedAt` the cleanup question was last answered for (null = never)
+export function cleanupAskedFor() {
+  try { return JSON.parse(localStorage.getItem(CLEANUP_KEY) || 'null')?.at ?? null; }
+  catch { return null; }
+}
+export function markCleanupAsked(at) {
+  try { localStorage.setItem(CLEANUP_KEY, JSON.stringify({ at })); }
+  catch { /* storage blocked/full */ }
 }
 
 /* ── custom relationships (P6-3) ─────────────────────────────────── */

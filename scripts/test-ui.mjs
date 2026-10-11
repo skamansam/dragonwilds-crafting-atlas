@@ -640,7 +640,19 @@ async function secEdits() {
   await clearStorage(['dw.edits']); // navigates, so the origin is available
   await page.evaluate(() => localStorage.setItem('dw.edits', JSON.stringify({ nodes: { 'Iron Bar': { name: 'Iron Bar' } } })));
   await boot();
-  ok('merged edit is announced', (await page.$eval('#toast', el => el.textContent)).includes('added to the dataset'));
+  ok('merged edit is announced', (await page.$eval('#toast', el => el.textContent)).includes('added to the dataset'),
+    await page.evaluate(() => `local edits: ${Object.keys(JSON.parse(localStorage.getItem('dw.edits') || '{}').nodes || {}).join(', ') || 'none'}`));
+
+  // the same boot offers to drop the now-duplicate edit (P6-7) — answer it so
+  // the rest of this section has a free window
+  await page.waitForFunction(() => !document.getElementById('cleanupModal').hidden, null, { timeout: 5000 }).catch(() => {});
+  ok('the merged edit is offered for cleanup', await page.$eval('#cleanupModal', el => !el.hidden));
+  ok('cleanup offers remove or keep', await page.$eval('#cleanupYes', el => /Remove 1 edit/.test(el.textContent)) &&
+    await page.$eval('#cleanupNo', el => /Keep/.test(el.textContent)));
+  await page.click('#cleanupNo');
+  await page.waitForTimeout(250);
+  ok('keeping the edit closes the dialog', await page.$eval('#cleanupModal', el => el.hidden));
+
   await page.click('#settingsBtn');
   await page.waitForTimeout(250);
   await page.click('#editsBtn');
@@ -699,8 +711,97 @@ async function secEdits() {
   ok('hidden node leaves the map', await page.evaluate(() => window.__cy.getElementById('Ash Logs').empty()));
   ok('hidden node persisted', await page.evaluate(() => (JSON.parse(localStorage.getItem('dw.edits') || '{}').removed || []).includes('Ash Logs')));
 
+  /* ── post-update cleanup (P6-7) ─────────────────────────────────────
+     A saved edit can go stale once the dataset moves: it may now ship the same
+     value (a duplicate), or it may have changed that row underneath the edit
+     (a stale override). Both are offered on boot, duplicates first. */
+  // NB: boot after clearing and before seeding — the app adopts a baseline for
+  // any edit saved without one, so a still-booting page would write over the seed
+  await clearStorage(['dw.edits', 'dw.cleanup']);
+  await boot();
+  await page.evaluate(() => localStorage.setItem('dw.edits', JSON.stringify({
+    nodes: { 'Iron Bar': { name: 'Iron Bar', itemType: 'Processed Material' } },
+  })));
+  await boot();
+  await page.waitForFunction(() => !document.getElementById('cleanupModal').hidden, null, { timeout: 5000 }).catch(() => {});
+  ok('cleanup asks about an edit the dataset now ships', await page.$eval('#cleanupModal', el => !el.hidden));
+  ok('cleanup names the duplicate and the item', await page.$eval('#cleanupModal', el =>
+    /in the dataset now/i.test(el.textContent) && /Iron Bar/.test(el.textContent) && /duplicate/i.test(el.textContent)));
+  await page.keyboard.press('Escape'); // Esc dismisses it, like the help + edits windows
+  await page.waitForTimeout(250);
+  ok('Escape closes the cleanup dialog', await page.$eval('#cleanupModal', el => el.hidden));
+  ok('dismissing leaves the overlay alone', await page.evaluate(() =>
+    !!JSON.parse(localStorage.getItem('dw.edits') || '{}').nodes?.['Iron Bar']));
+  ok('the cleanup answer is recorded', await page.evaluate(() =>
+    typeof JSON.parse(localStorage.getItem('dw.cleanup') || '{}').at === 'string'));
+  await boot();
+  ok('the cleanup question is not asked twice for one dataset', await page.$eval('#cleanupModal', el => el.hidden));
+
+  // removing a duplicate writes the overlay away entirely
+  await clearStorage(['dw.edits', 'dw.cleanup']);
+  await boot();
+  await page.evaluate(() => localStorage.setItem('dw.edits', JSON.stringify({
+    nodes: { 'Iron Bar': { itemType: 'Processed Material' } },
+  })));
+  await boot();
+  await page.waitForFunction(() => !document.getElementById('cleanupModal').hidden, null, { timeout: 5000 }).catch(() => {});
+  await page.click('#cleanupYes');
+  await page.waitForFunction(() => !localStorage.getItem('dw.edits'), null, { timeout: 20000 });
+  await boot();
+  ok('removing a duplicate drops the local edit', await page.evaluate(() => localStorage.getItem('dw.edits') === null));
+
+  // an edit overriding a row the dataset has changed is the second question,
+  // and removing it puts the shipped value back
+  await clearStorage(['dw.edits', 'dw.cleanup']);
+  await boot();
+  await page.evaluate(() => localStorage.setItem('dw.edits', JSON.stringify({
+    nodes: { 'Iron Bar': { itemType: 'Bar' } },
+    base: { 'Iron Bar': { itemType: 'Old Type' } },
+  })));
+  await boot();
+  await page.waitForFunction(() => !document.getElementById('cleanupModal').hidden, null, { timeout: 5000 }).catch(() => {});
+  ok('cleanup asks about an edit overriding an update', await page.$eval('#cleanupModal', el =>
+    /override updated data/i.test(el.textContent) && /only edits what your browser has saved/.test(el.textContent)),
+    await page.$eval('#cleanupModal', el => el.textContent.replace(/\s+/g, ' ').slice(0, 90)));
+  await page.click('#cleanupYes');
+  await page.waitForFunction(() => !localStorage.getItem('dw.edits'), null, { timeout: 20000 });
+  await boot();
+  ok('removing the override drops the local edit', await page.evaluate(() => localStorage.getItem('dw.edits') === null));
+  await page.fill('#search', 'Iron Bar');
+  await page.keyboard.press('Enter');
+  await page.waitForTimeout(600);
+  ok('the shipped value shows after the cleanup', /Processed Material/.test(await page.$eval('#panelType', el => el.textContent)));
+  await page.click('#panelClose');
+
+  // both at once: the duplicate is question 1, the override question 2, and
+  // only what the visitor agrees to is removed
+  await clearStorage(['dw.edits', 'dw.cleanup']);
+  await boot();
+  await page.evaluate(() => localStorage.setItem('dw.edits', JSON.stringify({
+    nodes: { 'Iron Bar': { name: 'Iron Bar' }, 'Ash Logs': { itemType: 'Logs' } },
+    base: { 'Ash Logs': { itemType: 'Old Logs' } },
+  })));
+  await boot();
+  await page.waitForFunction(() => !document.getElementById('cleanupModal').hidden, null, { timeout: 5000 }).catch(() => {});
+  ok('the duplicate edit is question 1 of 2', await page.$eval('#cleanupModal', el =>
+    /in the dataset now/i.test(el.textContent) && /Question 1 of 2/.test(el.textContent)));
+  await page.click('#cleanupNo');
+  await page.waitForTimeout(250);
+  ok('the override is question 2 of 2', await page.$eval('#cleanupModal', el =>
+    /override .*updated data/i.test(el.textContent) && /Question 2 of 2/.test(el.textContent) && /Ash Logs/.test(el.textContent)));
+  await page.click('#cleanupYes');
+  await page.waitForFunction(() => {
+    const e = JSON.parse(localStorage.getItem('dw.edits') || '{}');
+    return e.nodes && !e.nodes['Ash Logs'] && !!e.nodes['Iron Bar'];
+  }, null, { timeout: 20000 });
+  await boot();
+  ok('only the edit the visitor agreed to drop was removed', await page.evaluate(() => {
+    const e = JSON.parse(localStorage.getItem('dw.edits') || '{}');
+    return !!e.nodes?.['Iron Bar'] && !e.nodes?.['Ash Logs'];
+  }));
+
   // leave the section clean for the sections that follow
-  await clearStorage(['dw.edits']);
+  await clearStorage(['dw.edits', 'dw.cleanup']);
   await boot();
   ok('node edits cleared at the end', await page.evaluate(() => localStorage.getItem('dw.edits') === null));
 }

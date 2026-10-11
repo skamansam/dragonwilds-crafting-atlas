@@ -372,7 +372,8 @@ removed).
 They are kept in your browser only (`dw.edits`) and never change the shipped files.
 **⚙ → Your data edits** lists every difference against the bundled atlas, flags edits
 the dataset has since caught up with, and exports either your edits or the whole edited
-dataset. To bake an export into the dataset for everyone, run the apply script:
+dataset. After an update it also asks — once per dataset — whether to drop the copies the
+atlas now ships identically, and then the ones overriding a row the dataset has changed. To bake an export into the dataset for everyone, run the apply script:
 
 ```bash
 node scripts/apply-edits.mjs dragonwilds-edits.json            # merge an edits overlay

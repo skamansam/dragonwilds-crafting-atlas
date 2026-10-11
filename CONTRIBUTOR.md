@@ -78,7 +78,8 @@ for an external runner.
 | `dist/` | `vite build` output — gitignored, and what the Pages workflow uploads |
 | `src/app.js` | The application core — Cytoscape graph, layout engine, legends, panels, isolation, boot (~3.1k lines; the tightly-coupled UI/state code that still lives in one file) |
 | `src/util.js` | Pure helpers — HTML escaping, layout-duration/edit-value formatting, fuzzy search scoring |
-| `src/edits.js` | The in-app data-edit overlay (`dw.edits`): node patches, added/hidden nodes, custom relationships, and the diff against the bundle |
+| `src/edits.js` | The in-app data-edit overlay (`dw.edits`): node patches, added/hidden nodes, custom relationships, the recorded baseline of each save, and the diff against the bundle |
+| `src/cleanup.js` | The post-update cleanup dialog (`initEditCleanup`… `maybeAskToCleanupEdits`): asks once per dataset about edits the atlas now ships identically, then the ones overriding a row it changed |
 | `src/highlight.js` | The requires/enables highlight state machine (levels, depth, step-back, restore); app.js injects `cy`, `nodeById`, the isolation getters and `toast` via `initHighlight()` |
 | `src/plans.js` | Plans — "from nothing", "from what you own", the waypoint checklist and its progress records (`initPlans()`) |
 | `src/path.js` | Path-to queries: arming, the shortest-route walk and the step list (`initPath()`) |
@@ -145,7 +146,7 @@ Consequences worth knowing:
   the file. Anything else a test, a tour or the console calls by name has to be
   added there too.
 - **Everything persisted is namespaced `dw.`** (`dw.edits`, `dw.owned`,
-  `dw.layout`, `dw.characters`, `dw.highlight`, …). The Playwright config relies
+  `dw.layout`, `dw.characters`, `dw.highlight`, `dw.cleanup`, …). The Playwright config relies
   on that prefix to isolate tests. A new persisted key must also be
   (a) added to `STATE_KEYS` in `src/characters.js` if it should follow the
   active character, and (b) kept out of `syncUrl()`'s option list unless it is
