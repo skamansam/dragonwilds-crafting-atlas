@@ -337,15 +337,23 @@
             <p>Wheel = zoom, drag = pan. The breadcrumb shows lineage; the minimap (bottom right)
             shows where you are — click it to jump.</p>
             <h3>Fixing the data</h3>
-            <p>A wrong name, a missing link or a find spot the wiki never wrote down can be
-            corrected in place: <b>✎</b> in an item's panel opens its <b>edit form</b>, and
-            <b>⚙ → Your data edits</b> collects every difference against the bundled dataset and
-            exports it as a file. <b>scripts/open-edits-pr.mjs</b> turns that file into a pull
-            request for the project. The whole loop is written up in
-            <a href="CONTRIBUTOR-DATA.md" target="_blank" rel="noopener">CONTRIBUTOR-DATA.md</a>.
-            After the atlas is updated it also asks — once, on the next load — whether to drop the
-            edits the dataset now ships identically, and then the ones overriding a row it has
-            changed underneath you.</p>
+            <p><b>A wrong name, a missing link, a find spot nobody wrote down</b> — you can fix it
+            here and send it in. Your fixes stay in <b>this browser</b> until a maintainer merges
+            the file you send, so nothing you do changes the atlas for anyone else.</p>
+            <p><b>1 · Fix it</b> — the <b>✎</b> beside an item's name opens its <b>edit form</b>:
+            its fields, and its <b>Links</b> (makes · gives · found-in). <b>⚙ → Your data edits</b>
+            → <b>＋ Add item</b> adds one that is missing; <b>Hide item</b> removes one that should
+            not be here.</p>
+            <p><b>2 · Check the diff</b> — <b>⚙ → Your data edits</b> lists every change as
+            <i>bundled → yours</i>, so you can see exactly what you are about to send.
+            <b>revert</b> drops a row you did not mean.</p>
+            <p><b>3 · Export it</b> — <b>⤓ Export edits</b> saves <b>dragonwilds-edits.json</b>:
+            the file you send.</p>
+            <p><b>4 · Send it in</b> — drag that file into the pre-filled form and submit. That is
+            the whole job; a maintainer merges it and it lands on the live atlas.</p>
+            <p class="guide-actions">
+              <button class="btn primary" id="guideBtn" type="button">✎ How to send a fix in — step by step</button>
+            </p>
           </div>
         </div>
 
@@ -412,10 +420,10 @@ exactly what you are looking at.</p>
       <button id="editsClose" title="Close" aria-label="Close">✕</button>
       <div class="h-rune">✎</div>
       <h2>YOUR DATA EDITS</h2>
-      <p class="h-tag">The differences between <b>this browser</b> and the bundled atlas data.
-      Nothing here changes the shipped files. Export your edits to bake them into the dataset with
-      <b>scripts/apply-edits.mjs</b>, or export the whole edited dataset. When a shipped dataset
-      catches up with one of your edits, it moves to <b>in dataset</b> and can be cleared.</p>
+      <p class="h-tag">What <b>this browser</b> has changed, next to the atlas as it ships. Nothing
+      here touches the shipped files — your corrections stay yours until you export them and send
+      them in. When the atlas catches up with one of your edits it moves to <b>in dataset</b>, and
+      can be cleared.</p>
       <div id="editsList" class="edits-list"></div>
       <div class="link-add">
         <input id="newNodeName" type="text" placeholder="new item name…" aria-label="New item name" />
@@ -427,11 +435,98 @@ exactly what you are looking at.</p>
         <button id="editsExportFull" class="btn" title="Download the whole edited dataset as dragonwilds-data.json">⤓ Export full data</button>
         <button id="editsClear" class="btn danger">Clear all my edits</button>
       </div>
-      <p class="edits-guide">The whole loop — correct a row, <b>⤓ Export edits</b>, bake the file in
-      with <b>scripts/apply-edits.mjs</b> or let <b>scripts/open-edits-pr.mjs</b> merge it and open the
-      pull request — is written up in
-      <a href="CONTRIBUTOR-DATA.md" target="_blank" rel="noopener">CONTRIBUTOR-DATA.md</a>.</p>
+      <div class="edits-guide">
+        <p><b>Done editing?</b> <b>⤓ Export edits</b> hands you <b>dragonwilds-edits.json</b> — the
+        one file to send in. Nothing reaches the shipped atlas until a maintainer merges it.</p>
+        <p class="guide-actions">
+          <a class="btn primary" href="https://github.com/skamansam/dragonwilds-crafting-atlas/issues/new?template=data-fix.yml" target="_blank" rel="noopener">⤒ Upload your file</a>
+          <button class="btn" id="editsGuideBtn" type="button">How to send it in →</button>
+        </p>
+      </div>
       <div class="h-legal">Clearing (or reverting a row) reloads the atlas from its bundled data.</div>
+    </div>
+  </div>
+
+  <!-- the walkthrough behind the help's ✎ button and the edits window's "How to
+       send it in": the visitor-facing half of CONTRIBUTOR-DATA.md, in plain
+       language. The markdown file itself stays at the repo root (vite.config.js
+       still emits it beside the page) for the people working on the code — the
+       last block here links it. Esc, the ✕ or the backdrop closes this. -->
+  <div id="dataGuideModal" role="dialog" aria-modal="true" aria-label="Sending in a data fix" hidden>
+    <div class="help-card guide-card">
+      <button id="guideClose" title="Close" aria-label="Close">✕</button>
+      <div class="h-rune">✎</div>
+      <h2>SENDING IN A DATA FIX</h2>
+      <p class="h-tag">Found something wrong — a name, a missing link, a place nobody wrote down?
+      Fix it right here, save it as a small file, and hand the file over. Nothing to download or
+      install, and nothing you do changes the atlas for anyone else.</p>
+
+      <div class="h-note">
+        <p><b>Your fixes live in this browser</b> until a maintainer merges the file you send, so
+        you can experiment freely: the shipped atlas is never rewritten from here, and <b>Clear all
+        my edits</b> puts everything back the way you found it.</p>
+      </div>
+
+      <div class="guide-block">
+        <h3>What you can fix</h3>
+        <p>A wrong <b>name</b>, <b>kind</b> or <b>item type</b>; a missing or wrong <b>wiki link</b>;
+        a <b>description</b> line or a <b>stat</b>; a <b>relationship</b> the atlas is missing
+        (<b>makes</b> · <b>gives</b> · <b>found-in</b>); an item that is <b>missing</b> altogether.
+        Recipes, drops and locations come from the wiki, so stick to what you can check in game or
+        on the wiki — an honest gap beats a plausible guess.</p>
+      </div>
+
+      <ol class="guide-steps">
+        <li>
+          <h4>1 · Fix it</h4>
+          <p>Search the item (<kbd>/</kbd> jumps to the search box), press <kbd>Enter</kbd> to open
+          it, then press the <b>✎</b> beside its name. The panel becomes a form: the item's fields
+          on top, its <b>Links</b> below. Missing item? <b>⚙ → Your data edits → ＋ Add item</b>.
+          An item that should not be here at all? <b>Hide item</b> in its form.</p>
+        </li>
+        <li>
+          <h4>2 · Check what you changed</h4>
+          <p><b>⚙ → Your data edits</b> lists every difference from the bundled atlas as
+          <i>bundled → yours</i>, so you can see exactly what you are about to send. <b>revert</b>
+          drops a row you did not mean; nothing is sent until you send it.</p>
+        </li>
+        <li>
+          <h4>3 · Save it as a file</h4>
+          <p>Still in <b>⚙ → Your data edits</b>, press <b>⤓ Export edits</b>. That downloads
+          <b>dragonwilds-edits.json</b> — a few kilobytes holding only your changes, which is the
+          fix. (<b>⤓ Export full data</b> is the whole dataset; only wanted for a big overhaul.)</p>
+        </li>
+        <li>
+          <h4>4 · Send it in</h4>
+          <p>Open the data-fix form, drag <b>dragonwilds-edits.json</b> into the file box, say in one
+          line what you fixed and how you checked it, and submit. That is the whole job — the
+          merge, the commit and the deploy are someone else's problem, and you can watch the fix
+          appear on the live atlas.</p>
+          <p class="guide-actions">
+            <a class="btn primary" href="https://github.com/skamansam/dragonwilds-crafting-atlas/issues/new?template=data-fix.yml" target="_blank" rel="noopener">⤒ Open the data-fix form</a>
+            <button class="btn" id="guideOpenEdits" type="button">✎ Back to Your data edits</button>
+          </p>
+        </li>
+      </ol>
+
+      <div class="guide-block">
+        <h3>What happens next</h3>
+        <p>Your file is merged into the dataset and the atlas picks the fix up on your next visit.
+        Then it notices your browser is still holding the same values, marks them <b>in dataset</b>
+        and asks once whether to drop the local copies — say yes and you are back to a clean slate,
+        with your fix in the atlas for everyone.</p>
+      </div>
+
+      <div class="guide-block">
+        <h3>Working on the code itself?</h3>
+        <p>With the repo cloned, <b>node scripts/open-edits-pr.mjs dragonwilds-edits.json</b> merges
+        your export, commits it on a branch and opens the pull request for you — the same run also
+        prints the plan it is about to apply. The full technical guide — the dataset's shape, the
+        scraper pipeline, the audit scripts and what a data PR has to show — is
+        <a href="CONTRIBUTOR-DATA.md" target="_blank" rel="noopener">CONTRIBUTOR-DATA.md</a>.</p>
+      </div>
+
+      <div class="h-legal">Nothing leaves this browser until you choose to send it.</div>
     </div>
   </div>
 

@@ -2897,7 +2897,33 @@ helpModal.addEventListener('click', (e) => { if (e.target === helpModal) toggleH
 const editsModalEl = document.getElementById('editsModal');
 if (editsModalEl) editsModalEl.addEventListener('click', (e) => { if (e.target === editsModalEl) openEditsModal(false); });
 
+/* ── the data-fix walkthrough (index.html #dataGuideModal) ──────
+   The help's ✎ button and the edits window's footer both open this window
+   instead of handing the visitor CONTRIBUTOR-DATA.md: that file is written for
+   someone who is already in a clone, and the visitor who corrected a stat on
+   the live site needs the same loop in plain language. Opening it closes the
+   window it was opened from — they are two views of one errand, and stacking
+   them would make Escape ambiguous. */
+const dataGuideModal = document.getElementById('dataGuideModal');
+function toggleDataGuide(force) {
+  const show = force !== undefined ? force : dataGuideModal.hidden;
+  dataGuideModal.hidden = !show;
+  if (!show) return;
+  toggleHelp(false);
+  openEditsModal(false);
+}
+const guideBtn = document.getElementById('guideBtn');
+if (guideBtn) guideBtn.onclick = () => toggleDataGuide(true);
+const editsGuideBtn = document.getElementById('editsGuideBtn');
+if (editsGuideBtn) editsGuideBtn.onclick = () => toggleDataGuide(true);
+// step 4's "Back to Your data edits" — the guide is where you end up after an
+// export, so the way back to the export buttons has to be in it
+document.getElementById('guideOpenEdits').onclick = () => { toggleDataGuide(false); openEditsModal(true); };
+document.getElementById('guideClose').onclick = () => toggleDataGuide(false);
+dataGuideModal.addEventListener('click', (e) => { if (e.target === dataGuideModal) toggleDataGuide(false); });
+
 document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && !dataGuideModal.hidden) { toggleDataGuide(false); return; }
   if (e.key === 'Escape' && !helpModal.hidden) { toggleHelp(false); return; }
   if (e.key === 'Escape' && editsModalEl?.hidden === false) { openEditsModal(false); return; }
   if (e.key === 'Escape' && document.getElementById('cleanupModal')?.hidden === false) { dismissCleanup(); return; }

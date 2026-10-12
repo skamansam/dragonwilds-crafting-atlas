@@ -1,0 +1,66 @@
+name: Data fix (upload your file)
+description: Send in a correction made with the atlas' ✎ edit form — attach the dragonwilds-edits.json it exported
+title: "Data fix — "
+labels: ["data-fix"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for checking a row against the game — this is the form the atlas' **?** help links to.
+
+        In the atlas, correct the item (**✎** beside its name, or **⚙ → Your data edits → ＋ Add item**),
+        review the sheet under **⚙ → Your data edits**, then press **⤓ Export edits**. That writes
+        **`dragonwilds-edits.json`** — drag that file into the box below and submit. The file *is* the
+        change: a maintainer merges it and your fix ships to everyone.
+
+        (No file? This form still works — describe what is wrong below and it will be picked up.)
+  - type: upload
+    id: edits-file
+    attributes:
+      label: Your dragonwilds-edits.json
+      description: Drag the file exported by **⤓ Export edits** here, or click to browse for it. Nothing else from your machine is needed.
+    validations:
+      required: false
+      accept: ".json"
+  - type: input
+    id: what-you-fixed
+    attributes:
+      label: What did you fix?
+      description: One line naming the item and the change, e.g. "Iron Bar — item type said material, the infobox says Bar".
+      placeholder: Iron Bar — item type material → Bar, and it gives Ash Logs
+    validations:
+      required: true
+  - type: dropdown
+    id: evidence
+    attributes:
+      label: How did you check it?
+      description: The project prefers an honest gap over a plausible guess, so say where the value comes from.
+      options:
+        - In game
+        - On the wiki
+        - In game and on the wiki
+    validations:
+      required: true
+  - type: input
+    id: wiki-page
+    attributes:
+      label: Wiki page (if the fix came from one)
+      placeholder: https://dragonwilds.runescape.wiki/w/Iron_Bar
+    validations:
+      required: false
+  - type: textarea
+    id: anything-else
+    attributes:
+      label: Anything else?
+      description: Screenshots, the character or build you edited on, a note about an edit you were unsure about.
+    validations:
+      required: false
+  - type: checkboxes
+    id: confirm
+    attributes:
+      label: Before you send
+      options:
+        - label: These are corrections I can verify in game or on the wiki — nothing was invented to fill a gap.
+          required: true
+        - label: I understand the dataset is [CC BY-NC-SA 3.0](https://github.com/skamansam/dragonwilds-crafting-atlas/blob/main/LICENSE-DATA.md) and that sending this file offers it under the same terms.
+          required: true

@@ -182,17 +182,61 @@ async function secSmoke() {
   ok('help window carries the same complexity note', await page.$eval('#helpModal .h-note', el =>
     /necessarily complicated/i.test(el.textContent) && /guided tours/i.test(el.textContent)));
 
-  // the data-contribution guide: linked from the help, and served beside the
-  // page (vite.config.js answers it in dev and emits it into every build, so
-  // this also checks the link is not broken on the deployed site)
-  ok('help links the data-contribution guide', await page.$eval('#helpModal a[href="CONTRIBUTOR-DATA.md"]', el =>
-    /CONTRIBUTOR-DATA\.md/.test(el.textContent) && el.target === '_blank'));
-  const guide = await page.evaluate(async () => {
+  // the help's "Fixing the data" walkthrough: the four steps that take a
+  // correction from the edit form to a file someone can merge
+  const fixSteps = await page.$eval('#helpModal .h-col:last-child', el => el.textContent);
+  ok('help walks the export-and-submit steps',
+    ['1 · Fix it', '2 · Check the diff', '3 · Export it', '4 · Send it in'].every(step => fixSteps.includes(step))
+    && /dragonwilds-edits\.json/.test(fixSteps) && /Export edits/.test(fixSteps),
+    fixSteps.replace(/\s+/g, ' ').slice(-200));
+
+  // ...and the help opens the in-app walkthrough rather than the raw markdown:
+  // CONTRIBUTOR-DATA.md is written for someone who is already in a clone, so a
+  // visitor who fixed a stat on the live site gets the same loop in plain
+  // language, with the data-fix form (and its file upload) one click away
+  ok('help opens the in-app walkthrough', await page.$eval('#helpModal #guideBtn', el =>
+    /how to send a fix in/i.test(el.textContent)) && await page.$eval('#dataGuideModal', el => el.hidden));
+  await page.click('#guideBtn');
+  await page.waitForTimeout(250);
+  ok('the walkthrough window opens in place of the help', await page.evaluate(() =>
+    !document.getElementById('dataGuideModal').hidden && document.getElementById('helpModal').hidden));
+  const guide = await page.$eval('#dataGuideModal .guide-card', el => el.textContent);
+  ok('the walkthrough carries the four steps and the export filename',
+    ['1 · Fix it', '2 · Check what you changed', '3 · Save it as a file', '4 · Send it in'].every(step => guide.includes(step))
+    && /Export edits/.test(guide) && /dragonwilds-edits\.json/.test(guide),
+    guide.replace(/\s+/g, ' ').slice(-200));
+  ok('the walkthrough offers the upload form', await page.$eval(
+    '#dataGuideModal a[href="https://github.com/skamansam/dragonwilds-crafting-atlas/issues/new?template=data-fix.yml"]',
+    el => el.target === '_blank' && /data-fix form/i.test(el.textContent)));
+  // the prefilled URL names the template by FILENAME — GitHub resolves
+  // ?template=… against .github/ISSUE_TEMPLATE/ — so the link and the file have
+  // to agree. A rename would dump visitors on the template picker with no error
+  // anywhere, which is exactly the kind of break a link check cannot see.
+  const formTemplate = new URL(await page.$eval(
+    '#dataGuideModal a[href*="issues/new?template="]', el => el.href)).searchParams.get('template');
+  const formPath = path.join(REPO, '.github', 'ISSUE_TEMPLATE', formTemplate || '');
+  const formSource = fs.existsSync(formPath) ? fs.readFileSync(formPath, 'utf8') : '';
+  ok('the issue form the app links to exists and takes the JSON',
+    formSource.length > 0 && /name: Data fix/.test(formSource) && /type:\s*upload/.test(formSource)
+    && /accept:\s*"?\.json"?/.test(formSource) && /labels:\s*\[\s*"?data-fix"?\s*\]/.test(formSource),
+    formSource ? `.github/ISSUE_TEMPLATE/${formTemplate} present` : `no .github/ISSUE_TEMPLATE/${formTemplate}`);
+  ok('the walkthrough keeps the developer route + the guide file',
+    /open-edits-pr\.mjs/.test(guide) && await page.$eval('#dataGuideModal a[href="CONTRIBUTOR-DATA.md"]',
+      el => el.target === '_blank' && /CONTRIBUTOR-DATA\.md/.test(el.textContent)));
+  const guideFile = await page.evaluate(async () => {
     const r = await fetch('CONTRIBUTOR-DATA.md');
     return { ok: r.ok, head: (await r.text()).slice(0, 24) };
   });
-  ok('the guide is served beside the page', guide.ok && guide.head.startsWith('# CONTRIBUTOR-DATA.md'),
-    guide.ok ? guide.head : 'fetch failed');
+  ok('the guide file is still served beside the page', guideFile.ok && guideFile.head.startsWith('# CONTRIBUTOR-DATA.md'),
+    guideFile.ok ? guideFile.head : 'fetch failed');
+
+  // Esc closes the top surface, and step 4's button hands the errand back to
+  // the window it started in
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(250);
+  ok('Esc closes the walkthrough', await page.$eval('#dataGuideModal', el => el.hidden));
+  await page.click('#welcomeHelp');
+  await page.waitForTimeout(250);
   await page.click('#helpClose');
   await page.waitForTimeout(250);
   ok('help closes and leaves the welcome card standing', await page.evaluate(() =>
@@ -615,9 +659,10 @@ async function secEdits() {
   await page.click('#editsBtn');
   await page.waitForTimeout(250);
   ok('edits window opens', await page.$eval('#editsModal', el => !el.hidden));
-  ok('edits window links the guide + the PR script', await page.$eval('#editsModal .edits-guide a', el =>
-    el.getAttribute('href') === 'CONTRIBUTOR-DATA.md' && el.target === '_blank') &&
-    await page.$eval('#editsModal .edits-guide', el => /open-edits-pr\.mjs/.test(el.textContent)));
+  ok('edits window offers the upload form + the filename', await page.$eval('#editsModal .edits-guide', el =>
+    /Export edits/.test(el.textContent) && /dragonwilds-edits\.json/.test(el.textContent)) &&
+    await page.$eval('#editsModal .edits-guide a[href*="issues/new?template=data-fix.yml"]', el =>
+      el.target === '_blank' && /Upload your file/.test(el.textContent)));
   ok('edits window lists the changed node', await page.$eval('#editsList', el => el.innerText.includes('Iron Bar ✎')));
   ok('edits window shows a field diff', await page.$eval('#editsList', (el, orig) =>
     [...el.querySelectorAll('.edit-diff')].some(d => d.textContent.includes(orig) && d.textContent.includes('Iron Bar ✎')), original));
@@ -631,6 +676,17 @@ async function secEdits() {
   ok('export downloads the edits file', download.suggestedFilename() === 'dragonwilds-edits.json');
   const dlJson = JSON.parse(fs.readFileSync(await download.path(), 'utf8'));
   ok('export file carries the edit + format', dlJson.format === 'dragonwilds-edits' && dlJson.nodes['Iron Bar']?.name === 'Iron Bar ✎');
+
+  // the walkthrough is reachable from the window the export happens in, and its
+  // step 4 hands the errand straight back to the export buttons
+  await page.click('#editsGuideBtn');
+  await page.waitForTimeout(250);
+  ok('the edits window opens the walkthrough', await page.evaluate(() =>
+    !document.getElementById('dataGuideModal').hidden && document.getElementById('editsModal').hidden));
+  await page.click('#guideOpenEdits');
+  await page.waitForTimeout(250);
+  ok('the walkthrough hands you back to the edits window', await page.evaluate(() =>
+    document.getElementById('dataGuideModal').hidden && !document.getElementById('editsModal').hidden));
 
   await page.click('#editsClose');
   await page.waitForTimeout(200);

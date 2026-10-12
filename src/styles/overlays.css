@@ -179,8 +179,9 @@ body.has-update #toast { bottom: 74px; }
 }
 .edits-card #editsClose:hover { color: var(--ink); border-color: var(--gold-dim); }
 .edits-card .char-modal-actions { margin-top: 10px; }
-/* the "full walkthrough" pointer to CONTRIBUTOR-DATA.md, in the same gold-wash
-   language as the help note it mirrors */
+/* the export → send-it-in footer of the edits window, in the same gold-wash
+   language as the help note it mirrors; the walkthrough itself lives in the
+   guide window below, opened by #editsGuideBtn */
 .edits-guide {
   margin: 12px 0 0; padding: 9px 11px;
   border: 1px solid var(--gold-dim); border-radius: 9px;
@@ -188,6 +189,60 @@ body.has-update #toast { bottom: 74px; }
   color: var(--muted); font-size: 12.5px; line-height: 1.5;
 }
 .edits-guide b { color: var(--ink); }
+.edits-guide p { margin: 0 0 8px; }
+.edits-guide p:last-child { margin-bottom: 0; }
+
+/* ── the "sending in a data fix" window ──────────────────────
+   The visitor-facing half of CONTRIBUTOR-DATA.md, opened from the help's ✎
+   button and the edits window's footer. Same card language as the help window
+   it is a sibling of: a numbered step list, each step one short paragraph, the
+   action buttons at step 4 and the developer pointer last. */
+#dataGuideModal {
+  position: fixed; inset: 0; z-index: 215;
+  display: grid; place-items: center;
+  background: rgba(5, 6, 10, 0.72); backdrop-filter: blur(6px);
+}
+#dataGuideModal[hidden] { display: none; }
+.guide-card { width: min(720px, calc(100vw - 40px)); }
+.guide-card #guideClose {
+  position: absolute; top: 12px; right: 12px; width: 30px; height: 30px;
+  border-radius: 8px; border: 1px solid var(--line); background: none;
+  color: var(--muted); font-size: 13px; cursor: pointer;
+}
+.guide-card #guideClose:hover { color: var(--ink); border-color: var(--gold-dim); }
+.guide-block h3 {
+  margin: 0 0 5px; font-size: 11px; font-weight: 800; letter-spacing: 0.16em;
+  text-transform: uppercase; color: var(--gold);
+}
+.guide-block p { margin: 0; color: var(--muted); font-size: 12.8px; line-height: 1.55; }
+.guide-block b { color: var(--ink); }
+.guide-block + .guide-block, .guide-block + .guide-steps { margin-top: 16px; }
+.guide-steps { margin: 16px 0 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+.guide-steps li {
+  border: 1px solid var(--line); border-left: 2px solid var(--gold-dim);
+  border-radius: 10px; padding: 10px 13px 9px; background: var(--bg1);
+}
+.guide-steps h4 {
+  margin: 0 0 4px; font-family: var(--font-display), serif;
+  font-size: 12px; letter-spacing: 0.1em; color: var(--gold-bright);
+}
+.guide-steps p { margin: 0 0 8px; color: var(--muted); font-size: 12.8px; line-height: 1.55; }
+.guide-steps p:last-child { margin-bottom: 0; }
+.guide-steps b { color: var(--ink); }
+/* the action rows (help column, guide step 4, edits footer) — .btn carries
+   flex: 1, so they share the row evenly */
+.guide-actions { display: flex; gap: 8px; }
+.h-col .guide-actions { margin: 0; }
+/* two buttons side by side stop being readable on a phone (measured: 126x57
+   each at 390px, every label wrapping to two lines), so they stack there */
+@media (max-width: 560px) { .guide-actions { flex-direction: column; } }
+.guide-steps .guide-actions { margin: 4px 0 0; }
+/* an <a> wearing .btn still has to look like a button, not a help link */
+.help-card a.btn {
+  border: 1px solid var(--line); color: var(--muted); text-decoration: none;
+}
+.help-card a.btn:hover { border-color: var(--gold-dim); color: var(--gold-bright); }
+.help-card a.btn.primary { border-color: var(--gold-dim); color: var(--gold-bright); }
 .edits-list { max-height: 46vh; overflow-y: auto; overscroll-behavior: contain; margin: 0 0 12px; }
 .edits-empty {
   color: var(--faint); font-size: 13px; text-align: center; padding: 22px 10px;

@@ -448,7 +448,13 @@ Two guides, depending on what you are changing:
 
 Small corrections are always welcome — a wrong stat, a missing link or a find
 spot you verified in game is exactly the kind of contribution this project is
-built around.
+built around, and they need no clone: correct the item in the app (**✎**), press
+**⤓ Export edits** under ⚙ → **Your data edits**, and drop
+`dragonwilds-edits.json` into the [**Data fix**
+form](https://github.com/skamansam/dragonwilds-crafting-atlas/issues/new?template=data-fix.yml),
+which uploads it for a maintainer to merge. The app's **?** help → *How to send a
+fix in* walks the four steps in plain language, and there is a pull-request route
+for anyone working in a clone.
 
 ## Licensing
 

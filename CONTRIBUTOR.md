@@ -158,6 +158,15 @@ Consequences worth knowing:
   `src/routing.js`).
 - **Never touch the shipped data files from the app.** Corrections live in the
   `dw.edits` overlay; baking them in is a separate script (CONTRIBUTOR-DATA.md).
+- **The visitor-facing data-fix flow lives in the DOM, not in the repo docs.**
+  `index.html`'s `#dataGuideModal` is the plain-language version of
+  CONTRIBUTOR-DATA.md's Path A (fix → check the diff → **⤓ Export edits** → send
+  it in), opened by the help's ✎ button and the edits window's footer; the
+  hand-over itself is the **Data fix** issue form
+  (`.github/ISSUE_TEMPLATE/data-fix.yml`, label `data-fix`), whose `upload` field
+  takes the exported `dragonwilds-edits.json`. Keep the two in step: the copy in
+  that window has to name the controls the app actually renders, while
+  CONTRIBUTOR-DATA.md stays the developer's copy of the same loop.
 
 ## Conventions
 

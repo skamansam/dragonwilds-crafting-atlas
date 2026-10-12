@@ -97,6 +97,7 @@ them; do not redefine them locally.
 | Owned emphasis (codex) | `#panel.owned` — gold border + gold inset wash when the selected item is in the ledger; the header's ☆/★ is the toggle |
 | Next level's unlock (skill hub) | `.p-section.next-unlock` — teal-wash box above the full ladder, `.nu-lv` names the level and your current one |
 | Requirement status (skill gates) | `.unlock-row.met` + `.gate-ok` (teal ✓) / `.gate-miss` (ember "needs N — you have M"); `.recipe-unlock.needs` for an unowned unlock item |
+| Visitor-facing walkthrough window | `#dataGuideModal` — `.help-card.guide-card`: `.guide-block` sections for the prose and `ol.guide-steps` for the numbered loop (gold Cinzel step titles, one short paragraph each), with a `.guide-actions` button row at the last step. Opened by `#guideBtn` (help) and `#editsGuideBtn` (edits window); the copy is the in-app half of CONTRIBUTOR-DATA.md |
 | Story layer in the codex (region / quest / mount) | `renderPanelBody`'s early branches — a region lists "What you find here" + "Quests here", a quest leads with **Where to start** then jumpable reward rows (`❖` rune pin, no ☆), a mount gets `.mount-card` with "How to get it" + requirements. All rows are `data-goto` jumps, same as found-in rows |
 
 Buttons: `.s-btn` vocabulary — default (quiet, `--line` border), `.gold`

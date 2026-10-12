@@ -6,6 +6,12 @@ pull request.
 
 For the code side of the project see [CONTRIBUTOR.md](CONTRIBUTOR.md).
 
+**This file is the developer's copy.** Someone correcting a row on the live site
+never has to read it: the app's **?** help → *How to send a fix in* is a window
+holding the same loop in plain language, and handing the export over is one
+GitHub issue form with a file box. Read on when you want the git steps, the
+refresh pipeline or the checklists.
+
 ## The three ways in
 
 | You want to… | Do this | Ends up in |
@@ -123,10 +129,18 @@ Steps 1–7 need **no repository at all** — you can prepare the edits on the l
 site and bring only `dragonwilds-edits.json` to a clone. (Step 9b is the whole
 back half as one command.)
 
-This guide is published with the site, at
+If you would rather not clone anything, that file goes straight into the
+[**Data fix** issue form](https://github.com/skamansam/dragonwilds-crafting-atlas/issues/new?template=data-fix.yml)
+(`.github/ISSUE_TEMPLATE/data-fix.yml`, labelled `data-fix`), which has a file box
+for it — a maintainer merges it from there and answers in the issue. That is the
+route to point ordinary visitors at: the app's
+**?** help → *How to send a fix in* window spells the same four steps out in plain
+language, with the form one click away.
+
+This guide is still published with the site, at
 [`CONTRIBUTOR-DATA.md`](https://rudeboy.dev/dragonwilds-crafting-atlas/CONTRIBUTOR-DATA.md),
-and both the ⚙ → **Your data edits** window and the **?** help link to it from
-the app.
+for whoever is already in the repo; the app now links it only from that window's
+*Working on the code itself?* block.
 
 ### 1. Open the app
 

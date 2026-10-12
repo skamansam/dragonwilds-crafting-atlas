@@ -53,7 +53,7 @@ Repository documentation, served raw from GitHub:
 
 - [README](https://raw.githubusercontent.com/skamansam/dragonwilds-crafting-atlas/main/README.md): what the Atlas is for, how to run it locally, and the Cytoscape export workflow.
 - [CONTRIBUTOR.md](https://raw.githubusercontent.com/skamansam/dragonwilds-crafting-atlas/main/CONTRIBUTOR.md): the code — how `src/` + `public/` are wired and built, the conventions, the three test layers, the PR checklist.
-- [CONTRIBUTOR-DATA.md](https://raw.githubusercontent.com/skamansam/dragonwilds-crafting-atlas/main/CONTRIBUTOR-DATA.md): the data — correct a row in the app and ship it as a pull request end to end (edit → export → `scripts/apply-edits.mjs` or `scripts/open-edits-pr.mjs` → PR), refresh from the wiki, or answer the location checklists. Also served beside this file, as [`CONTRIBUTOR-DATA.md`](https://rudeboy.dev/dragonwilds-crafting-atlas/CONTRIBUTOR-DATA.md) and [`CONTRIBUTOR.md`](https://rudeboy.dev/dragonwilds-crafting-atlas/CONTRIBUTOR.md).
+- [CONTRIBUTOR-DATA.md](https://raw.githubusercontent.com/skamansam/dragonwilds-crafting-atlas/main/CONTRIBUTOR-DATA.md): the data — correct a row in the app and ship it as a pull request end to end (edit → export → `scripts/apply-edits.mjs` or `scripts/open-edits-pr.mjs` → PR), refresh from the wiki, or answer the location checklists. The app carries the visitor-facing half of this loop as an in-app window; this file is the developer's copy. Also served beside this file, as [`CONTRIBUTOR-DATA.md`](https://rudeboy.dev/dragonwilds-crafting-atlas/CONTRIBUTOR-DATA.md) and [`CONTRIBUTOR.md`](https://rudeboy.dev/dragonwilds-crafting-atlas/CONTRIBUTOR.md).
 - [PLAN.md](https://raw.githubusercontent.com/skamansam/dragonwilds-crafting-atlas/main/PLAN.md): the change log — every shipped increment and what is planned next.
 - [DESIGN.md](https://raw.githubusercontent.com/skamansam/dragonwilds-crafting-atlas/main/DESIGN.md): the design system — colour tokens, the Cinzel/Alegreya type pairing, spacing, component reference.
 - [PRODUCT.md](https://raw.githubusercontent.com/skamansam/dragonwilds-crafting-atlas/main/PRODUCT.md): product intent — audience, success criteria, non-goals, performance budget, legal constraints.
@@ -63,6 +63,12 @@ Repository documentation, served raw from GitHub:
 Fixes can be made **in the app**: the ✎ in an item's codex panel opens an edit form
 (fields and links), ⚙ → **Your data edits** lists every difference against the
 bundled dataset, and **⤓ Export edits** downloads them as `dragonwilds-edits.json`.
+
+The app's **?** help → *How to send a fix in* opens a window with the same loop in
+plain language (fix → check the diff → export → send); a visitor without a clone
+sends the export through the repository's [**Data
+fix**](https://github.com/skamansam/dragonwilds-crafting-atlas/issues/new?template=data-fix.yml)
+issue form, whose file box takes the JSON directly.
 
 `node scripts/open-edits-pr.mjs dragonwilds-edits.json` merges that file into the
 dataset, branches, commits, pushes and opens the pull request (it takes the same

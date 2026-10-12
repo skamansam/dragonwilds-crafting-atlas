@@ -162,6 +162,10 @@ them as you touch them, not in a sweep.
   query it by **id and class** — keep those stable; a rename is a breaking change.
 - Real `<button>` elements, a visible `:focus-visible`, `title` **and**
   `aria-label` on icon-only buttons, and Esc closes the top-most surface.
+- The visitor-facing data-fix walkthrough is `#dataGuideModal` — plain language,
+  naming the controls the app actually renders; `CONTRIBUTOR-DATA.md` is the
+  developer's copy of the same loop. Keep the two in step, and note that the
+  hand-over is the **Data fix** issue form in `.github/ISSUE_TEMPLATE/`.
 - Classic `<script>` tags for the `public/` globals must stay ahead of the
   `type="module"` entry — modules run after the document parses and import those
   globals at load time.
