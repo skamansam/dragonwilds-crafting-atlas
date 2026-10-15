@@ -3,8 +3,8 @@
 // quest. Anything else is either a data gap or a missing overlay edge.
 //
 // Mirrors the app's edge construction in src/app.js: data edges, the region
-// spokes (found-in.js), the quest spokes (quests.js) and the quest→mount spokes
-// (mounts.js). Run: node scripts/check-sources.mjs
+// spokes (found-in.js + region-resources.js), the quest spokes (quests.js) and
+// the quest→mount spokes (mounts.js). Run: node scripts/check-sources.mjs
 import { readFileSync } from "node:fs";
 import { CANON_REGIONS } from "../src/regions.js";
 
@@ -17,6 +17,7 @@ const load = (p, name) => {
 
 const D = load("data.js", "DW_DATA");
 const F = load("found-in.js", "DW_FOUND_IN") || {};
+const RR = load("region-resources.js", "DW_REGION_RESOURCES")?.regions || {};
 const Q = load("quests.js", "DW_QUESTS") || {};
 const M = load("mounts.js", "DW_MOUNTS") || {};
 
@@ -26,7 +27,9 @@ const CANON = CANON_REGIONS;
 const kind = new Map(D.nodes.map((n) => [n.id, n.kind]));
 const roster = new Map(Object.entries(M.mounts || {}));
 
-// region overlays (app.js ~440-478)
+// region overlays (app.js ~430-500): found-in prose, then the region pages'
+// own resource lists — the same union, so a hub that only the second source
+// knows about still counts as a region here
 const regionMembers = new Map();
 for (const [itemId, list] of Object.entries(F)) {
 	for (const f of list) {
@@ -34,6 +37,12 @@ for (const [itemId, list] of Object.entries(F)) {
 		if (!regionMembers.has(f.region)) regionMembers.set(f.region, new Set());
 		regionMembers.get(f.region).add(itemId);
 	}
+}
+for (const [region, members] of Object.entries(RR)) {
+	if (!CANON.includes(region)) continue;
+	if (!regionMembers.has(region)) regionMembers.set(region, new Set());
+	const set = regionMembers.get(region);
+	for (const itemId of Object.keys(members)) set.add(itemId);
 }
 for (const r of CANON) {
 	const m = regionMembers.get(r);

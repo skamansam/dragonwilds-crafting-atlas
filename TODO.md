@@ -164,4 +164,17 @@ skill level for each base node.
      - always use proper types in jsdoc. for complex types, create those types in jsdoc comments at the top  of the file
    - add any other good practices to follow in js/css/html development
 
-[] We need to add ALL regions to the dataset. currently, there are only a few,  but the page at https://dragonwilds.runescape.wiki/w/Ashenfall says there are 5 main regions with at least 3 territories each. Every page for the regions and territories says what resources are available in each one. These regions and item links whould be added to the dataset.
+[x] We need to add ALL regions to the dataset. currently, there are only a few,  but the page at https://dragonwilds.runescape.wiki/w/Ashenfall says there are 5 main regions with at least 3 territories each. Every page for the regions and territories says what resources are available in each one. These regions and item links whould be added to the dataset.
+    → DONE (2026-10-12): all 34 canonical regions and territories are in the dataset, and so
+    are their item links. The green region hubs used to know only what found-in.js mined out
+    of *item* pages, so a territory no item page named had no hub (Bleakfields Valley was
+    "legitimately empty") and the rest knew a fraction of their contents. The wiki answers it
+    from the other side: every region and territory page carries a ==Resources== section, and
+    new scripts/build-region-resources.mjs parses those into public/region-resources.js —
+    22 of the 34 pages, 307 region→resource links (227 of them new beside found-in's 901),
+    with the 11 stub pages reported rather than silently empty. The app unions the two
+    overlays per hub, so hubs went 23 → 27 (Bleakfields Valley, Dragon's Run, Witchwillow
+    Range and The Approach exist only because of this source) for 1,128 region→item members,
+    an item both sources know shows both gather verbs, and data.cyjs/data.graphml carry the
+    same links. Update with: node scripts/build-region-resources.mjs (--offline skips the
+    network; see CONTRIBUTOR-DATA.md step 7b).

@@ -96,7 +96,8 @@ for an external runner.
 | `src/tours.js` | Guided tours (driver.js) |
 | `public/layout-worker.js` | Web Worker for off-main-thread layout |
 | `public/data.js` `public/data.json` | The shipped dataset (see CONTRIBUTOR-DATA.md) |
-| `public/found-in.js` | Region / gather-method annotations (`window.DW_FOUND_IN`) |
+| `public/found-in.js` | Region / gather-method annotations (`window.DW_FOUND_IN`), mined from the item pages |
+| `public/region-resources.js` | What each region and territory holds (`window.DW_REGION_RESOURCES`), mined from the region pages' `==Resources==` sections |
 | `public/quests.js` | The quest layer (`window.DW_QUESTS`) — quest type, region, "Where to start" and reward items |
 | `public/mounts.js` | The mount layer (`window.DW_MOUNTS`) — base type, unlocking quests, acquisition line and lore |
 | `public/layouts/` | Precomputed position snapshots (`manifest.js` bundled, `curated.js` shared) |
@@ -123,7 +124,8 @@ partials in cascade order, and Vite inlines them into one built stylesheet.
 Adding an app file or a CSS partial means adding an `import` (or `@import`).
 - **`public/` is copied verbatim** into the build: `vendor/` (classic IIFE
 bundles that self-register on `window`), `icons/`, `fonts/`, `data.js`,
-`data.json`, `found-in.js`, `layouts/*` and `layout-worker.js` (whose
+`data.json`, the overlays (`found-in.js`, `region-resources.js`, `quests.js`,
+`mounts.js`), `layouts/*` and `layout-worker.js` (whose
 `importScripts('vendor/…')` paths depend on sitting beside `vendor/`). None of it
 is transformed — which is exactly why `data.js` and friends still set globals
 from a `<script>` tag in `index.html` instead of being imported.
@@ -133,18 +135,25 @@ Consequences worth knowing:
 - **The module entry is deferred.** Classic scripts run while the document
   parses; module scripts run after. So `window.cytoscape`, `window.d3`,
   `window.driver`, `window.DW_DATA`, `window.DW_LAYOUTS`, `window.DW_CURATED`,
-  `window.DW_FOUND_IN`, `window.DW_QUESTS` and `window.DW_MOUNTS` all exist
+  `window.DW_FOUND_IN`, `window.DW_REGION_RESOURCES`, `window.DW_QUESTS` and
+  `window.DW_MOUNTS` all exist
   before `src/main.js` executes. If you add a vendor bundle that a module needs
   at import time, give it a `<script>` in `index.html` ahead of the module.
 - **The data contracts are globals**: `window.DW_DATA`, `window.DW_LAYOUTS`,
-  `window.DW_CURATED`, `window.DW_FOUND_IN`, `window.DW_QUESTS`,
+  `window.DW_CURATED`, `window.DW_FOUND_IN`, `window.DW_REGION_RESOURCES`,
+  `window.DW_QUESTS`,
   `window.DW_MOUNTS` (set by `public/` files) and `window.DW_ROUTING`,
   `window.DW_CHARACTERS`, `window.DW_TOURS` (set by the
   `src/` modules, which mirror themselves onto `window` for the harness and the
-  console), while `found-in.js` / `quests.js` / `mounts.js` are **overlays**: the
+  console), while `found-in.js` / `region-resources.js` / `quests.js` /
+  `mounts.js` are **overlays**: the
   app synthesizes their region hubs and quest nodes at boot and leaves
   `data.json` (recipes, plans, paths, counts) untouched. A missing overlay file
-  is not an error — the layer simply does not appear. The browser e2e tests poke `window.__cy`, `window.selectNode`,
+  is not an error — the layer simply does not appear. The region hubs read
+  **two** of them (`found-in.js` from the item pages, `region-resources.js` from
+  the place pages) and union the members, so a region either source names still
+  gets a hub; `scripts/check-sources.mjs` mirrors that union, which is why it is
+  the file to update when either source changes. The browser e2e tests poke `window.__cy`, `window.selectNode`,
   `window.isolateTree` and `window.showEverything`; a module has no implicit
   globals, so `src/app.js` re-publishes those four explicitly at the bottom of
   the file. Anything else a test, a tour or the console calls by name has to be

@@ -51,14 +51,16 @@ test.describe("Crafting Atlas", () => {
 	test("boots the full graph", async ({ page }) => {
 		await boot(page);
 		// the dataset + the synthesized overlay (one region hub per region that
-		// found-in prose or a quest names, plus one node per quest). Every extra
-		// id must be one of those — nothing else may be invented at boot.
+		// found-in prose, a region page's own resource list or a quest names, plus
+		// one node per quest). Every extra id must be one of those — nothing else
+		// may be invented at boot.
 		const { nodes, data, synth, stray } = await page.evaluate(() => {
 			const w = window as unknown as {
 				__cy: { nodes(): { id(): string; length: number } };
 				DW_DATA: { nodes: { id: string }[] };
 				DW_QUESTS?: { order: string[]; regionQuests: Record<string, string[]> };
 				DW_FOUND_IN?: Record<string, { region: string | null }[]>;
+				DW_REGION_RESOURCES?: { regions: Record<string, Record<string, string[]>> };
 			};
 			const dataset = new Set(w.DW_DATA.nodes.map((n) => n.id));
 			const synth = w.__cy.nodes().map((n) => n.id()).filter((id) => !dataset.has(id));
@@ -67,6 +69,7 @@ test.describe("Crafting Atlas", () => {
 			for (const list of Object.values(w.DW_FOUND_IN ?? {})) {
 				for (const f of list) if (f.region) regions.add(f.region);
 			}
+			for (const region of Object.keys(w.DW_REGION_RESOURCES?.regions ?? {})) regions.add(region);
 			return {
 				nodes: w.__cy.nodes().length,
 				data: w.DW_DATA.nodes.length,

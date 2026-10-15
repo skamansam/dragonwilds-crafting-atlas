@@ -551,7 +551,8 @@ exactly what you are looking at.</p>
 
 <!-- Everything below is served VERBATIM from public/ — vendor bundles are UMD
      IIFEs that self-register on the window (cytoscape/d3/driver), and data.js,
-     layouts/ and found-in.js are generated data that is cheaper to leave
+     layouts/ and the overlays (found-in.js, quests.js, mounts.js,
+     region-resources.js) are generated data that is cheaper to leave
      unbundled. Classic scripts run while the document parses; the app itself
      is a deferred module (src/main.js), so everything here exists before it
      executes. -->
@@ -591,6 +592,7 @@ exactly what you are looking at.</p>
 <script src="/found-in.js"></script>
 <script src="/quests.js"></script>
 <script src="/mounts.js"></script>
+<script src="/region-resources.js"></script>
 <script src="/vendor/driver.js"></script>
 <!-- the app: ES modules, bundled + minified by Vite -->
 <script type="module" src="/src/main.js"></script>

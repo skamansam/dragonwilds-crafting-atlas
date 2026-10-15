@@ -37,9 +37,11 @@ const ctx = { window: {} };
 vm.createContext(ctx);
 vm.runInContext(fs.readFileSync(path.join(ROOT, 'public/data.js'), 'utf8'), ctx);
 const D = ctx.window.DW_DATA;
-// public/found-in.js (window.DW_FOUND_IN), public/quests.js (window.DW_QUESTS) and
+// public/found-in.js (window.DW_FOUND_IN), public/region-resources.js
+// (window.DW_REGION_RESOURCES), public/quests.js (window.DW_QUESTS) and
 // public/mounts.js (window.DW_MOUNTS) are optional overlays: region hubs export
-// only when found-in exists, the quest layer only when quests.js exists.
+// only when one of the two find sources exists, the quest layer only when
+// quests.js exists.
 const overlay = (file, key) => {
   try {
     const c = { window: {} };
@@ -49,6 +51,7 @@ const overlay = (file, key) => {
   } catch { return null; }
 };
 const FI = overlay('public/found-in.js', 'DW_FOUND_IN');
+const RR = overlay('public/region-resources.js', 'DW_REGION_RESOURCES');
 const Q = overlay('public/quests.js', 'DW_QUESTS');
 const M = overlay('public/mounts.js', 'DW_MOUNTS');
 
@@ -173,6 +176,19 @@ for (const [item, list] of Object.entries(FI || {})) {
     m.get(item).add(METHOD_LABEL[f.method] || f.method || 'found');
   }
 }
+// ...plus each region page's own ==Resources== list (build-region-resources.mjs),
+// the same union the app builds — kept in step so a Desktop import shows what
+// the map shows
+for (const [region, members] of Object.entries(RR?.regions || {})) {
+  if (!CANON_REGIONS.includes(region)) continue;
+  if (!regionMembers.has(region)) regionMembers.set(region, new Map());
+  const m = regionMembers.get(region);
+  for (const [item, methods] of Object.entries(members)) {
+    if (!idSet.has(item)) continue;
+    if (!m.has(item)) m.set(item, new Set());
+    for (const method of methods) m.get(item).add(METHOD_LABEL[method] || method || 'found');
+  }
+}
 
 // ---------- quest layer (P7) ----------
 // The same overlay src/app.js synthesizes at boot: one hub per region that has
@@ -204,7 +220,7 @@ for (const region of CANON_REGIONS) {
   hubPos.set(region, position);
   posById.set(region, position);
   const bits = [];
-  if (items.length) bits.push(`${items.length} annotated finds`);
+  if (items.length) bits.push(`${items.length} found here`);
   if (quests.length) bits.push(`${quests.length} quest${quests.length > 1 ? 's' : ''}`);
   nodes.push({
     selected: false,
@@ -221,7 +237,7 @@ for (const region of CANON_REGIONS) {
       stacklimit: null,
       repaircost: null,
       catalogue: null,
-      description: `Region of Ashenfall - ${bits.join(' · ')} (from the wiki's location prose and quest tables; a map aid, not a crafting step)`,
+      description: `Region of Ashenfall - ${bits.join(' · ')} (from the wiki's location prose, its region pages' own resource lists and its quest tables; a map aid, not a crafting step)`,
       stats: null,
       icon: null,
       foundHere: items.length ? items.map(it => `${it} (${[...members.get(it)].sort().join(', ')})`).join('; ') : null,

@@ -150,8 +150,9 @@ async function secSmoke() {
   console.log('smoke:');
   await boot();
   // the boot graph = the dataset + the synthesized overlay: one region hub per
-  // region found-in prose OR a quest names, plus one node per quest. Nothing
-  // else may be invented, so every extra id must be explainable.
+  // region found-in prose, a region page's resource list OR a quest names, plus
+  // one node per quest. Nothing else may be invented, so every extra id must be
+  // explainable.
   const bootCnt = await page.evaluate(() => {
     const dataset = new Set(window.DW_DATA.nodes.map(n => n.id));
     const synth = window.__cy.nodes().map(n => n.id()).filter(id => !dataset.has(id));
@@ -160,6 +161,7 @@ async function secSmoke() {
     for (const list of Object.values(window.DW_FOUND_IN || {})) {
       for (const f of list) if (f.region) regions.add(f.region);
     }
+    for (const region of Object.keys(window.DW_REGION_RESOURCES?.regions || {})) regions.add(region);
     return {
       nodes: window.__cy.nodes().length, data: window.DW_DATA.nodes.length,
       synth: synth.length,
@@ -1671,6 +1673,95 @@ async function secQuests() {
   ok('the region hub lists the quests set in it',
     /Quests here \(6\)/.test(rPanel.body) && rPanel.rows.includes('Goblin Diplomacy'), rPanel.rows.slice(0, 4).join(', '));
 
+  // ── region resources (scripts/build-region-resources.mjs) ────────
+  // The region pages' own ==Resources== sections, folded into the same hubs.
+  // They read the opposite way round from found-in prose, so they fill the
+  // territories no item page ever names — Bleakfields Valley had no hub at all
+  // before this source, and its 17 members are the wiki's own list for it.
+  const rr = await page.evaluate(() => {
+    const R = window.DW_REGION_RESOURCES || {};
+    const regions = Object.keys(R.regions || {});
+    const hub = window.__cy.getElementById('Bleakfields Valley');
+    const spokes = window.__cy.edges('.regionEdge').filter(e => e.data('source') === 'Bleakfields Valley');
+    return {
+      regions: regions.length,
+      links: regions.reduce((n, r) => n + Object.keys(R.regions[r]).length, 0),
+      source: R.source || '', generated: !!R.generatedAt,
+      hub: hub.nonempty(), hidden: hub.nonempty() && hub.hasClass('hidden'),
+      orphan: hub.nonempty() && hub.hasClass('orphan'),
+      spokes: spokes.length, shownSpokes: spokes.filter(e => !e.hasClass('hidden')).length,
+    };
+  });
+  ok('the region pages\' own resource lists are loaded',
+    rr.regions >= 20 && rr.links >= 290 && /\/w\/Ashenfall$/.test(rr.source) && rr.generated,
+    `${rr.regions} regions, ${rr.links} links, source=${rr.source}`);
+  ok('a territory only the region pages name now has a hub',
+    rr.hub && !rr.hidden && !rr.orphan && rr.spokes === 17 && rr.shownSpokes === 0,
+    `Bleakfields Valley: hub=${rr.hub} spokes=${rr.spokes} (${rr.shownSpokes} shown — region links are off by default)`);
+
+  // the panel reads like the wiki page it came from: the item and its verb
+  await page.evaluate(() => window.selectNode('Bleakfields Valley'));
+  await page.waitForTimeout(300);
+  const rrPanel = await page.evaluate(() => ({
+    body: document.getElementById('panelBody').textContent,
+    rows: [...document.querySelectorAll('#panelBody .found-row')].map(r => ({
+      item: r.querySelector('.fr')?.textContent, how: r.querySelector('.fw')?.textContent,
+      jumpable: !!r.dataset.goto,
+    })),
+  }));
+  ok('the hub lists what its page lists, with the page\'s own gather verbs',
+    /What you find here \(17\)/.test(rrPanel.body)
+    && rrPanel.rows.some(r => r.item === 'Cadavaberries' && r.how === 'picked')
+    && rrPanel.rows.some(r => r.item === 'Willow Tree' && r.how === 'chopped')
+    && rrPanel.rows.every(r => r.jumpable),
+    rrPanel.rows.slice(0, 4).map(r => `${r.item}·${r.how}`).join(', '));
+
+  // where both sources know the same item the methods union — and it is still
+  // ONE row and ONE spoke, not a duplicate
+  await page.evaluate(() => window.selectNode('Bramblemead Valley'));
+  await page.waitForTimeout(300);
+  const union = await page.evaluate(() => {
+    const rows = [...document.querySelectorAll('#panelBody .found-row')];
+    const berry = rows.find(r => r.querySelector('.fr')?.textContent === 'Redberry Bush');
+    const items = rows.map(r => r.querySelector('.fr')?.textContent);
+    return {
+      how: berry ? berry.querySelector('.fw').textContent : null,
+      rows: rows.length, duplicates: items.length - new Set(items).size,
+      spokes: window.__cy.edges('.regionEdge').filter(e => e.data('source') === 'Bramblemead Valley').length,
+    };
+  });
+  ok('an item both sources know carries both verbs, once',
+    (union.how || '').split(' · ').sort().join() === 'found,picked'
+    && union.duplicates === 0 && union.rows === union.spokes,
+    `Redberry Bush: ${union.how} · ${union.rows} rows / ${union.spokes} spokes, ${union.duplicates} duplicates`);
+
+  // the spokes are real edges, and the legend row is what reveals them
+  await page.evaluate(() => window.selectNode(''));
+  const clickRegionRow = () => page.evaluate(() => {
+    [...document.querySelectorAll('#legend .lg-row')].find(r => r.textContent.trim() === 'Region links').click();
+  });
+  await clickRegionRow();
+  await page.waitForTimeout(300);
+  const mined = await page.evaluate(() => {
+    const cy = window.__cy;
+    const shownNodes = new Set(cy.nodes(':visible').map(n => n.id()));
+    const region = cy.edges('.regionEdge');
+    const open = region.filter(e => !e.hasClass('hidden'));
+    return {
+      total: region.length,
+      shown: open.length,
+      // a spoke shows exactly when the pref is on AND both its ends are on screen
+      expected: region.filter(e => shownNodes.has(e.data('source')) && shownNodes.has(e.data('target'))).length,
+      fromBleakfields: open.filter(e => e.data('source') === 'Bleakfields Valley').length,
+      stored: localStorage.getItem('dw.showRegionEdges'),
+    };
+  });
+  ok('the Region links row reveals the mined spokes',
+    mined.total >= 1100 && mined.shown === mined.expected && mined.fromBleakfields > 0 && mined.stored === '1',
+    `${mined.shown}/${mined.total} region spokes shown (all with both ends visible), ${mined.fromBleakfields} from the new hub`);
+  await clickRegionRow();
+  await clearStorage(['dw.showRegionEdges']);
+
   // the legend row toggles the whole layer (and persists the choice)
   await page.evaluate(() => window.selectNode(''));
   const clickQuestRow = () => page.evaluate(() => {
@@ -1710,6 +1801,9 @@ async function secQuests() {
   await boot('#/brynmoor');
   ok('a quest-only region hub is addressable too',
     await page.evaluate(() => document.getElementById('panelTitle').textContent) === 'Brynmoor');
+  await boot('#/bleakfields_valley');
+  ok('a hub only the region resource lists name is addressable too',
+    await page.evaluate(() => document.getElementById('panelTitle').textContent) === 'Bleakfields Valley');
 }
 
 try {

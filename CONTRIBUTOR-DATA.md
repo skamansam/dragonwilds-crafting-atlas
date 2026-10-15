@@ -54,7 +54,8 @@ re-scrape, which re-litigates rows someone already checked in game.
 |---|---|---|
 | `public/data.js` | ✅ | **What the site loads.** `window.DW_DATA = {…}` — the authoritative shipped dataset |
 | `public/data.json` | ✅ | The same dataset as strict JSON (scripts, desktop tools, tests) |
-| `public/found-in.js` | ✅ | `window.DW_FOUND_IN` — region / gather-method / tool annotations |
+| `public/found-in.js` | ✅ | `window.DW_FOUND_IN` — region / gather-method / tool annotations, mined from the **item** pages |
+| `public/region-resources.js` | ✅ | `window.DW_REGION_RESOURCES` — what each region and territory holds, mined from the **place** pages' own `==Resources==` sections |
 | `public/quests.js` | ✅ | `window.DW_QUESTS` — the quest layer (type, region, "Where to Start", reward items) |
 | `public/mounts.js` | ✅ | `window.DW_MOUNTS` — per mount its base type, unlocking quests, acquisition line and lore |
 | `public/data.cyjs`, `public/data.graphml`, `public/atlas-style.xml` | ✅ | Cytoscape Desktop export bundle |
@@ -110,9 +111,15 @@ Conventions that matter:
 - **Three kinds are dataset members; two are overlays.** `mount` nodes come from
   the wiki's `{{Infobox Mount}}` pages and are normal dataset nodes (recipes,
   counts and exports see them). `region` and `quest` are **synthesized at boot**
-  from `found-in.js` / `quests.js` and are *not* in `data.json`: recipes, plans,
-  paths and counts never see them. Their spokes start hidden for regions and
-  **on** for quests.
+  and are *not* in `data.json`: recipes, plans, paths and counts never see them.
+  Their spokes start hidden for regions and **on** for quests.
+- **A region hub reads two overlays.** `found-in.js` answers "where is this item
+  found?" from the item pages; `region-resources.js` answers "what does this
+  place hold?" from the region pages' own `==Resources==` sections. The app
+  unions them per hub (an item both name carries both gather methods), and a hub
+  exists as soon as *either* source — or a quest — names the region, which is why
+  a territory no item page mentions still appears. The two generators read the
+  same `cache/raw/` and neither writes `data.json`.
 - **The quest layer pairs with mounts.** `quests.js` supplies region → quest →
   reward; `mounts.js` supplies quest → mount (the Mount page's Requirements
   column) plus how each mount is obtained. `build-mounts.mjs` reads
@@ -428,7 +435,8 @@ Needs internet. Run in order; each step reads the previous step's cache.
 | 4 | `node scripts/fetch-icons.mjs` | `cache/icons/manifest.json` — icon file names → URLs via the imageinfo API |
 | 5 | `node scripts/build-data.mjs` | **`public/data.js` + `public/data.json`** + `cache/final-dataset.json` — deduped recipes, canonical nodes, edges, `skillLevelForItem`, `generatedAt` |
 | 6 | `node scripts/fetch-icon-files.mjs` | downloads icons into `public/icons/` and rewrites the icon fields in `data.js`/`data.json` to local paths |
-| 7 | `node scripts/build-found-in.mjs` | `public/found-in.js` |
+| 7 | `node scripts/build-found-in.mjs` | `public/found-in.js` — the region/gather annotations, mined from the item pages' prose |
+| 7b | `node scripts/build-region-resources.mjs` | `public/region-resources.js` — every region and territory page's `==Resources==` list (cached pages only, plus one polite fetch per title the cache cannot resolve, remembered in `cache/redirects.json`; `--offline` skips the network) |
 | 8 | `node scripts/build-quests.mjs` | `public/quests.js` — the Quests page parsed into quest records (fetched on demand through `scripts/fetch-page.mjs`; `--refresh` re-pulls it) |
 | 9 | `node scripts/build-mounts.mjs` | `public/mounts.js` — the Mount page parsed into per-mount requirements/acquisition (needs step 8 first; `--refresh` re-pulls it) |
 | 10 | `node scripts/build-exports.mjs` | `public/data.cyjs`, `public/data.graphml`, `public/atlas-style.xml` (incl. the quest nodes, `interaction: quest \| mount`) |

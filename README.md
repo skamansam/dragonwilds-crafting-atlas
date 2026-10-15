@@ -58,12 +58,14 @@ The exports bundle turns the atlas into a [Cytoscape Desktop](https://cytoscape.
   columns), `spell` (cast cost), `skill-gate` (unlock ladder), `region` (found-here spoke),
   `quest` (region → quest → reward) and `mount` (quest → mount unlock) — so the edge kinds
   can be styled or filtered independently.
-- **Region hubs** ship as their own node class: eleven `kind=region` nodes (one per Ashenfall
-  region with annotated finds *or* a quest set in it) joined to member items by green-dashed
-  `region` edges. Each hub carries a **foundHere** column listing everything the wiki places
-  there with the gather method ("Ash Tree (chopped); …") and a **questsHere** column. They
-  are map aids, not crafting steps — filter them out with `kind ≠ region` for pure recipe
-  analysis.
+- **Region hubs** ship as their own node class: twenty-seven `kind=region` nodes — one per
+  Ashenfall division or territory that the wiki places an item in (`found-in.js`, mined from
+  the item pages' prose), lists resources for (`region-resources.js`, mined from the region
+  pages' own `==Resources==` sections) or sets a quest in — joined to member items by
+  green-dashed `region` edges. Each hub carries a **foundHere** column listing everything the
+  wiki places there with the gather method ("Ash Tree (chopped); …") and a **questsHere**
+  column. They are map aids, not crafting steps — filter them out with `kind ≠ region` for
+  pure recipe analysis.
 - **Quests and mounts** are nodes too: 37 `kind=quest` nodes (gold octagons) with their
   `tier` and `whereToStart` columns and a `rewards` list, joined to their region and to the
   items they grant by gold `quest` edges; 20 `kind=mount` nodes for the terrorbird and magic
@@ -355,6 +357,7 @@ node scripts/parse-wiki.mjs        # infoboxes + Recipe templates → cache/pars
 node scripts/fetch-icons.mjs       # resolve icon URLs → cache/icons/manifest.json
 node scripts/build-data.mjs        # nodes/edges/recipes/spells/skills → public/data.js + public/data.json (fetch-icon-files rewrites both with local icon paths)
 node scripts/build-found-in.mjs    # location prose in cache/raw → public/found-in.js
+node scripts/build-region-resources.mjs  # each region page's ==Resources== section → public/region-resources.js (fetch-page.mjs pulls any page the cache lacks)
 node scripts/build-quests.mjs      # the wiki's Quests page → public/quests.js (fetch-page.mjs pulls the page on demand)
 node scripts/build-mounts.mjs      # the wiki's Mount page → public/mounts.js (needs quests.js first)
 node scripts/build-exports.mjs     # public/data.js → data.cyjs + data.graphml + atlas-style.xml
@@ -411,8 +414,12 @@ live URL sync, isolation on load, foreign-param preservation, bad values).
 ### Location checklists — the hand-annotation loop
 
 The found-in parser is best-effort: many items end up with a gather method but no
-region, and some with no source info at all. `build-location-checklists.mjs` turns
-those gaps into two markdown **tables** in `docs/checklists/`:
+region, and some with no source info at all. The other direction is read straight
+off the wiki: every region and territory page lists its own resources, so
+`build-region-resources.mjs` mines those `==Resources==` sections into
+`public/region-resources.js` and the hubs show both together (an item both know
+carries both methods). What is left over is what `build-location-checklists.mjs`
+turns into two markdown **tables** in `docs/checklists/`:
 
 - `needs-locations.md` — items the wiki prose already ties to a gather method but
   whose region is missing or incomplete (already-known regions come pre-ticked).
