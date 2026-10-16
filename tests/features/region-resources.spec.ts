@@ -16,6 +16,7 @@ import {
 	collectResources,
 	parseResources,
 	resolveNodeId,
+	splitRegionPages,
 } from "../../scripts/region-resources-core.mjs";
 
 interface ResourceLink {
@@ -47,6 +48,8 @@ let noResourcesSection: boolean;
 let links: ResourceLink[];
 let asked: Array<{ region: string; links: ResourceLink[] }>;
 let collected: Collected;
+let stubs: string[];
+let unknown: string[];
 
 const byLowerId = () => new Map(nodes);
 const redirectOf = (title: string) =>
@@ -92,6 +95,8 @@ describeFeature(feature, ({ Scenario, Background }) => {
 			links = [];
 			asked = [];
 			collected = { resolved: {}, unresolved: [], skipped: [] };
+			stubs = [];
+			unknown = [];
 			for (const [id, kind] of [
 				["Ash Tree", "resource"],
 				["Ash Logs", "material"],
@@ -510,6 +515,60 @@ describeFeature(feature, ({ Scenario, Background }) => {
 					).toEqual(methods.split(",").sort());
 				},
 			);
+		},
+	);
+
+	Scenario(
+		"A page with no Resources heading is a stub, a page we could not read is unknown",
+		({ Given, When, Then, And }) => {
+			Given("a region page with no Resources section", () => {
+				noResourcesSection = true;
+			});
+			When("the canonical regions are split by their pages", () => {
+				// Temple Woods read fine (its heading is missing), The Burning Spire's
+				// page was never obtained — the two must not be confused
+				const pages = new Map<string, string | null>([
+					["Temple Woods", page()],
+					["The Burning Spire", null],
+				]);
+				({ stubs, unknown } = splitRegionPages(
+					["Temple Woods", "The Burning Spire"],
+					pages,
+				));
+			});
+			Then("the stub pages are {string}", (_ctx, list: string) => {
+				expect(stubs.join(", ")).toBe(list);
+			});
+			And("the unknown pages are {string}", (_ctx, list: string) => {
+				expect(unknown.join(", ")).toBe(list);
+			});
+		},
+	);
+
+	Scenario(
+		"A page that has the heading is never a stub, however little it resolves",
+		({ Given, When, Then, And }) => {
+			Given(
+				"a region page whose {string} section lists {string}",
+				(_ctx, header: string, entry: string) => {
+					section(header).lines.push(`* ${entry}`);
+				},
+			);
+			When("the canonical regions are split by their pages", () => {
+				// The Nexus in the real data: a heading whose only link resolves to
+				// nothing. Stating "the wiki has not written this page" there would be
+				// a lie, so the split must leave it out of `stubs`
+				({ stubs, unknown } = splitRegionPages(
+					["Temple Woods"],
+					new Map([["Temple Woods", page()]]),
+				));
+			});
+			Then("the stub pages are {string}", (_ctx, list: string) => {
+				expect(stubs.join(", ")).toBe(list);
+			});
+			And("the unknown pages are {string}", (_ctx, list: string) => {
+				expect(unknown.join(", ")).toBe(list);
+			});
 		},
 	);
 

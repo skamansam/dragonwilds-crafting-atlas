@@ -93,11 +93,12 @@ for an external runner.
 | `src/styles/` | The design system split by section: `base`, `search`, `controls`, `legend`, `panel`, `overlays`, `minimap` |
 | `src/routing.js` | Pure rules for hash slugs and `?query` graph options (also mirrored in `tests/lib/routing.ts`) |
 | `src/characters.js` | Per-character graph state (`dw.characters`) and the switch/snapshot logic |
+| `src/webmcp.js` | The atlas as WebMCP agent tools (13 of them: search, codex, plan, path, region, quest, owned, view state, focus, isolate, highlight, mark owned, filters). Registers through `document.modelContext` when the browser has it, always publishes the set on `window.DW_WEBMCP`, and holds no state — app.js injects every capability via `initWebMcp()` |
 | `src/tours.js` | Guided tours (driver.js) |
 | `public/layout-worker.js` | Web Worker for off-main-thread layout |
 | `public/data.js` `public/data.json` | The shipped dataset (see CONTRIBUTOR-DATA.md) |
 | `public/found-in.js` | Region / gather-method annotations (`window.DW_FOUND_IN`), mined from the item pages |
-| `public/region-resources.js` | What each region and territory holds (`window.DW_REGION_RESOURCES`), mined from the region pages' `==Resources==` sections |
+| `public/region-resources.js` | What each region and territory holds (`window.DW_REGION_RESOURCES`), mined from the region pages' `==Resources==` sections, plus `stubs` — the pages with no `==Resources==` heading yet, so an empty hub can say why it is empty |
 | `public/quests.js` | The quest layer (`window.DW_QUESTS`) — quest type, region, "Where to start" and reward items |
 | `public/mounts.js` | The mount layer (`window.DW_MOUNTS`) — base type, unlocking quests, acquisition line and lore |
 | `public/layouts/` | Precomputed position snapshots (`manifest.js` bundled, `curated.js` shared) |
@@ -115,10 +116,15 @@ Deliberately two halves:
 the entry (`index.html` loads it with `type="module"`); it imports `style.css`
 and `app.js`, and `app.js` imports `routing.js` / `characters.js` / `tours.js`
 plus the smaller extracted modules `util.js`, `edits.js`, `characters-ui.js`,
-`highlight.js`, `plans.js`, `path.js` and `minimap.js` — the four UI-side
+`highlight.js`, `plans.js`, `path.js`, `minimap.js` and `webmcp.js` — the UI-side
 modules get what they need (the `cy` instance, `nodeById`, `toast`, live state
 through getter/setter pairs) through an `init*()` call from `app.js`, so
 dependency order is expressed as imports rather than `<script>` position.
+`initWebMcp()` follows the same rule and is the strictest case of it: a tool is an
+adapter over an existing app capability (`selectNode`, `isolateTree`, the highlight
+buttons, `planFromNothing`, the path BFS, the legend rows' own clicks, the owned
+ledger), so nothing in `webmcp.js` reimplements anything — if a tool's answer and the
+button's behaviour ever disagree, the tool is wrong.
 `style.css` is likewise just an entry — it `@import`s the `src/styles/*`
 partials in cascade order, and Vite inlines them into one built stylesheet.
 Adding an app file or a CSS partial means adding an `import` (or `@import`).
@@ -151,9 +157,12 @@ Consequences worth knowing:
   `data.json` (recipes, plans, paths, counts) untouched. A missing overlay file
   is not an error — the layer simply does not appear. The region hubs read
   **two** of them (`found-in.js` from the item pages, `region-resources.js` from
-  the place pages) and union the members, so a region either source names still
-  gets a hub; `scripts/check-sources.mjs` mirrors that union, which is why it is
-  the file to update when either source changes. The browser e2e tests poke `window.__cy`, `window.selectNode`,
+  the place pages) and union the members, and **every** entry in
+  `src/regions.js` gets a hub whether or not either source has anything for it —
+  so `scripts/check-sources.mjs` and `build-exports.mjs` both mirror the full
+  canonical list, which is why they are the files to update when either source
+  changes (the exports' node count is the check that they stayed in step).
+  The browser e2e tests poke `window.__cy`, `window.selectNode`,
   `window.isolateTree` and `window.showEverything`; a module has no implicit
   globals, so `src/app.js` re-publishes those four explicitly at the bottom of
   the file. Anything else a test, a tour or the console calls by name has to be
@@ -248,7 +257,7 @@ and JSDoc with real types on what you write or touch.
 |---|---|---|
 | Gherkin (vitest + cucumber) | `npx vitest run` | Pure logic: highlight/frontier math, character state, routing slugs, the `?query` option parser, and the data-edit merge (`tests/features/edits-apply.*` driving `scripts/apply-edits-core.mjs`) |
 | Playwright e2e | `npx playwright test` | A few real browser flows, booted by the config's `webServer` (`npx vite --port 8491`): boot, search → codex, isolate, requires-growth, layout completion, persisted settings, `?tour=` and `#/` deep links, `?iso=` on load, console cleanliness |
-| Acceptance suite | `node scripts/test-ui.mjs [section]` | The broad UI suite (~203 checks across `smoke`/`panel`/`undo`/`layouts`/`tours`/`route`/`options`/`quests`/`edits`/`characters`). It boots the `src/` sources through the same Vite dev server (or `--url=` for a deployed/built site); run one section while iterating, the whole thing before you land |
+| Acceptance suite | `node scripts/test-ui.mjs [section]` | The broad UI suite (~250 checks across `smoke`/`panel`/`panelcodex`/`edits`/`undo`/`layouts`/`tours`/`route`/`options`/`quests`/`characters`/`mobile`/`webmcp`). It boots the `src/` sources through the same Vite dev server (or `--url=` for a deployed/built site); run one section while iterating, the whole thing before you land. `webmcp` is the one section that stubs a browser API: it defines `document.modelContext` (registerTool/getTools/executeTool) before the page loads, the documented surface real Chrome only exposes behind `chrome://flags/#enable-webmcp-testing`, then drives all 13 tools |
 | Lint | `npm run lint` | `biome check .` — compare against the baseline, don't chase it |
 
 All three layers are plain Node + a browser; nothing is compiled. When a check

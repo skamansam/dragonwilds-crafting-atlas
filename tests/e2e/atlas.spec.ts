@@ -15,6 +15,9 @@
  */
 
 import { test, expect, type Page } from "@playwright/test";
+// the canonical Ashenfall list src/app.js builds hubs from — imported, not
+// copied, so the boot check cannot drift from src/regions.js
+import { CANON_REGIONS } from "../../src/regions.js";
 
 const boot = async (page: Page): Promise<void> => {
 	await page.goto("/");
@@ -50,11 +53,10 @@ test.describe("Crafting Atlas", () => {
 
 	test("boots the full graph", async ({ page }) => {
 		await boot(page);
-		// the dataset + the synthesized overlay (one region hub per region that
-		// found-in prose, a region page's own resource list or a quest names, plus
-		// one node per quest). Every extra id must be one of those — nothing else
-		// may be invented at boot.
-		const { nodes, data, synth, stray } = await page.evaluate(() => {
+		// the dataset + the synthesized overlay (one hub per canonical region,
+		// members or not, plus one node per quest). Every extra id must be one of
+		// those — nothing else may be invented at boot.
+		const { nodes, data, synth, hubs, stray } = await page.evaluate((canon) => {
 			const w = window as unknown as {
 				__cy: { nodes(): { id(): string; length: number } };
 				DW_DATA: { nodes: { id: string }[] };
@@ -70,15 +72,19 @@ test.describe("Crafting Atlas", () => {
 				for (const f of list) if (f.region) regions.add(f.region);
 			}
 			for (const region of Object.keys(w.DW_REGION_RESOURCES?.regions ?? {})) regions.add(region);
+			for (const region of canon) regions.add(region);
 			return {
 				nodes: w.__cy.nodes().length,
 				data: w.DW_DATA.nodes.length,
 				synth: synth.length,
+				hubs: synth.filter((id) => regions.has(id)).length,
 				stray: synth.filter((id) => !quests.has(id) && !regions.has(id)),
 			};
-		});
+		}, CANON_REGIONS);
 		expect(nodes).toBe(data + synth);
 		expect(stray).toEqual([]);
+		// every region the Ashenfall page names is a hub, empty or not
+		expect(hubs).toBe(CANON_REGIONS.length);
 	});
 
 	test("search opens the codex panel", async ({ page }) => {

@@ -44,12 +44,9 @@ for (const [region, members] of Object.entries(RR)) {
 	const set = regionMembers.get(region);
 	for (const itemId of Object.keys(members)) set.add(itemId);
 }
-for (const r of CANON) {
-	const m = regionMembers.get(r);
-	const qs = Q.regionQuests?.[r] || [];
-	if ((!m || !m.size) && !qs.length) continue; // app skips empty regions
-	kind.set(r, "region");
-}
+// every canonical region is a hub in the app now, members or not (an empty one
+// says so in its codex) — so every one is a legitimate zero-ancestor root here
+for (const r of CANON) kind.set(r, "region");
 for (const name of Q.order || []) if (Q.quests[name]) kind.set(name, "quest");
 
 // indegree over the rendered graph

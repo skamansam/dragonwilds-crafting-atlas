@@ -94,6 +94,11 @@
         <div id="charNote" class="s-note"></div>
       </div>
     </div>
+    <!-- ◈ layers: phone-only (see controls.css). The legend is pinned open on a
+         desktop and hidden at 720px and below, and the link layers (Region links,
+         Quest links) live in it — without this a phone could never show them. -->
+    <button id="legendBtn" aria-expanded="false" aria-controls="legend"
+            title="Layers — kinds of node and the link layers" aria-label="Layers">◈</button>
     <div class="settings-wrap">
       <button id="settingsBtn" aria-expanded="false" aria-controls="settingsPanel"
               title="Graph settings — layouts, density &amp; relayout options" aria-label="Graph settings">⚙</button>

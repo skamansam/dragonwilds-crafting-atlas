@@ -29,7 +29,7 @@
   border-radius: 11px;
 }
 .panel-head .p-icon img { width: 40px; height: 40px; object-fit: contain; image-rendering: auto; filter: drop-shadow(0 2px 6px rgba(0,0,0,0.5)); }
-.panel-head .p-icon .p-glyph { font-size: 22px; color: var(--gold); opacity: 0.85; }
+.panel-head .p-icon .p-glyph { width: 100%; height: 100%; font-size: 22px; color: var(--gold); opacity: 0.85; }
 .p-titlebox { flex: 1; min-width: 0; }
 .p-title-row { display: flex; align-items: flex-start; gap: 7px; }
 .p-title {
@@ -223,9 +223,17 @@ body.path-arming #panelBody { pointer-events: none; }
 .recipe-unlock.needs { color: var(--ember); }
 .recipe-unlock.needs::after { content: '✗'; font-weight: 800; }
 
-.p-actions { display: flex; gap: 8px; margin-top: 2px; }
+/* action rows. Four highlight buttons + Isolate + its two controls on one line
+   ran ~200px past the panel's right edge, so the row wraps and the isolate
+   group is its own row: the button takes the space left over, the depth box and
+   the direction select keep their width beside it (the user asked for exactly
+   that split — isolate next to the number to isolate). */
+.p-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 2px; }
+.p-actions-iso #isoDepth { flex: 0 0 auto; width: 74px; }
+.p-actions-iso #isoDir { flex: 0 0 auto; width: 104px; }
+.p-actions-iso .btn { flex: 1 1 96px; }
 .btn {
-  flex: 1; padding: 8px 10px; text-align: center;
+  flex: 1 1 auto; padding: 8px 10px; text-align: center; white-space: nowrap;
   background: var(--bg2); border: 1px solid var(--line); border-radius: 8px;
   color: var(--muted); font-size: 12.5px; font-weight: 700; letter-spacing: 0.04em;
   cursor: pointer; transition: all 0.15s;
@@ -237,6 +245,19 @@ body.path-arming #panelBody { pointer-events: none; }
 }
 .btn.primary:hover { background: linear-gradient(180deg, rgba(226, 185, 92, 0.3), rgba(226, 185, 92, 0.12)); }
 
+/* the ☆ that marks a chip or row owned (see addOwnStars in src/app.js) — one
+   star per ownable thing, wherever the panel lists it */
+.own-star {
+  flex: none; margin-left: auto; width: 20px; height: 20px; padding: 0;
+  display: grid; place-items: center; line-height: 1; font-size: 13px;
+  background: none; border: 1px solid transparent; border-radius: 6px;
+  color: var(--faint); cursor: pointer;
+  transition: color 0.15s, background 0.15s, border-color 0.15s;
+}
+.own-star:hover { color: var(--gold-bright); border-color: var(--gold-dim); background: var(--bg1); }
+.own-star.on { color: var(--gold-bright); }
+.found-row.owned .fr, .used-row.owned .un { color: var(--teal); }
+
 /* used-in rows */
 .used-row { display: flex; align-items: center; gap: 8px; padding: 4px 6px; border-radius: 7px; cursor: pointer; }
 .used-row:hover { background: var(--gold-faint); }
@@ -246,15 +267,32 @@ body.path-arming #panelBody { pointer-events: none; }
 .used-row .uout { color: var(--gold); font-size: 11.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 40%; }
 
 /* found-in rows (P4-1): region → gather method + tool */
-.found-row { display: flex; align-items: center; gap: 8px; padding: 4px 6px; border-radius: 7px; }
+/* one icon column, always the same width, whether the icon is a file or the
+   kind rune that stands in for one — the rune used to be width:100% inline,
+   which swallowed the row and pushed the name column off to the right.
+   The column is deliberately tight (18px + a 6px gap): at 22px + 8px a short
+   name left a hole of empty pixels around the icon. The name is one FIXED
+   118px column that ellipsises instead of growing, so the method column starts
+   at the same x on every row — that is the alignment. (It used to be min-width:
+   118px, which let a long region name push its own method text out of line.) */
+.found-row { display: flex; align-items: center; gap: 6px; padding: 4px 6px; border-radius: 7px; }
 .found-row.fi-jump { cursor: pointer; }
 .found-row.fi-jump:hover { background: var(--gold-faint); }
-.found-row img { width: 22px; height: 22px; object-fit: contain; }
-.found-row .fi-pin { color: var(--faint); width: 22px; text-align: center; }
-.found-row .fr { flex: none; font-size: 13px; min-width: 118px; }
+.found-row img { width: 18px; height: 18px; object-fit: contain; flex: none; }
+.found-row .fi-pin { color: var(--faint); width: 18px; flex: none; text-align: center; }
+.found-row .fr { flex: 0 1 118px; min-width: 0; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .found-row .fw { flex: 1; min-width: 0; color: var(--muted); font-size: 12px; }
 .found-row .fi-way b.fi-tool { color: var(--gold); font-weight: 600; }
 .found-row .fi-or { color: var(--faint); }
+
+/* the kind rune that stands in for a node with no icon file — one size per
+   container, so its column is exactly as wide as an <img> would have been */
+.p-glyph { display: grid; place-items: center; flex: none; color: var(--muted); }
+.found-row .p-glyph { width: 18px; height: 18px; font-size: 13px; }
+.used-row .p-glyph { width: 22px; height: 22px; font-size: 14px; }
+.mat .p-glyph { width: 20px; height: 20px; font-size: 12px; }
+.wp-step .p-glyph { width: 20px; height: 20px; font-size: 12px; }
+.recipe-unlock .p-glyph { width: 16px; height: 16px; font-size: 11px; color: inherit; }
 
 /* skill unlock rows */
 .unlock-row { display: flex; gap: 10px; align-items: baseline; padding: 3px 0; font-size: 13px; }

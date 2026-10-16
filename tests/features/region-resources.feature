@@ -88,6 +88,18 @@ Feature: Reading what a region holds off its own wiki page
     When the page's links are resolved for "Temple Woods"
     Then "Temple Woods" holds "Ash Tree" with the methods "mined,chopped"
 
+  Scenario: A page with no Resources heading is a stub, a page we could not read is unknown
+    Given a region page with no Resources section
+    When the canonical regions are split by their pages
+    Then the stub pages are "Temple Woods"
+    And the unknown pages are "The Burning Spire"
+
+  Scenario: A page that has the heading is never a stub, however little it resolves
+    Given a region page whose "Other" section lists "[[Sanguine Urn]]"
+    When the canonical regions are split by their pages
+    Then the stub pages are ""
+    And the unknown pages are ""
+
   Scenario: Two regions keep their own members
     Given a region page whose "Trees" section lists "[[Ash tree]]"
     When the page's links are resolved for "Temple Woods"

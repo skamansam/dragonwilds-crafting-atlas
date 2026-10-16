@@ -58,12 +58,15 @@ The exports bundle turns the atlas into a [Cytoscape Desktop](https://cytoscape.
   columns), `spell` (cast cost), `skill-gate` (unlock ladder), `region` (found-here spoke),
   `quest` (region → quest → reward) and `mount` (quest → mount unlock) — so the edge kinds
   can be styled or filtered independently.
-- **Region hubs** ship as their own node class: twenty-seven `kind=region` nodes — one per
-  Ashenfall division or territory that the wiki places an item in (`found-in.js`, mined from
-  the item pages' prose), lists resources for (`region-resources.js`, mined from the region
-  pages' own `==Resources==` sections) or sets a quest in — joined to member items by
-  green-dashed `region` edges. Each hub carries a **foundHere** column listing everything the
-  wiki places there with the gather method ("Ash Tree (chopped); …") and a **questsHere**
+- **Region hubs** ship as their own node class: all thirty-four `kind=region` nodes — every
+  division and territory the Ashenfall page names, whether the wiki places an item in it
+  (`found-in.js`, mined from the item pages' prose), lists resources for it
+  (`region-resources.js`, mined from the region pages' own `==Resources==` sections) or sets a
+  quest in it — joined to member items by green-dashed `region` edges. A region the wiki has
+  written nothing for yet still gets a hub, and its codex says why it is empty rather than
+  showing a blank list (`region-resources.js`'s `stubs` names the pages with no
+  `==Resources==` heading at all). Each hub carries a **foundHere** column listing everything
+  the wiki places there with the gather method ("Ash Tree (chopped); …") and a **questsHere**
   column. They are map aids, not crafting steps — filter them out with `kind ≠ region` for
   pure recipe analysis.
 - **Quests and mounts** are nodes too: 37 `kind=quest` nodes (gold octagons) with their
@@ -217,7 +220,8 @@ unrelated params such as `?tour=robes` are preserved. The parameter list lives i
   wiki names one (e.g. Ash Tree → Bramblemead Valley, chopped with a logging axe). Mined from
   the wiki's location prose; 575 items annotated. Raw gatherables show it alongside the recipes.
   **Click a region row to jump to the region hub** on the map — a green pseudo-node listing
-  everything the wiki places there. Region hubs are map aids, not crafting steps: recipes,
+  everything the wiki places there (or, for one the wiki has no resource list for yet, saying
+  exactly that). Region hubs are map aids, not crafting steps: recipes,
   plans and exports ignore them, their green spokes start hidden (**legend → LINKS →
   Region links** turns them on), and the hubs stay quiet until then. Regions are searchable too.
 - **Quests & mounts** (the map's third layer, on by default): every quest on the wiki's
@@ -242,7 +246,10 @@ unrelated params such as `?tour=robes` are preserved. The parameter list lives i
   (start hidden on a fresh browser; choices persist), **Region links** (hidden) and
   **Quest links** (on — gold region → quest → reward spokes plus the violet quest → mount
   unlocks); then **↺ All — reset view** back to the calm first-load state. The old header
-  kind/link chips are retired (hidden, still scriptable).
+  kind/link chips are retired (hidden, still scriptable). **On a phone** (720px and below,
+  where the pinned legend would eat the screen) the same legend opens from the header's
+  **◈ Layers** button as a scrolling sheet — that button is the one door to the link layers
+  there, since Region links start hidden.
 
 ### Characters
 
@@ -320,6 +327,39 @@ unrelated params such as `?tour=robes` are preserved. The parameter list lives i
 - **No-op detection**: algorithms that need a rooted/tree subgraph (e.g. elk radial) tell you
   so instead of silently doing nothing — isolate a subtree first, or pick another layout.
 
+### Agents — the atlas as WebMCP tools
+
+An AI agent that lands on the atlas can either scrape the DOM and guess which button
+means "what do I need for an Iron Sword", or call a tool that says exactly that.
+[WebMCP](https://developer.chrome.com/docs/ai/webmcp) is Chrome's proposed standard for
+the second option, and the atlas registers **13 tools** through it — plain names,
+JSON-Schema inputs, real answers, all of them thin wrappers over what the buttons already
+do, so a tool and a click can never disagree:
+
+| Tool | Answers |
+|---|---|
+| `atlas_search_items` | Find any item, station, skill, region, quest or mount by partial name |
+| `atlas_get_item` | One node's codex: recipes, station, skill gate, what it makes, where it's found, owned |
+| `atlas_get_plan` | What to gather, build and train — from nothing, or from the owned ledger |
+| `atlas_find_path` | The shortest crafting route between two nodes |
+| `atlas_get_region` | What a region or territory holds, and the quests set in it |
+| `atlas_get_quest` | A quest's region, where to start, rewards and the mounts it unlocks |
+| `atlas_get_owned` | The user's owned-item ledger |
+| `atlas_get_state` | What the user is looking at: selection, isolation, highlight, filters |
+| `atlas_focus_item` | Open a node's codex and centre the map on it |
+| `atlas_isolate_tree` | Collapse the map to one item's crafting tree |
+| `atlas_highlight_links` | Highlight what an item is made from / made by, one level per call |
+| `atlas_set_owned` | Mark an item owned or unmark it |
+| `atlas_set_filters` | Show/hide node kinds, link layers and dead ends |
+
+It is a **progressive enhancement**: the tools exist only where the browser has
+`document.modelContext`, so nothing loads, no DOM changes and no permission is asked for
+anywhere else. To try it: Chrome with `chrome://flags/#enable-webmcp-testing` enabled
+(or the origin trial), plus a WebMCP-capable agent such as the [Model Context Tool
+Inspector](https://developer.chrome.com/docs/ai/webmcp) extension. The tool set is also
+reachable from the console — `window.DW_WEBMCP.execute('atlas_get_plan', { item: 'Iron
+Sword' })` — which is how the acceptance suite drives every one of them.
+
 ### Keyboard
 
 | Key | Action |
@@ -357,7 +397,7 @@ node scripts/parse-wiki.mjs        # infoboxes + Recipe templates → cache/pars
 node scripts/fetch-icons.mjs       # resolve icon URLs → cache/icons/manifest.json
 node scripts/build-data.mjs        # nodes/edges/recipes/spells/skills → public/data.js + public/data.json (fetch-icon-files rewrites both with local icon paths)
 node scripts/build-found-in.mjs    # location prose in cache/raw → public/found-in.js
-node scripts/build-region-resources.mjs  # each region page's ==Resources== section → public/region-resources.js (fetch-page.mjs pulls any page the cache lacks)
+node scripts/build-region-resources.mjs  # each region page's ==Resources== section → public/region-resources.js (fetch-page.mjs pulls any page the cache lacks); --check compares the committed overlay with the live wiki and exits 1 on drift (the CI deploy runs it)
 node scripts/build-quests.mjs      # the wiki's Quests page → public/quests.js (fetch-page.mjs pulls the page on demand)
 node scripts/build-mounts.mjs      # the wiki's Mount page → public/mounts.js (needs quests.js first)
 node scripts/build-exports.mjs     # public/data.js → data.cyjs + data.graphml + atlas-style.xml
@@ -410,6 +450,12 @@ URL graph options, console cleanliness); `scripts/test-ui.mjs` adds a `route`
 section for the hash deep links (selection, path, in-place hash edits, unknown
 slugs) and an `options` section for the query params (each param, no persistence,
 live URL sync, isolation on load, foreign-param preservation, bad values).
+Its `panelcodex` section pins the codex panel's own behaviour (each node kind's button
+vocabulary, the owned ☆ on every listed item, found-in alignment, no action row wider
+than the panel, and Isolate/highlight re-arranging and refitting the map to what they
+show) and its `webmcp` section drives the agent tools: it stubs `document.modelContext`
+the way Chrome exposes it, checks all 13 register with a schema and safety hints, and
+executes each one against the live app.
 
 ### Location checklists — the hand-annotation loop
 

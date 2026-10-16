@@ -144,7 +144,7 @@ skill level for each base node.
     and how to get it, so 20 mount nodes entered the dataset ({{Infobox Mount}}) and 21 mounts
     carry a quest-requirement + acquisition line, wired quest -> mount. Both layers are ON by
     default (the new 'Quest links' legend row is the first link layer that ships enabled).
-    
+
 [x] We need to add an agents.md file. We need to add bits about good development style:
     → DONE (2026-10-11): **AGENTS.md** at the repo root — naming (semantic full-word
     names, no single letters outside a single-line lambda), self-documenting code
@@ -178,3 +178,90 @@ skill level for each base node.
     an item both sources know shows both gather verbs, and data.cyjs/data.graphml carry the
     same links. Update with: node scripts/build-region-resources.mjs (--offline skips the
     network; see CONTRIBUTOR-DATA.md step 7b).
+    → FOLLOW-UP (2026-10-15): every one of the 34 canonical regions is a hub now, not just
+    the 27 either source or a quest named. The 11 pages with no ==Resources== heading are
+    named in the overlay as `stubs`, so an empty hub's codex says *the wiki has not written
+    that page yet* instead of showing a blank list (a page that merely resolves to nothing is
+    never claimed as one); the exports carry the same 34 hubs (2,123 nodes) and check-sources
+    mirrors the full list. The deploy workflow now runs
+    `node scripts/build-region-resources.mjs --check` before building, so a wiki page that
+    gains a resource list fails the deploy instead of shipping a stale overlay. And a phone
+    (≤720px) can reach the legend at all: the header's new ◈ button opens it as a sheet,
+    which is the only door to the Region/Quest link rows there.
+
+[x] When using the buttons in the item panel (isolate node, etc.), the graph does not recalculate.
+
+    → DONE (2026-10-15): the panel's own buttons are explicit requests, so they now recompute the
+    shown graph whatever the "re-layout on graph change" option says (that option governs reflows
+    nobody asked for — filters, possessions; the header's layout select always worked this way).
+    isolateTree() arranged nothing before, and the requires/enables buttons wrote their .hidden
+    classes straight to the graph with no re-schedule, so an isolated tree stayed in full-map
+    coordinates. The layout runs a beat after the click, because visibleOnly reads ':visible',
+    which the style pass applies after the class writes. Covered by the new `panelcodex`
+    acceptance section (44 of 44 isolated nodes move), and the pinned `layouts` checks now
+    assert the split: a filter change does NOT reflow with the option off, the Isolate button does.
+[x] in the region node panel, there should be the mark as owned icon so we keep track of the items we have found easier. This should also be done for all the items in all the node panels, including things in the chips in the "waht you need" section.
+
+    → DONE (2026-10-15): one ☆/★ toggle on every ownable thing a panel lists — the region hub's
+    found-in rows, the plan's Gather/Build/Train and critical-chain chips, direct materials,
+    recipe inputs and unlock items, used-to-make rows, quest rewards. Regions, quests, skills and
+    spells are map context and never get one. The star swallows its own click, so the row still
+    jumps to the item it names (`panelcodex` checks both), and a chip wears the same teal
+    "you have it" tint the plan already used.
+[x] the region node panel should have the same buttons for exploration as the others, but only for outgoing links
+
+    → DONE (2026-10-15): the region codex gets the same two-step as an item — **Contains ⤴** (its
+    gatherables and its quests), **Step back**, **Reset** — and no upstream button, because nothing
+    contains a region. What changed is that the words now come from one vocabulary table per node
+    kind, and the quest and mount codexes get the same rows instead of none (a quest is set in
+    regions and rewards items; a mount needs quests).
+[x] the buttons in the node panel overflow the panel. they should probably be stacked instead of side by side. The isolate button should be int eh same row as the number to isolate though
+
+    → DONE (2026-10-15): the action block is stacked rows — the highlight two-step with Step back
+    and Reset, then Isolate beside the depth box and the direction select (the two keep their
+    width, the button takes what is left), then the wiki link. Measured with scrollWidth vs
+    clientWidth at 1600/420/360px: no row is wider than the panel it lives in (`panelcodex`
+    asserts exactly that at all three widths).
+[x] when recacluating the layout, the canvas should automatically zoom in or out so the nodes fill the view.
+
+    → DONE (2026-10-15): every layout completion fits the SHOWN nodes (`fitVisible()` =
+    `cy.fit(cy.elements(':visible'))`), never the whole model — an isolated 44-node tree used to be
+    framed together with the other 2,079 (zoom 0.018, a speck). The one place that still fitted the
+    model was the highlight's own refit; it is gone. A reflow that nothing changed shape for does
+    not fit at all, so a highlight click on the full map no longer yanks the zoom.
+[x] we really need to find another term for the enables/requires buttons. I think they should be different per type. For regions, should be contains/contained by, for other items should be makes/made from, and others maybe makes/found in, and so on. These button should make sense for the node itself or maybe just node types. We don't have to worry about the nodes that are two or more steps away, just the immediate ones. Users should see what teh buttons are doing.
+
+    → DONE (2026-10-15): HIGHLIGHT_WORDS names the two directions per node kind — items **Made
+    from ⤵** / **Makes ⤴**, regions **Contains ⤴** (no upstream), quests **Set in ⤵** / **Rewards ⤴**,
+    mounts **Needs ⤵** (no downstream) — and the same table supplies the button tooltips, the
+    isolate direction option ("contains", "set in + 1 reward", "needs"), the Isolate label
+    ("Isolate what it holds" / "its region and rewards" / "its quests") and the toasts
+    ("Bleakfields Valley · contains level 1: +17 nodes"). A kind with only one direction renders
+    only that button, so nothing reads "null". Ids, the walk and the persisted highlight are
+    untouched — this is copy, in the one place that renders it.
+[x] The found in sections in the node panels are not aligned properly. There is way too much space around the icon
+
+    → DONE (2026-10-15): the icon column is tight (18px + a 6px gap, was 22px + 8px) and the name is
+    one FIXED 118px column that ellipsises instead of growing, so the method column starts at the
+    same x on every row — that is the alignment (it used to be min-width: 118px, which let a long
+    region name push its own method text out of line). `panelcodex` measures it: every row reports
+    one icon width, one gap and one name-column offset.
+[x] we need to add support for webmcp so it is easy for agents to use our site. see https://developer.chrome.com/docs/ai/webmcp on how to implement this feature.
+
+    → DONE (2026-10-15): src/webmcp.js registers **13 tools** through
+    `document.modelContext.registerTool` exactly as the imperative API documents them — name,
+    description, an `inputSchema` in JSON Schema and safety `annotations` (`readOnlyHint` true for
+    the eight that read, false for the five that move the view or the ledger): atlas_search_items,
+    atlas_get_item, atlas_get_plan, atlas_find_path, atlas_get_region, atlas_get_quest,
+    atlas_get_owned, atlas_get_state, atlas_focus_item, atlas_isolate_tree, atlas_highlight_links,
+    atlas_set_owned, atlas_set_filters. Every tool is an adapter over the app's own machinery (the
+    panel's plan, the path BFS, the highlight walk, the legend rows' clicks), injected by
+    `initWebMcp()` — no second implementation, so a tool and a click cannot disagree. Progressive
+    enhancement: without the API nothing registers, the DOM is untouched and `window.DW_WEBMCP`
+    still carries the tool set for the console and the harness. The new `webmcp` acceptance section
+    stubs `document.modelContext` the way Chrome exposes it, asserts all 13 register with a schema
+    and safety hints, then executes each one against the live app (a codex read, a plan, a route, a
+    region, an unknown name, and every state-changing tool verified on the map/legend/ledger rather
+    than on its own return value). Documented for agents in public/llms.txt, for users in README.md
+    and for contributors in CONTRIBUTOR.md.
+

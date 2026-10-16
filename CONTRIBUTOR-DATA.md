@@ -55,7 +55,7 @@ re-scrape, which re-litigates rows someone already checked in game.
 | `public/data.js` | ✅ | **What the site loads.** `window.DW_DATA = {…}` — the authoritative shipped dataset |
 | `public/data.json` | ✅ | The same dataset as strict JSON (scripts, desktop tools, tests) |
 | `public/found-in.js` | ✅ | `window.DW_FOUND_IN` — region / gather-method / tool annotations, mined from the **item** pages |
-| `public/region-resources.js` | ✅ | `window.DW_REGION_RESOURCES` — what each region and territory holds, mined from the **place** pages' own `==Resources==` sections |
+| `public/region-resources.js` | ✅ | `window.DW_REGION_RESOURCES` — what each region and territory holds, mined from the **place** pages' own `==Resources==` sections, plus a `stubs` list naming the pages with no `==Resources==` heading yet (so an empty hub's codex can say why) |
 | `public/quests.js` | ✅ | `window.DW_QUESTS` — the quest layer (type, region, "Where to Start", reward items) |
 | `public/mounts.js` | ✅ | `window.DW_MOUNTS` — per mount its base type, unlocking quests, acquisition line and lore |
 | `public/data.cyjs`, `public/data.graphml`, `public/atlas-style.xml` | ✅ | Cytoscape Desktop export bundle |
@@ -116,10 +116,18 @@ Conventions that matter:
 - **A region hub reads two overlays.** `found-in.js` answers "where is this item
   found?" from the item pages; `region-resources.js` answers "what does this
   place hold?" from the region pages' own `==Resources==` sections. The app
-  unions them per hub (an item both name carries both gather methods), and a hub
-  exists as soon as *either* source — or a quest — names the region, which is why
-  a territory no item page mentions still appears. The two generators read the
-  same `cache/raw/` and neither writes `data.json`.
+  unions them per hub (an item both name carries both gather methods), which is
+  why a territory no item page mentions still appears. The two generators read
+  the same `cache/raw/` and neither writes `data.json`.
+- **Every canonical region is a hub**, `src/regions.js`'s list being the whole
+  set (32 place names plus the 2 quest-only regions the Quests page uses):
+  members, quests or neither. A region the wiki has written nothing for yet is a real node with an
+  empty codex — `region-resources.js`'s **`stubs`** is what lets that codex say
+  *the page has no `==Resources==` section yet* instead of showing a blank list;
+  a page we could not read is reported by the generator but never claimed as a
+  stub. The hub's description, the exports (`foundHere: null`) and the snapshot
+  fallback (empty hubs get a row under the map, since they have no centroid to
+  borrow) all follow the same rule.
 - **The quest layer pairs with mounts.** `quests.js` supplies region → quest →
   reward; `mounts.js` supplies quest → mount (the Mount page's Requirements
   column) plus how each mount is obtained. `build-mounts.mjs` reads
@@ -436,7 +444,7 @@ Needs internet. Run in order; each step reads the previous step's cache.
 | 5 | `node scripts/build-data.mjs` | **`public/data.js` + `public/data.json`** + `cache/final-dataset.json` — deduped recipes, canonical nodes, edges, `skillLevelForItem`, `generatedAt` |
 | 6 | `node scripts/fetch-icon-files.mjs` | downloads icons into `public/icons/` and rewrites the icon fields in `data.js`/`data.json` to local paths |
 | 7 | `node scripts/build-found-in.mjs` | `public/found-in.js` — the region/gather annotations, mined from the item pages' prose |
-| 7b | `node scripts/build-region-resources.mjs` | `public/region-resources.js` — every region and territory page's `==Resources==` list (cached pages only, plus one polite fetch per title the cache cannot resolve, remembered in `cache/redirects.json`; `--offline` skips the network) |
+| 7b | `node scripts/build-region-resources.mjs` | `public/region-resources.js` — every region and territory page's `==Resources==` list (cached pages only, plus one polite fetch per title the cache cannot resolve, remembered in `cache/redirects.json`; `--offline` skips the network). `--check` writes nothing, re-mines the wiki and exits 1 when the committed overlay no longer matches it — the deploy workflow runs that before building, so this file cannot go stale; pages the run could not fetch are reported as unjudged rather than as drift |
 | 8 | `node scripts/build-quests.mjs` | `public/quests.js` — the Quests page parsed into quest records (fetched on demand through `scripts/fetch-page.mjs`; `--refresh` re-pulls it) |
 | 9 | `node scripts/build-mounts.mjs` | `public/mounts.js` — the Mount page parsed into per-mount requirements/acquisition (needs step 8 first; `--refresh` re-pulls it) |
 | 10 | `node scripts/build-exports.mjs` | `public/data.cyjs`, `public/data.graphml`, `public/atlas-style.xml` (incl. the quest nodes, `interaction: quest \| mount`) |

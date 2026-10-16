@@ -27,10 +27,34 @@ let ctx = {
   lgSyncKind: () => {},
   applyCategoryVisibility: () => {},
   updateReadout: () => {},
+  scheduleReflow: () => {},
+  autoRelayoutOn: () => false,
+  layoutShown: () => {},
   fitSoon: () => {},
+  fitVisible: () => {},
   toast: () => {},
 };
 export function initHighlight(c) { ctx = c; }
+
+/** The shown graph just changed shape — recompute on what is visible now, and
+ *  frame it.
+ *
+ *  The old code did this with one line — `cy.fit(undefined, 70)` — which framed
+ *  the whole MODEL, every hidden node included: a 44-node isolation was zoomed
+ *  out to 0.018 to fit the other 2,079. It also wrote the visibility classes
+ *  straight to the graph with no re-schedule at all, so the panel's buttons
+ *  visibly changed nothing (the TODO's "the graph does not recalculate"). With
+ *  "re-layout on graph change" ON the reflow fits at layoutstop itself, so a fit
+ *  happens here only when the option is off and nothing else is going to. */
+function reflowAndFrame(hiddenBefore) {
+  if (ctx.cy.nodes('.hidden').length === hiddenBefore) return; // nothing changed shape
+  ctx.scheduleReflow(); // the automatic path, which honours "re-layout on graph change"
+  // with that option off the click must still arrange — and frame — what it just
+  // showed, because these are buttons the user pressed, not a reflow nobody asked
+  // for. Deferred a beat: the reflow reads ':visible', which the style pass has
+  // not applied yet inside this tick.
+  if (!ctx.autoRelayoutOn()) setTimeout(() => { ctx.layoutShown(); ctx.fitVisible(60); }, 60);
+}
 
 /* ── P21/P22: progressive requires/enables — the buttons GROW the visible tree ── */
 // Old behaviour highlighted a full upstream/downstream closure; after an
@@ -51,6 +75,16 @@ let highlightId = null;
 export function highlightActive() { return highlightId !== null; }
 // a highlight is anchored on a node (the tap guard reads this)
 export function hasHighlight() { return highlightRoot !== null; }
+
+/** One line describing the active highlight, for callers outside this module
+ *  (the WebMCP state tool). Null when nothing is highlighted.
+ *  @returns {string|null} */
+export function highlightSummary() {
+  if (highlightId === null) return null;
+  const anchor = ctx.nodeById.get(highlightRoot);
+  const name = (anchor && anchor.name) || highlightRoot;
+  return `${name} — ${highlightDir === 'down' ? 'enables' : 'requires'}, ${highlightLevels.size - 1} nodes over ${highlightDepth} level${highlightDepth === 1 ? '' : 's'}`;
+}
 export function resetHighlightState() {
   highlightRoot = null; highlightDir = null; highlightLevels = new Map(); highlightDepth = 0;
   highlightGrewFromIso = false;
@@ -74,10 +108,16 @@ function expandHighlight(id, dir) {
   // Skill-gate spokes (skill → everything it unlocks, same D.edges list as
   // recipe edges) must not join the walk: a Requires walk would otherwise
   // explode into a skill's ~200 unlock edges instead of recipe ingredients.
+  // A region, quest or mount has nothing to say in recipe terms: its whole
+  // neighbourhood is its own spokes, one hop wide (a region contains its
+  // members, a quest rewards its items). Walking recipe edges on from there
+  // would drag in things two steps away, which is not what "contains" means.
+  const walkRecipes = !(ctx.spokeOnly && ctx.spokeOnly(highlightRoot));
   const next = [];
   for (const [nid, d] of highlightLevels) {
     if (d !== highlightDepth) continue;
     for (const e of D.edges) {
+      if (!walkRecipes) break;
       const nb = dir === 'down' ? (e.from === nid ? e.to : null)
                                 : (e.to === nid ? e.from : null);
       if (nb === null || highlightLevels.has(nb)) continue;
@@ -96,8 +136,19 @@ function expandHighlight(id, dir) {
       }
       highlightLevels.set(nb, d + 1); next.push(nb);
     }
+    // Story-layer spokes are NOT recipe edges: a region's members, a quest's
+    // rewards and a mount's quests live in the overlays, so they are not in
+    // D.edges and the walk above never sees them. The app supplies them
+    // (ctx.spokeNeighbours) and they join at the same depth an edge would.
+    for (const nb of (ctx.spokeNeighbours ? ctx.spokeNeighbours(nid, dir) : [])) {
+      if (highlightLevels.has(nb) || !ctx.nodeById.get(nb)) continue;
+      highlightLevels.set(nb, d + 1); next.push(nb);
+    }
   }
   if (!next.length) {
+    // the sentence is the app's (it knows the node's kind and therefore whether
+    // "ingredient" or "what it holds" is the truth); this file only walks
+    if (ctx.hlNothing) { ctx.toast(ctx.hlNothing(dir, id)); return; }
     const other = dir === 'down' ? 'Requires' : 'Enables';
     ctx.toast(dir === 'down'
       ? `Nothing further downstream — everything ${ctx.nodeById.get(id).name} leads to is shown. Use ${other} to expand what these are made from.`
@@ -158,9 +209,9 @@ function expandHighlight(id, dir) {
       }
     });
   });
-  if (reAnchored && grewFromIso) setTimeout(() => ctx.cy.fit(undefined, 70), 60);
+  reflowAndFrame(preHiddenIds.size);
   ctx.updateReadout();
-  const dirLabel = dir === 'down' ? 'enables' : 'requires';
+  const dirLabel = ctx.hlDirWord ? ctx.hlDirWord(dir, id) : (dir === 'down' ? 'enables' : 'requires');
   ctx.toast(`${ctx.nodeById.get(id).name} · ${dirLabel} level ${highlightDepth}: +${next.length} nodes · ${highlightLevels.size - 1} total shown — click again to expand further`);
   saveHighlight();
 }
@@ -242,8 +293,11 @@ export function stepBackHighlight() {
       }
     });
   });
+  reflowAndFrame(preHiddenIds.size);
   ctx.updateReadout();
-  const dirLabel = highlightDir === 'down' ? 'enables' : 'requires';
+  const dirLabel = ctx.hlDirWord
+    ? ctx.hlDirWord(highlightDir, highlightRoot)
+    : (highlightDir === 'down' ? 'enables' : 'requires');
   ctx.toast(`${ctx.nodeById.get(highlightRoot).name} · ${dirLabel} level ${highlightDepth} — ${highlightLevels.size - 1} total shown`);
   saveHighlight();
 }

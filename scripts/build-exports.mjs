@@ -159,13 +159,25 @@ for (const n of nodes) {
 // member items sorted. Hubs sit at the centroid of their laid-out members.
 // Full Ashenfall location list (dragonwilds wiki page order) — imported from
 // src/regions.js so the app, this exporter and the found-in generator share one
-// definition. Exports only emit hubs for regions that actually appear in
-// found-in data, so new locations light up as they are annotated.
+// definition. Every canonical region is emitted, matching the app: one the wiki
+// has nothing for yet gets a hub with no members and a description that says so,
+// rather than being invisible until someone annotates it.
 const METHOD_LABEL = {
   mined: 'mined', chopped: 'chopped', picked: 'picked', farmed: 'farmed',
   caught: 'fished', drops: 'drops', chest: 'in chests', dungeon: 'in dungeons', other: 'found',
 };
 const posById = new Map(nodes.map(n => [n.data.id, n.position]));
+// the laid-out data map's bounds: an empty hub has no member centroid to borrow,
+// and left at the origin they would all pile up on the map, so they get a row of
+// their own underneath it (the same answer the app's snapshot fallback gives)
+let mapMinX = Infinity, mapMaxX = -Infinity, mapMinY = Infinity, mapMaxY = -Infinity;
+for (const p of posById.values()) {
+  if (p.x < mapMinX) mapMinX = p.x;
+  if (p.x > mapMaxX) mapMaxX = p.x;
+  if (p.y < mapMinY) mapMinY = p.y;
+  if (p.y > mapMaxY) mapMaxY = p.y;
+}
+const emptyRowY = Math.round(mapMaxY + Math.max(100, (mapMaxY - mapMinY) * 0.04));
 const regionMembers = new Map(); // region -> Map(item -> Set(method))
 for (const [item, list] of Object.entries(FI || {})) {
   for (const f of list) {
@@ -205,23 +217,31 @@ for (const name of ((Q && Q.order) || [])) {
     regionQuests.get(r).push(name);
   }
 }
+// the regions with nothing at all — no members and no quests: they have no
+// centroid to sit at, so they share the row under the map, evenly spread
+const emptyRegions = CANON_REGIONS.filter((r) =>
+  !(regionMembers.get(r) || new Map()).size && !(regionQuests.get(r) || []).length);
+const emptyStep = emptyRegions.length ? (mapMaxX - mapMinX) / (emptyRegions.length + 1) : 0;
 const hubPos = new Map(); // region -> position (for seeding its quests)
 let loneHub = 0;
 for (const region of CANON_REGIONS) {
   const members = regionMembers.get(region) || new Map();
   const quests = regionQuests.get(region) || [];
-  if (!members.size && !quests.length) continue; // empty region → no hub (matches the app)
   const items = [...members.keys()].sort();
   let sx = 0, sy = 0;
   for (const it of items) { const p = posById.get(it); sx += p.x; sy += p.y; }
   const position = items.length
     ? { x: Math.round(sx / items.length), y: Math.round(sy / items.length) }
-    : { x: loneHub++ * 420, y: -LAYER_H * 2 }; // quest-only region — no centroid to use
+    // neither members nor quests: nothing to sit between, so onto the empty row
+    : emptyRegions.includes(region)
+      ? { x: Math.round(mapMinX + emptyStep * (emptyRegions.indexOf(region) + 1)), y: emptyRowY }
+      : { x: loneHub++ * 420, y: -LAYER_H * 2 }; // quest-only region — no centroid to use
   hubPos.set(region, position);
   posById.set(region, position);
   const bits = [];
   if (items.length) bits.push(`${items.length} found here`);
   if (quests.length) bits.push(`${quests.length} quest${quests.length > 1 ? 's' : ''}`);
+  if (!bits.length) bits.push('no resources listed yet');
   nodes.push({
     selected: false,
     data: {

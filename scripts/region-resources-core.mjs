@@ -56,6 +56,45 @@ export function linksIn(line) {
 }
 
 /**
+ * Does the page carry a ==Resources== heading at all? The generator needs this
+ * apart from the links it yields: a page with no heading is a **stub** the wiki
+ * has not written yet, which is a different fact from a page whose bullets
+ * happen to hold nothing the atlas can use, and only the first one lets the
+ * codex say why a hub is empty.
+ *
+ * @param {string} wikitext the whole page
+ * @returns {boolean}
+ */
+export const hasResourcesSection = (wikitext) =>
+	/==\s*Resources\s*==/.test(String(wikitext));
+
+/**
+ * Split the canonical regions by what their pages gave us, in display order:
+ * `stubs` are pages with no ==Resources== heading at all, `unknown` are pages
+ * the cache does not have and the network could not supply. Everything else
+ * contributed members — or had a heading whose links none of them resolved.
+ *
+ * Kept pure and separate from the generator so the Gherkin suite can check the
+ * distinction without a wiki cache: the two are reported differently (a stub is
+ * stated in the hub's codex, an unknown page never is) and only the stub is
+ * ever claimed as "the wiki has not written this yet".
+ *
+ * @param {string[]} canonRegions the canonical list, in display order
+ * @param {Map<string, string|null>} wikitextByRegion page text per region (null = no page)
+ * @returns {{ stubs: string[], unknown: string[] }}
+ */
+export function splitRegionPages(canonRegions, wikitextByRegion) {
+	const stubs = [];
+	const unknown = [];
+	for (const region of canonRegions) {
+		const wikitext = wikitextByRegion.get(region);
+		if (wikitext == null) unknown.push(region);
+		else if (!hasResourcesSection(wikitext)) stubs.push(region);
+	}
+	return { stubs, unknown };
+}
+
+/**
  * The ==Resources== section of a region page, as a flat list of link records.
  * Handles both header levels the wiki mixes (`===Nodes===` and
  * `====Loot====`), nested bullets, and the `{{*}}` separator templates that sit

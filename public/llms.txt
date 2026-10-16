@@ -35,6 +35,32 @@ address bar is kept in step as options change. All data is non-commercial
 fan content used under the
 [RuneScape Fan Content Policy](https://www.jagex.com/en-GB/legal/fan-content).
 
+## Agents (WebMCP)
+
+The page registers callable tools through [WebMCP](https://developer.chrome.com/docs/ai/webmcp)
+(`document.modelContext.registerTool`) wherever the browser exposes that API, so an agent
+can ask for an answer instead of scraping the DOM. Thirteen tools, each a thin adapter
+over what the site's own controls do:
+
+- `atlas_search_items` `{query, limit?}` — find any item, station, skill, region, quest or mount by partial name.
+- `atlas_get_item` `{item}` — one node's codex: kind, recipes (inputs, station, skill, XP), what it is used to make, where it is found, owned state.
+- `atlas_get_plan` `{item, from_owned?}` — what to gather, build and train, plus the critical chain.
+- `atlas_find_path` `{from, to}` — the shortest crafting route between two nodes, as ordered steps.
+- `atlas_get_region` `{region}` — what a region or territory holds and the quests set in it.
+- `atlas_get_quest` `{quest}` — a quest's region, where to start, rewards and the mounts it unlocks.
+- `atlas_get_owned` `{}` — the user's owned-item ledger.
+- `atlas_get_state` `{}` — the current view: selection, isolated tree, highlight, kind/link filters, layout, counts.
+- `atlas_focus_item` `{item}` — open a node's codex and centre the map on it.
+- `atlas_isolate_tree` `{item, direction?, depth?}` — collapse the map to one item's crafting tree.
+- `atlas_highlight_links` `{item, direction?, reset?}` — highlight what an item is made from or made by, one level per call.
+- `atlas_set_owned` `{item, owned}` — mark an item owned or unmark it.
+- `atlas_set_filters` `{kinds?, links?, dead_ends?}` — show or hide node kinds, link layers and dead ends.
+
+The read-only tools carry `readOnlyHint`; the five that move the view or the ledger do
+not. Without the API the site is unchanged (no tools, no extra requests). The same tool
+set is on `window.DW_WEBMCP` with an `execute(name, args)` helper, which is how the
+acceptance suite exercises every one of them.
+
 ## Data
 
 The machine-readable core of the site. `data.json` is authoritative; the graphml and
@@ -42,7 +68,7 @@ cyjs files are exports of it for desktop graph tools.
 
 - [data.json](https://rudeboy.dev/dragonwilds-crafting-atlas/data.json): the full dependency graph (~3 MB). `nodes[]` carry `id`, `name`, `kind` (material, station, tool, weapon, armour, food, drink, potion, spell, skill, trinket, ammo, resource, mount, implicit, other) and a `wiki` URL; `edges[]` run `from` (ingredient) → `to` (product) with `qty`, `facility`, `skill` and `xp` fields. The graph is a DAG except for three deliberate metal-recycling loops (Bronze/Silver/Gold Bar ⇄ Leaf); a cycle audit lives at `scripts/audit-cycles.mjs`.
 - [found-in.js](https://rudeboy.dev/dragonwilds-crafting-atlas/found-in.js): per-region gather annotations for Ashenfall's populated regions — which items are found where and how they are gathered, mined from the item pages' prose.
-- [region-resources.js](https://rudeboy.dev/dragonwilds-crafting-atlas/region-resources.js): the other direction — what each of Ashenfall's regions and territories holds, taken from the `==Resources==` section of its own wiki page (`{ region: { itemId: [gather method] } }`, `window.DW_REGION_RESOURCES`). The map unions this with found-in.js into its green region hubs.
+- [region-resources.js](https://rudeboy.dev/dragonwilds-crafting-atlas/region-resources.js): the other direction — what each of Ashenfall's regions and territories holds, taken from the `==Resources==` section of its own wiki page (`{ region: { itemId: [gather method] }, stubs: [region] }`, `window.DW_REGION_RESOURCES`; `stubs` names the pages with no `==Resources==` heading yet). The map unions this with found-in.js into its green region hubs, and every canonical region gets a hub whether or not either source names it.
 - [quests.js](https://rudeboy.dev/dragonwilds-crafting-atlas/quests.js): the quest layer — every quest on the wiki's Quests page with its type, region, "Where to Start" line and reward items (`window.DW_QUESTS`).
 - [mounts.js](https://rudeboy.dev/dragonwilds-crafting-atlas/mounts.js): the mount layer — per mount its base type, the quest(s) that unlock it, how to obtain it and its lore (`window.DW_MOUNTS`).
 - [data.graphml](https://rudeboy.dev/dragonwilds-crafting-atlas/data.graphml): the same graph as typed GraphML, importable into yEd, Gephi, NetworkX, igraph or Cytoscape.

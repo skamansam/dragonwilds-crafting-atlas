@@ -12,16 +12,27 @@
 // never touched, src/app.js folds this into the region hubs at boot):
 //   window.DW_REGION_RESOURCES = {
 //     source, generatedAt,
+//     stubs:   [region, …],            // pages with no ==Resources== heading yet
 //     regions: { [region]: { [itemId]: [method, …] } },
 //   }
+//
+// `stubs` is why a hub can be empty and say so: every canonical region gets a
+// hub (the place pages are the only source that knows most of them exist), and
+// the ones the wiki has not written a ==Resources== section for are named here
+// so the codex can say that rather than showing a blank list. A page the cache
+// does not have and the network could not supply is *unknown*, never a stub —
+// that one is reported and left out.
 //
 // A page's Resources bullets mix scenery and produce in one list ("[[Ash
 // tree]]s" beside "[[Ash logs]]"), so every link is resolved on its own and the
 // ones with no atlas node (scenery like *Crystal tree*, lore like *Sanguine
 // Urn*, the generic *Chest* pages) are reported rather than invented.
 //
-// Regenerate with:  node scripts/build-region-resources.mjs [--offline]
+// Regenerate with:  node scripts/build-region-resources.mjs [--offline] [--check]
 //   --offline  resolve only against cache/raw, never the network
+//   --check    don't write: re-mine the wiki, compare with the committed
+//              overlay and exit 1 if it no longer matches (the CI deploy gate —
+//              pages the run could not fetch are reported as unjudged, not drift)
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -31,6 +42,7 @@ import {
 	collectResources,
 	parseResources,
 	resolveNodeId,
+	splitRegionPages,
 } from "./region-resources-core.mjs";
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -41,6 +53,7 @@ const RAW = path.join(ROOT, "cache", "raw");
 // leaves no local trace and every run would have to ask again.
 const REDIRECTS = path.join(ROOT, "cache", "redirects.json");
 const offline = process.argv.includes("--offline");
+const check = process.argv.includes("--check");
 
 /* ── the two indexes resolution needs ───────────────────────────── */
 
@@ -117,21 +130,20 @@ if (fs.existsSync(REDIRECTS)) {
 	}
 }
 const perRegion = [];
-const noData = [];
+const wikitextByRegion = new Map(); // region → page text (null = the wiki has no page for it)
 for (const region of CANON_REGIONS) {
 	const page = await regionPage(region);
 	readCache(); // fetchPage may have written a new entry
-	if (!page) {
-		noData.push(region);
-		continue;
-	}
+	wikitextByRegion.set(region, page ? page.wikitext : null);
+	if (!page) continue;
 	const links = parseResources(page.wikitext);
-	if (!links.length) {
-		noData.push(region);
-		continue;
-	}
+	if (!links.length) continue;
 	perRegion.push({ region, links });
 }
+// a page with no ==Resources== heading is a stub the wiki has not written yet —
+// named in the overlay so a hub with nothing in it can say why; a page we could
+// not get hold of is unknown, and is only ever reported
+const { stubs, unknown } = splitRegionPages(CANON_REGIONS, wikitextByRegion);
 
 /* ── resolve, asking the wiki about the titles the cache cannot settle ── */
 
@@ -158,10 +170,13 @@ if (needsLookup.length && !offline) {
 		}
 	}
 	readCache();
-	const kept = Object.fromEntries(
-		[...apiResolved].sort((a, b) => a[0].localeCompare(b[0])),
-	);
-	fs.writeFileSync(REDIRECTS, `${JSON.stringify(kept, null, 2)}\n`);
+	// --check must not touch the tree, so the answers stay in memory for this run
+	if (!check) {
+		const kept = Object.fromEntries(
+			[...apiResolved].sort((a, b) => a[0].localeCompare(b[0])),
+		);
+		fs.writeFileSync(REDIRECTS, `${JSON.stringify(kept, null, 2)}\n`);
+	}
 }
 
 const { resolved, unresolved, skipped } = collectResources(
@@ -188,6 +203,7 @@ for (const region of CANON_REGIONS) {
 const out = {
 	source: "https://dragonwilds.runescape.wiki/w/Ashenfall",
 	generatedAt: new Date().toISOString(),
+	stubs,
 	regions: sorted,
 };
 
@@ -196,10 +212,70 @@ const header = `${[
 	"// region page's ==Resources== section — what is gathered where, as",
 	"// { region: { itemId: [method, …] } }. The complement of found-in.js, which",
 	"// reads the item pages instead. Overlay only: src/app.js folds it into the",
-	"// region hubs at boot, data.json is untouched.",
+	"// region hubs at boot, data.json is untouched. `stubs` names the pages with",
+	"// no ==Resources== heading yet, so an empty hub can say why it is empty.",
 	`window.DW_REGION_RESOURCES = ${JSON.stringify(out)};`,
 ].join("\n")}\n`;
-fs.writeFileSync(path.join(ROOT, "public", "region-resources.js"), header);
+
+const OVERLAY = path.join(ROOT, "public", "region-resources.js");
+
+/* ── --check: the same payload, against the committed overlay ──────
+   The overlay is committed but generated from a live wiki, so it drifts the
+   moment a region page gains a ==Resources== heading or a resource. --check
+   re-mines and compares the two payloads (generatedAt is a snapshot stamp, not
+   data) and exits 1 if they differ — the CI deploy runs it before building, so
+   a stale overlay fails there instead of shipping. A page this run could not
+   fetch is *unjudged*: listed, and skipped on both sides, so wiki downtime or a
+   rate limit can never look like drift. */
+let drifted = null;
+if (check) {
+	const committed = JSON.parse(
+		/window\.DW_REGION_RESOURCES\s*=\s*(\{[\s\S]*\});/.exec(
+			fs.readFileSync(OVERLAY, "utf8"),
+		)[1],
+	);
+	const judgeable = new Set(CANON_REGIONS.filter((r) => !unknown.includes(r)));
+	// canonical order on both sides, so the comparison is a plain string match
+	const payload = (sourceStubs, regions) =>
+		JSON.stringify({
+			stubs: [...judgeable].filter((r) => sourceStubs.includes(r)),
+			regions: Object.fromEntries(
+				[...judgeable]
+					.filter((r) => (regions[r] || null) !== null)
+					.map((r) => [r, regions[r]]),
+			),
+		});
+	const mine = payload(stubs, sorted);
+	const theirs = payload(committed.stubs || [], committed.regions || {});
+	if (mine === theirs) {
+		console.log("up to date: public/region-resources.js matches the wiki");
+	} else {
+		drifted = { mine, theirs };
+		console.log("DRIFT: public/region-resources.js no longer matches the wiki");
+		const a = JSON.parse(mine);
+		const b = JSON.parse(theirs);
+		const added = a.stubs.filter((r) => !b.stubs.includes(r));
+		const gone = b.stubs.filter((r) => !a.stubs.includes(r));
+		if (added.length) console.log(`  new stub pages: ${added.join(", ")}`);
+		if (gone.length)
+			console.log(`  pages that gained a ==Resources== section: ${gone.join(", ")}`);
+		for (const region of CANON_REGIONS) {
+			const now = Object.keys(a.regions[region] || {});
+			const was = Object.keys(b.regions[region] || {});
+			if (now.join() === was.join()) continue;
+			const plus = now.filter((i) => !was.includes(i));
+			const minus = was.filter((i) => !now.includes(i));
+			console.log(
+				`  ${region}: +${plus.length} -${minus.length}${minus.length ? ` (${minus.join(", ")})` : ""}`,
+			);
+		}
+		console.log(
+			"\n  Regenerate and commit: node scripts/build-region-resources.mjs",
+		);
+	}
+} else {
+	fs.writeFileSync(OVERLAY, header);
+}
 
 /* ── report ─────────────────────────────────────────────────────── */
 
@@ -241,11 +317,15 @@ const tally = (list) => {
 };
 
 console.log(
-	`\nwrote public/region-resources.js — ${Object.keys(sorted).length}/${CANON_REGIONS.length} regions, ${links} region→resource links (${fresh} new alongside found-in's ${existing.size})`,
+	`\n${check ? "checked" : "wrote"} public/region-resources.js — ${Object.keys(sorted).length}/${CANON_REGIONS.length} regions with resources, ${links} region→resource links (${fresh} new alongside found-in's ${existing.size})`,
 );
-if (noData.length)
+if (stubs.length)
 	console.log(
-		`no ==Resources== on the wiki (${noData.length}): ${noData.join(", ")}`,
+		`no ==Resources== on the wiki yet — stubs named in the overlay (${stubs.length}): ${stubs.join(", ")}`,
+	);
+if (unknown.length)
+	console.log(
+		`no page could be read — reported, never claimed (${unknown.length}): ${unknown.join(", ")}`,
 	);
 if (skipped.length)
 	console.log(
@@ -257,3 +337,4 @@ if (unresolved.length) {
 	);
 	console.log(`  ${tally(unresolved).join(", ")}`);
 }
+if (drifted) process.exitCode = 1;

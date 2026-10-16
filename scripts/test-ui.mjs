@@ -13,6 +13,11 @@
 // Sections:
 //   smoke    boot, search, panel content, highlight, isolate, legend filter toggle
 //   panel    owned marks, possessions mode, path-to, facility links
+//   panelcodex  the codex panel's own TODO fixes, one check each: per-kind
+//            button vocabulary, a ☆ on every listed item (region rows and the
+//            "what you need" chips too), found-in column alignment, no button
+//            row wider than the panel, and Isolate/highlight re-arranging AND
+//            refitting the map to what they show
 //   edits    in-app node data editing + the browser↔dataset diff window
 //   undo     ⚙ panel opens/persists; re-layout-off toast gains an Undo button
 //   layouts  algorithm select (in ⚙) switches layout; density buttons behave
@@ -23,10 +28,18 @@
 //            reward spokes, quest → mount unlocks, the codex and the legend rows
 //   characters  per-character graph state: the first-run prompt (incl. the
 //            attach-existing-data path), skill levels + total, switching, delete
+//   mobile   the ◈ layers door: 720px and below the pinned legend is hidden, so
+//            this button is how a phone reaches the Region/Quest link rows
+//   webmcp   the agent tools (src/webmcp.js): registered through
+//            document.modelContext.registerTool exactly as Chrome's WebMCP API
+//            documents it, then executed one by one against the live app
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
+// the canonical Ashenfall list the app builds hubs from — imported, not copied,
+// so the boot check below cannot drift from src/regions.js
+import { CANON_REGIONS } from '../src/regions.js';
 
 const REPO = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const PORT = 8491;
@@ -57,7 +70,7 @@ if (!urlArg) {
 }
 
 const only = process.argv.slice(2).filter(a => !a.startsWith('--'))[0] || null;
-const sections = ['smoke', 'panel', 'edits', 'undo', 'layouts', 'tours', 'route', 'options', 'quests', 'characters'].filter(s => !only || s === only);
+const sections = ['smoke', 'panel', 'panelcodex', 'edits', 'undo', 'layouts', 'tours', 'route', 'options', 'quests', 'characters', 'mobile', 'webmcp'].filter(s => !only || s === only);
 
 const results = [];
 let page, browser;
@@ -149,11 +162,11 @@ async function tapEmptyCanvas() {
 async function secSmoke() {
   console.log('smoke:');
   await boot();
-  // the boot graph = the dataset + the synthesized overlay: one region hub per
-  // region found-in prose, a region page's resource list OR a quest names, plus
+  // the boot graph = the dataset + the synthesized overlay: one hub per canonical
+  // region (members, quests or neither — every one the Ashenfall page names) plus
   // one node per quest. Nothing else may be invented, so every extra id must be
   // explainable.
-  const bootCnt = await page.evaluate(() => {
+  const bootCnt = await page.evaluate((canon) => {
     const dataset = new Set(window.DW_DATA.nodes.map(n => n.id));
     const synth = window.__cy.nodes().map(n => n.id()).filter(id => !dataset.has(id));
     const quests = new Set((window.DW_QUESTS && window.DW_QUESTS.order) || []);
@@ -162,16 +175,22 @@ async function secSmoke() {
       for (const f of list) if (f.region) regions.add(f.region);
     }
     for (const region of Object.keys(window.DW_REGION_RESOURCES?.regions || {})) regions.add(region);
+    for (const region of canon) regions.add(region);
     return {
       nodes: window.__cy.nodes().length, data: window.DW_DATA.nodes.length,
       synth: synth.length,
       questNodes: synth.filter(id => quests.has(id)).length,
+      hubNodes: synth.filter(id => regions.has(id)).length,
       stray: synth.filter(id => !quests.has(id) && !regions.has(id)),
     };
-  });
+  }, CANON_REGIONS);
   ok('boot: cy nodes == dataset + region hubs + quests',
     bootCnt.nodes === bootCnt.data + bootCnt.synth && bootCnt.questNodes === 37 && bootCnt.stray.length === 0,
     `${bootCnt.nodes} vs ${bootCnt.data} + ${bootCnt.synth} overlay (${bootCnt.questNodes} quests, stray: ${bootCnt.stray.join(', ') || 'none'})`);
+  // every region the Ashenfall page names is clickable, whether or not the wiki
+  // has anything to list for it — an invisible region is one nobody can find
+  ok('every canonical region has a hub', bootCnt.hubNodes === CANON_REGIONS.length,
+    `${bootCnt.hubNodes} hubs for ${CANON_REGIONS.length} canonical regions`);
 
   // the "necessarily complicated" note lives in the welcome card and in the
   // help window, and the welcome card's button opens that help
@@ -1134,12 +1153,26 @@ async function secLayouts() {
     return m ? Number(m[1].replace(/,/g, '')) : -1;
   };
   const beforeOff = await page.evaluate(countFromReadout);
+  // automatic reflows are what the option governs: toggling a kind off with it
+  // OFF must leave the arrangement exactly where it was
+  await page.evaluate(() => document.querySelector('.chip[data-cat="material"]').click());
+  await page.waitForTimeout(1200);
+  const afterFilter = await page.evaluate(countFromReadout);
+  ok('a filter change does not reflow with auto-relayout OFF', afterFilter === beforeOff,
+    `before=${beforeOff} after-filter=${afterFilter}`);
+  await page.evaluate(() => document.querySelector('.chip[data-cat="material"]').click()); // back on
+  await page.waitForTimeout(600);
+  // …but the panel's own Isolate button is an explicit request, so it recomputes
+  // either way — that is the TODO's "the graph does not recalculate" when using
+  // the panel's buttons
   await page.evaluate(() => window.isolateTree('Bread', 1));
-  await page.waitForTimeout(1500);
+  await page.waitForFunction(() => !document.getElementById('layoutInd')?.classList.contains('on'), null, { timeout: 45000, polling: 250 }).catch(() => {});
+  await page.waitForTimeout(600);
   const isoOffVisible = await page.evaluate(() => window.__cy.nodes(':visible').length);
   const afterIsolate = await page.evaluate(countFromReadout);
-  ok('isolation does not reflow with auto-relayout OFF', afterIsolate === beforeOff,
-    `before=${beforeOff} after-isolation=${afterIsolate}`);
+  ok('the panel\'s Isolate button re-arranges even with auto-relayout OFF',
+    afterIsolate === isoOffVisible && afterIsolate !== beforeOff,
+    `before=${beforeOff} after-isolation=${afterIsolate} visible=${isoOffVisible}`);
   await page.evaluate(() => {
     const sel = document.getElementById('layoutSelect');
     sel.value = 'grid'; // deterministic and instant
@@ -1762,6 +1795,48 @@ async function secQuests() {
   await clickRegionRow();
   await clearStorage(['dw.showRegionEdges']);
 
+  // clearStorage above left the app on a freshly loaded, not-yet-populated page,
+  // so boot it again before asking the graph anything
+  await boot();
+
+  // …and a region the wiki has written nothing for is still a hub, and says so.
+  // Two different empty hubs on purpose: The Burning Spire's page has no
+  // ==Resources== heading at all (so the overlay names it among `stubs`), while
+  // The Nexus has one whose only link the atlas cannot match — only the first
+  // may claim the wiki has not written the page yet.
+  const emptyHubs = await page.evaluate(() => ({
+    stubs: (window.DW_REGION_RESOURCES && window.DW_REGION_RESOURCES.stubs) || [],
+    spire: { hub: window.__cy.getElementById('The Burning Spire').nonempty(),
+      spokes: window.__cy.edges('.regionEdge').filter(e => e.data('source') === 'The Burning Spire').length },
+    nexus: { hub: window.__cy.getElementById('The Nexus').nonempty(),
+      spokes: window.__cy.edges('.regionEdge').filter(e => e.data('source') === 'The Nexus').length },
+  }));
+  ok('a region with no ==Resources== page is a hub with no spokes, named as a stub',
+    emptyHubs.spire.hub && emptyHubs.spire.spokes === 0
+    && emptyHubs.stubs.includes('The Burning Spire') && !emptyHubs.stubs.includes('The Nexus'),
+    `The Burning Spire hub=${emptyHubs.spire.hub} spokes=${emptyHubs.spire.spokes}; ${emptyHubs.stubs.length} stubs`);
+  await page.evaluate(() => window.selectNode('The Burning Spire'));
+  await page.waitForTimeout(250);
+  const spirePanel = await page.evaluate(() => ({
+    title: document.getElementById('panelTitle').textContent,
+    body: document.getElementById('panelBody').textContent,
+    rows: document.querySelectorAll('#panelBody .found-row').length,
+  }));
+  ok('an empty hub\'s codex says the wiki has not written its page yet',
+    spirePanel.title === 'The Burning Spire' && spirePanel.rows === 0
+    && /no Resources section yet/.test(spirePanel.body) && /map aids/.test(spirePanel.body),
+    spirePanel.body.replace(/\s+/g, ' ').slice(0, 120));
+  await page.evaluate(() => window.selectNode('The Nexus'));
+  await page.waitForTimeout(250);
+  const nexusPanel = await page.evaluate(() => ({
+    body: document.getElementById('panelBody').textContent,
+    rows: document.querySelectorAll('#panelBody .found-row').length,
+  }));
+  ok('an empty hub whose page does exist does not claim it does not',
+    nexusPanel.rows === 0 && /Nothing is listed for The Nexus yet/.test(nexusPanel.body)
+    && !/no Resources section/.test(nexusPanel.body),
+    nexusPanel.body.replace(/\s+/g, ' ').slice(0, 120));
+
   // the legend row toggles the whole layer (and persists the choice)
   await page.evaluate(() => window.selectNode(''));
   const clickQuestRow = () => page.evaluate(() => {
@@ -1806,12 +1881,457 @@ async function secQuests() {
     await page.evaluate(() => document.getElementById('panelTitle').textContent) === 'Bleakfields Valley');
 }
 
+// The ◈ layers door. minimap.css hides the pinned legend at 720px and below, and
+// the link rows live in it — so on a phone the ◈ button is the only way to reach
+// Region links at all. Its own context, because tap() needs touch enabled.
+async function secMobile() {
+  console.log('mobile:');
+  const phoneCtx = await browser.newContext({
+    viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true, deviceScaleFactor: 2,
+  });
+  const phone = await phoneCtx.newPage();
+  phone.on('pageerror', e => errors.push('[mobile] PAGEERROR: ' + e.message.split('\n')[0]));
+  phone.on('console', m => { if (m.type() === 'error') errors.push('[mobile] CONSOLE: ' + m.text().split('\n')[0]); });
+  const phoneBoot = async () => {
+    await phone.goto(`${BASE}/`, { waitUntil: 'domcontentloaded', timeout: 60000 });
+    await phone.evaluate(() => localStorage.setItem('dw.charPrompted', '1'));
+    await phone.evaluate(() => localStorage.removeItem('dw.showRegionEdges'));
+    await phone.reload({ waitUntil: 'domcontentloaded' });
+    await phone.waitForFunction(() => window.__cy && window.__cy.nodes().length, null, { timeout: 120000 });
+    await phone.waitForTimeout(900);
+  };
+  await phoneBoot();
+
+  const shut = await phone.evaluate(() => {
+    const btn = document.getElementById('legendBtn');
+    const r = btn.getBoundingClientRect();
+    return {
+      btn: r.width > 0 && r.height > 0 && r.right <= innerWidth + 0.5,
+      pinned: document.getElementById('legend').getBoundingClientRect().width > 0,
+      aria: btn.getAttribute('aria-expanded'),
+    };
+  });
+  ok('a phone gets the ◈ layers button and no pinned legend',
+    shut.btn && !shut.pinned && shut.aria === 'false',
+    `button=${shut.btn} pinnedLegend=${shut.pinned} aria=${shut.aria}`);
+
+  await phone.locator('#legendBtn').tap();
+  await phone.waitForTimeout(400);
+  const sheet = await phone.evaluate(() => {
+    const lg = document.getElementById('legend');
+    const r = lg.getBoundingClientRect();
+    const row = [...lg.querySelectorAll('.lg-row')].find(x => x.textContent.trim() === 'Region links');
+    const rr = row.getBoundingClientRect();
+    return {
+      open: lg.classList.contains('open') && r.width > 0,
+      fits: r.left >= 0 && r.right <= innerWidth + 0.5 && r.top >= 0 && r.bottom <= innerHeight + 0.5,
+      scrolls: lg.scrollHeight > lg.clientHeight + 1,
+      rows: lg.querySelectorAll('.lg-row').length,
+      rowOnScreen: rr.width > 0 && rr.top >= r.top - 1.5 && rr.bottom <= r.bottom + 1.5,
+      aria: document.getElementById('legendBtn').getAttribute('aria-expanded'),
+    };
+  });
+  ok('◈ opens the legend as a sheet that fits, scrolls and holds every row',
+    sheet.open && sheet.fits && sheet.scrolls && sheet.rows >= 20 && sheet.rowOnScreen && sheet.aria === 'true',
+    `${sheet.rows} rows · fits=${sheet.fits} scrolls=${sheet.scrolls} rowOnScreen=${sheet.rowOnScreen}`);
+
+  await phone.locator('#legend .lg-row', { hasText: 'Region links' }).first().tap();
+  await phone.waitForTimeout(500);
+  const layer = await phone.evaluate(() => ({
+    stored: localStorage.getItem('dw.showRegionEdges'),
+    shown: window.__cy.edges('.regionEdge').filter(e => !e.hasClass('hidden')).length,
+    total: window.__cy.edges('.regionEdge').length,
+  }));
+  ok('the Region links row is reachable on a phone and turns the spokes on',
+    layer.stored === '1' && layer.shown > 0, `${layer.shown}/${layer.total} spokes shown, stored=${layer.stored}`);
+
+  await phone.locator('#legendBtn').tap();
+  await phone.waitForTimeout(400);
+  const closed = await phone.evaluate(() => ({
+    open: document.getElementById('legend').classList.contains('open'),
+    aria: document.getElementById('legendBtn').getAttribute('aria-expanded'),
+  }));
+  ok('◈ closes the sheet again', !closed.open && closed.aria === 'false', `${closed.open} / ${closed.aria}`);
+
+  // …and a region hub's codex still reads on the smallest screen there is,
+  // empty or full (The Burning Spire has no ==Resources== section to list)
+  await phone.goto(`${BASE}/#/the_burning_spire`, { waitUntil: 'domcontentloaded', timeout: 60000 });
+  await phone.waitForFunction(() => document.getElementById('panel')?.classList.contains('open'), null, { timeout: 60000 });
+  await phone.waitForTimeout(600);
+  const codex = await phone.evaluate(() => {
+    const r = document.getElementById('panel').getBoundingClientRect();
+    return {
+      title: document.getElementById('panelTitle').textContent,
+      fits: r.left >= 0 && r.right <= innerWidth + 0.5 && r.bottom <= innerHeight + 0.5,
+      note: /no Resources section yet/.test(document.getElementById('panelBody').textContent),
+      rows: document.querySelectorAll('#panelBody .found-row').length,
+    };
+  });
+  ok('an empty region hub still reads on a phone, and says why',
+    codex.title === 'The Burning Spire' && codex.fits && codex.note && codex.rows === 0,
+    `${codex.title}: fits=${codex.fits} note=${codex.note} rows=${codex.rows}`);
+
+  // the desktop shape must be exactly what it was: pinned legend, no button
+  await phone.setViewportSize({ width: 1600, height: 950 });
+  await phoneBoot();
+  const wide = await phone.evaluate(() => ({
+    btn: document.getElementById('legendBtn').getBoundingClientRect().width > 0,
+    pinned: document.getElementById('legend').getBoundingClientRect().width > 0,
+  }));
+  ok('a wide viewport keeps the pinned legend and hides the button', wide.pinned && !wide.btn,
+    `pinned=${wide.pinned} button=${wide.btn}`);
+  await phoneCtx.close();
+}
+
+/* ── panelcodex ────────────────────────────────────────────────────────── */
+// The codex panel bugs the TODO listed, each one pinned by a check: the button
+// vocabulary per node kind, a ☆ on every listed item, the found-in column
+// alignment, button rows that stay inside the panel, and the two things that
+// make Isolate/highlight usable — the map recomputes on what is shown, and the
+// view refits to it (the old code fitted the whole model, zooming a 44-node
+// tree out to 0.018).
+async function secPanelCodex() {
+  console.log('panelcodex:');
+  await clearStorage(['dw.owned', 'dw.highlight', 'dw.isoDir', 'dw.isoDepth']);
+  await boot();
+
+  // "the graph stopped moving": the header's Arranging indicator off, then three
+  // equal position reads in a row. A reflow is debounced, may run in the layout
+  // worker, and moves nodes every frame it writes — this is how every measurement
+  // below waits for it to settle instead of guessing a duration.
+  const positionSignature = () => page.evaluate(() => {
+    const out = [];
+    window.__cy.nodes(':visible').forEach(n => { const p = n.position(); out.push(`${n.id()}@${Math.round(p.x)},${Math.round(p.y)}`); });
+    return out.sort().join('|');
+  });
+  const waitSettled = async () => {
+    await page.waitForTimeout(400);
+    await page.waitForFunction(() => {
+      const ind = document.getElementById('layoutInd');
+      return !ind || !ind.classList.contains('on');
+    }, null, { timeout: 60000, polling: 250 });
+    let last = null, stable = 0;
+    for (let i = 0; i < 60 && stable < 3; i++) {
+      await page.waitForTimeout(300);
+      const signature = await positionSignature();
+      stable = signature === last ? stable + 1 : 0;
+      last = signature;
+    }
+  };
+  // where the shown tree sits in the viewport: how much of it the visible nodes
+  // span (in model units), plus the positions themselves
+  const frame = () => page.evaluate(() => {
+    const cy = window.__cy;
+    const vis = cy.nodes(':visible');
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    vis.forEach(n => {
+      const p = n.position();
+      minX = Math.min(minX, p.x); maxX = Math.max(maxX, p.x);
+      minY = Math.min(minY, p.y); maxY = Math.max(maxY, p.y);
+    });
+    const ext = cy.extent();
+    return {
+      count: vis.length, zoom: cy.zoom(),
+      coverX: (maxX - minX) / (ext.x2 - ext.x1),
+      coverY: (maxY - minY) / (ext.y2 - ext.y1),
+      positions: Object.fromEntries(vis.map(n => { const p = n.position(); return [n.id(), `${Math.round(p.x)},${Math.round(p.y)}`]; })),
+    };
+  });
+
+  // one vocabulary per node kind — a region contains, a quest rewards, a mount
+  // needs. The walk is identical; the words are the node's own.
+  const words = await page.evaluate(() => {
+    const buttons = id => {
+      window.selectNode(id);
+      return [...document.querySelectorAll('#panelBody .p-actions .btn')].map(b => b.textContent.trim());
+    };
+    const mountName = Object.keys((window.DW_MOUNTS && window.DW_MOUNTS.mounts) || {})[0];
+    return {
+      item: buttons('Iron Bar'),
+      region: buttons('Bleakfields Valley'),
+      quest: buttons(window.DW_QUESTS.order[3]),
+      mount: mountName ? buttons(mountName) : [],
+    };
+  });
+  const has = (list, label) => list.includes(label);
+  // the direction buttons only (Step back carries a ⤵ of its own)
+  const dirs = list => list.filter(l => /⤴|⤵/.test(l) && !l.startsWith('Step back'));
+  ok('every node kind gets its own exploration vocabulary',
+    has(words.item, 'Made from ⤵') && has(words.item, 'Makes ⤴') && has(words.item, 'Isolate tree') &&
+    has(words.region, 'Contains ⤴') && has(words.region, 'Isolate what it holds') && dirs(words.region).length === 1 &&
+    has(words.quest, 'Set in ⤵') && has(words.quest, 'Rewards ⤴') && has(words.quest, 'Isolate its region and rewards') && dirs(words.quest).length === 2 &&
+    has(words.mount, 'Needs ⤵') && has(words.mount, 'Isolate its quests') && dirs(words.mount).length === 1,
+    `item=${words.item.join('/')} | region=${words.region.join('/')} | quest=${words.quest.join('/')} | mount=${words.mount.join('/')}`);
+
+  // mark-as-owned, wherever an item is listed — the region hub's found rows first
+  const rows = await page.evaluate(() => {
+    window.selectNode('Bleakfields Valley');
+    const all = [...document.querySelectorAll('#panelBody .found-row')];
+    return {
+      rows: all.length,
+      stars: all.filter(r => r.querySelector('.own-star')).length,
+      first: all[0].dataset.goto,
+      title: document.getElementById('panelTitle').textContent,
+    };
+  });
+  ok('every item a region hub lists carries its own ☆ toggle',
+    rows.rows > 5 && rows.stars === rows.rows, `${rows.stars}/${rows.rows} rows have a star`);
+
+  await page.click('#panelBody .found-row .own-star');
+  await page.waitForTimeout(500);
+  const starred = await page.evaluate(() => ({
+    ledger: JSON.parse(localStorage.getItem('dw.owned') || '[]'),
+    badge: document.getElementById('ownedCount').textContent,
+    on: document.querySelectorAll('#panelBody .found-row .own-star.on').length,
+    title: document.getElementById('panelTitle').textContent,
+    selected: window.__cy.$('.sel').map(n => n.id())[0],
+  }));
+  ok('a ☆ inside a row marks that item owned without opening it',
+    starred.ledger.includes(rows.first) && starred.on === 1 && starred.badge === '1' &&
+    starred.title === rows.title && starred.selected === 'Bleakfields Valley',
+    `ledger=${starred.ledger.join(',')} panel stayed on ${starred.title}`);
+
+  const jumped = await page.evaluate(() => {
+    document.querySelector('#panelBody .found-row .fr').click();
+    return document.getElementById('panelTitle').textContent;
+  });
+  ok('the rest of the row still jumps to the item it names', jumped === rows.first, `jumped to ${jumped}`);
+
+  // …and the ☆ is on the plan's chips too ("what you need"), not only on rows
+  const chips = await page.evaluate(() => {
+    window.selectNode('Iron Sword');
+    const mats = [...document.querySelectorAll('#panelBody .mat')];
+    return {
+      chips: mats.length,
+      stars: mats.filter(m => m.querySelector('.own-star')).length,
+      skillChips: mats.filter(m => m.classList.contains('sk')).length,
+    };
+  });
+  ok('the ☆ reaches the "what you need" chips (and leaves skill chips alone)',
+    chips.chips > 5 && chips.stars === chips.chips - chips.skillChips && chips.skillChips > 0,
+    `${chips.stars} of ${chips.chips} chips starred, ${chips.skillChips} skill chips skipped`);
+
+  await page.click('#panelBody .mat .own-star');
+  // marking owned re-runs the possessions pass, which can reflow the map — let it
+  // land before the viewport resizes below (a resize mid-layout is a race)
+  await waitSettled();
+  const chipOwned = await page.evaluate(() => ({
+    badge: document.getElementById('ownedCount').textContent,
+    on: document.querySelectorAll('#panelBody .mat .own-star.on').length,
+  }));
+  ok('a ☆ on a chip marks it owned too', chipOwned.on === 1 && chipOwned.badge === '2',
+    `${chipOwned.on} on, badge ${chipOwned.badge}`);
+
+  // found-in alignment: one icon column, one name column, no hole between them
+  const align = await page.evaluate(() => {
+    window.selectNode('Bleakfields Valley');
+    return [...document.querySelectorAll('#panelBody .found-row')].map(row => {
+      const r = row.getBoundingClientRect();
+      const icon = row.firstElementChild.getBoundingClientRect();
+      const name = row.querySelector('.fr').getBoundingClientRect();
+      return { iconWidth: Math.round(icon.width), gap: Math.round(name.left - icon.right), nameLeft: Math.round(name.left - r.left) };
+    });
+  });
+  const iconWidths = [...new Set(align.map(a => a.iconWidth))];
+  const gaps = [...new Set(align.map(a => a.gap))];
+  const nameLefts = [...new Set(align.map(a => a.nameLeft))];
+  ok('found-in rows line up: one icon column tight to one name column',
+    align.length > 5 && iconWidths.length === 1 && iconWidths[0] <= 20 &&
+    gaps.length === 1 && gaps[0] <= 8 && nameLefts.length === 1,
+    `icon ${iconWidths.join('/')}px, gap ${gaps.join('/')}px, name column at ${nameLefts.join('/')}px`);
+
+  // no button row may be wider than the panel it lives in — the original bug
+  const overflows = [];
+  for (const vp of [{ width: 1600, height: 950 }, { width: 420, height: 900 }, { width: 360, height: 800 }]) {
+    await page.setViewportSize(vp);
+    await page.waitForTimeout(300);
+    for (const id of ['Iron Bar', 'Iron Sword', 'Bleakfields Valley']) {
+      const bad = await page.evaluate(nodeId => {
+        window.selectNode(nodeId);
+        return [...document.querySelectorAll('#panelBody .p-actions')]
+          .filter(row => row.scrollWidth > row.clientWidth + 1)
+          .map(row => `${nodeId}: ${row.scrollWidth}>${row.clientWidth}`);
+      }, id);
+      overflows.push(...bad);
+    }
+  }
+  ok('the codex action rows never overflow the panel (360/420/1600px wide)',
+    overflows.length === 0, overflows.join(', ') || 'every row fits');
+  await page.setViewportSize({ width: 1600, height: 950 });
+
+  // Isolate: the shown graph is RECOMPUTED (nodes move), then framed so it fills
+  // the viewport — never framed together with the thousands of hidden nodes
+  await page.evaluate(() => window.selectNode('Iron Bar'));
+  await page.waitForTimeout(400);
+  const beforeIso = await frame();
+  await page.click('#btnIsolate');
+  await waitSettled();
+  const afterIso = await frame();
+  const movedNodes = Object.entries(afterIso.positions)
+    .filter(([id, pos]) => beforeIso.positions[id] && beforeIso.positions[id] !== pos).length;
+  ok('Isolate re-arranges the shown tree instead of leaving it in map coordinates',
+    afterIso.count > 3 && afterIso.count < beforeIso.count && movedNodes > afterIso.count * 0.5,
+    `${beforeIso.count} → ${afterIso.count} nodes drawn, ${movedNodes} of them moved`);
+  ok('…and the view zooms to what is shown, so the tree fills the canvas',
+    afterIso.coverX > 0.6 && afterIso.coverX < 1.1 && afterIso.coverY > 0.4 && afterIso.zoom > 0.4,
+    `cover ${afterIso.coverX.toFixed(2)}×${afterIso.coverY.toFixed(2)} of the viewport at zoom ${afterIso.zoom.toFixed(2)}`);
+
+  // the same for the highlight buttons: fitted to the highlighted set, not to the model
+  await page.click('#btnRequires');
+  await waitSettled();
+  const afterHl = await frame();
+  // The regression this pins: the old code fitted the whole MODEL here, so a
+  // highlight over an isolated tree was framed together with the other 2,078
+  // nodes (zoom 0.018 — the tree became a speck). What it must frame instead is
+  // the shown set, and nothing outside it: the zoom is nowhere near the model's,
+  // and the tree's own bounds stay inside the viewport. 'cover' is allowed to be
+  // small — the fit's padding is a fixed number of pixels, so a compact tree gets
+  // framed with room to spare rather than the model's scale.
+  ok('a highlight click refits the map to the nodes it shows',
+    afterHl.zoom > 0.4 && afterHl.coverX <= 1.15 && afterHl.coverY <= 1.15,
+    `zoom ${afterHl.zoom.toFixed(2)} — cover ${afterHl.coverX.toFixed(2)}×${afterHl.coverY.toFixed(2)}`);
+  await page.evaluate(() => { document.getElementById('panelClose').click(); });
+}
+
+/* ── webmcp ────────────────────────────────────────────────────────────── */
+// The atlas' agent tools. Real Chrome only exposes document.modelContext behind
+// an origin trial or chrome://flags/#enable-webmcp-testing, so this section
+// implements the documented surface itself — registerTool()/getTools()/execute —
+// and checks what the page does with it: every tool registered by name with a
+// JSON Schema and safety annotations, and every tool's answer verified against
+// the live app. Its own context, so the stub cannot leak into other sections.
+async function secWebmcp() {
+  console.log('webmcp:');
+  const ctx = await browser.newContext({ viewport: { width: 1600, height: 950 } });
+  const vp = await ctx.newPage();
+  vp.on('pageerror', e => errors.push('[webmcp] PAGEERROR: ' + e.message.split('\n')[0]));
+  vp.on('console', m => { if (m.type() === 'error') errors.push('[webmcp] CONSOLE: ' + m.text().split('\n')[0]); });
+  // the stub the page's WebMCP support will register into (Chrome's own API is
+  // feature-gated, and this suite runs on plain headless Chromium)
+  await vp.addInitScript(() => {
+    window.__webmcpRegistered = [];
+    Object.defineProperty(document, 'modelContext', {
+      configurable: true,
+      value: {
+        registerTool: (tool) => { window.__webmcpRegistered.push(tool); return Promise.resolve(); },
+        getTools: async () => window.__webmcpRegistered.slice(),
+        executeTool: async (tool, args) => tool.execute(args),
+        addEventListener: () => {},
+      },
+    });
+  });
+  await vp.goto(`${BASE}/`, { waitUntil: 'domcontentloaded', timeout: 60000 });
+  await vp.evaluate(() => { localStorage.setItem('dw.charPrompted', '1'); localStorage.removeItem('dw.owned'); });
+  await vp.reload({ waitUntil: 'domcontentloaded' });
+  await vp.waitForFunction(() => window.__cy && window.__cy.nodes().length, null, { timeout: 120000 });
+  await vp.waitForFunction(() => window.DW_WEBMCP, null, { timeout: 60000 });
+  await vp.waitForTimeout(900);
+  // run a tool the way an agent would: by name, through the page's own tool set
+  const tool = (name, args = {}) => vp.evaluate(async ([n, a]) => {
+    try { return await window.DW_WEBMCP.execute(n, a); } catch (e) { return 'THREW: ' + e.message; }
+  }, [name, args]);
+
+  const reg = await vp.evaluate(() => ({
+    supported: window.DW_WEBMCP.supported,
+    names: window.DW_WEBMCP.names,
+    registered: window.__webmcpRegistered.map(t => ({
+      name: t.name, description: t.description, schemaType: t.inputSchema && t.inputSchema.type,
+      execute: typeof t.execute, readOnly: t.annotations && t.annotations.readOnlyHint,
+    })),
+  }));
+  const mutating = ['atlas_focus_item', 'atlas_isolate_tree', 'atlas_highlight_links', 'atlas_set_owned', 'atlas_set_filters'];
+  ok('WebMCP: every atlas tool registers through registerTool with a schema and safety hints',
+    reg.supported && reg.registered.length === reg.names.length && reg.registered.length >= 12 &&
+    reg.registered.every(t => t.name && t.description && t.schemaType === 'object' && t.execute === 'function' && typeof t.readOnly === 'boolean') &&
+    reg.registered.filter(t => t.readOnly === false).map(t => t.name).join(',') === mutating.join(','),
+    `${reg.registered.length} tools registered, read-only except ${mutating.length}`);
+
+  const search = await tool('atlas_search_items', { query: 'iron sw', limit: 5 });
+  ok('WebMCP atlas_search_items finds a node by partial name', /Iron Sword/.test(search), search.split('\n')[1] || '');
+
+  const item = await tool('atlas_get_item', { item: 'Iron Sword' });
+  ok('WebMCP atlas_get_item returns the recipe, station and inputs',
+    /Iron Sword/.test(item) && /Blacksmith's Bench/.test(item) && /8× Iron Bar/.test(item),
+    item.split('\n')[2] || '');
+
+  const plan = await tool('atlas_get_plan', { item: 'Iron Sword' });
+  ok('WebMCP atlas_get_plan lists what to gather, build and train',
+    /Gather:/.test(plan) && /Build:/.test(plan) && /Train:/.test(plan), plan.split('\n')[0] || '');
+
+  const route = await tool('atlas_find_path', { from: 'Ash Logs', to: 'Iron Sword' });
+  ok('WebMCP atlas_find_path returns ordered steps', /^Route Ash Logs → Iron Sword \(\d+ steps?\)/.test(route), route.split('\n')[0] || '');
+
+  const region = await tool('atlas_get_region', { region: 'Bleakfields Valley' });
+  ok('WebMCP atlas_get_region lists what the wiki places there',
+    /things found here/.test(region) && /Ash Tree \(chopped\)/.test(region), region.split('\n')[1] || '');
+
+  const miss = await tool('atlas_get_item', { item: 'Zzz Not A Real Thing' });
+  ok('WebMCP: an unknown name answers with a hint instead of throwing',
+    /No atlas node named/.test(miss) && !/THREW/.test(miss), miss.slice(0, 60));
+
+  // state-changing tools — each one must reach the app, not a copy of it
+  const owned = await tool('atlas_set_owned', { item: 'Iron Bar', owned: true });
+  const ownedState = await vp.evaluate(() => ({
+    badge: document.getElementById('ownedCount').textContent,
+    stored: JSON.parse(localStorage.getItem('dw.owned') || '[]'),
+    markOnMap: window.__cy.getElementById('Iron Bar').hasClass('ownedMark'),
+  }));
+  ok('WebMCP atlas_set_owned writes the ledger and marks the node owned',
+    /marked owned/.test(owned) && ownedState.stored.includes('Iron Bar') && ownedState.markOnMap && ownedState.badge === '1',
+    `badge=${ownedState.badge} mark=${ownedState.markOnMap}`);
+
+  const focus = await tool('atlas_focus_item', { item: 'Iron Bar' });
+  const focused = await vp.evaluate(() => ({
+    title: document.getElementById('panelTitle').textContent,
+    open: document.getElementById('panel').classList.contains('open'),
+  }));
+  ok('WebMCP atlas_focus_item opens that node\'s codex on the map',
+    /Focused Iron Bar/.test(focus) && focused.open && focused.title === 'Iron Bar', focused.title);
+
+  const drawnBefore = await vp.evaluate(() => window.__cy.nodes().length - window.__cy.nodes('.hidden').length);
+  const isolated = await tool('atlas_isolate_tree', { item: 'Iron Bar', direction: 'down', depth: 2 });
+  // ':visible' lags the style pass by a beat, so count the .hidden class — the
+  // same number atlas_get_state has to report
+  const isoState = await vp.evaluate(() => ({ drawn: window.__cy.nodes().length - window.__cy.nodes('.hidden').length }));
+  const isoReport = await tool('atlas_get_state');
+  ok('WebMCP atlas_isolate_tree draws only the tree it says it drew',
+    /Isolated the crafting tree of Iron Bar/.test(isolated) && isoState.drawn < drawnBefore &&
+    new RegExp(`Nodes drawn: ${isoState.drawn} of `).test(isoReport) && /Isolated tree: Iron Bar \(Materials\) \(down, depth 2\)/.test(isoReport),
+    `${drawnBefore} → ${isoState.drawn} nodes, tool said: ${isolated.split('— ')[1] || ''}`);
+
+  const hl = await tool('atlas_highlight_links', { item: 'Iron Bar', direction: 'enables' });
+  const hlCount = await vp.evaluate(() => window.__cy.nodes('.highlighted').length);
+  const hlState = await tool('atlas_get_state');
+  const hlReset = await tool('atlas_highlight_links', { item: 'Iron Bar', reset: true });
+  const hlAfter = await vp.evaluate(() => window.__cy.nodes('.highlighted').length);
+  ok('WebMCP atlas_highlight_links grows and clears the highlight',
+    /Highlighted the enables links/.test(hl) && hlCount > 0 && /Highlight: Iron Bar/.test(hlState) &&
+    /Highlight cleared/.test(hlReset) && hlAfter === 0,
+    `${hlCount} highlighted → ${hlAfter} after reset`);
+
+  const filters = await tool('atlas_set_filters', { kinds: ['material'], links: { quests: false }, dead_ends: true });
+  const filterState = await vp.evaluate(() => ({
+    questEdgesShown: window.__cy.edges('.questEdge').filter(e => !e.hasClass('hidden')).length,
+    deadEndsOn: document.getElementById('orphansChip').classList.contains('on'),
+  }));
+  const filterReport = await tool('atlas_get_state');
+  ok('WebMCP atlas_set_filters drives the real legend controls',
+    /showing kinds: material/.test(filters) && /quests links off/.test(filters) && /dead ends shown/.test(filters) &&
+    filterState.questEdgesShown === 0 && filterState.deadEndsOn && /hidden kinds: /.test(filterReport) && /Dead ends: shown/.test(filterReport),
+    `${filterState.questEdgesShown} quest edges left, dead ends on=${filterState.deadEndsOn}`);
+
+  await ctx.close();
+}
+
 try {
   browser = await chromium.launch();
   page = await browser.newPage({ viewport: { width: 1600, height: 950 } });
   // errors are tagged with the section that was running, so a failure in the
   // summary names where to look instead of just what the browser said
-  page.on('pageerror', e => errors.push(`[${currentSection || 'boot'}] PAGEERROR: ` + e.message.split('\n')[0]));
+  // the frame that threw is worth keeping: a bare message from inside cytoscape
+  // or a layout extension says nothing about which of our calls caused it
+  page.on('pageerror', e => errors.push(`[${currentSection || 'boot'}] PAGEERROR: ` + e.message.split('\n')[0] +
+    (e.stack ? ' @ ' + (e.stack.split('\n')[1] || '').trim() : '')));
   page.on('console', m => { if (m.type() === 'error') errors.push(`[${currentSection || 'boot'}] CONSOLE: ` + m.text().split('\n')[0]); });
   if (!urlArg) console.log(`serving the atlas (vite dev server) on :${PORT}`);
   console.log(`target: ${BASE}\n`);
@@ -1828,6 +2348,7 @@ try {
     currentSection = s;
     if (s === 'smoke') await secSmoke();
     else if (s === 'panel') await secPanel();
+    else if (s === 'panelcodex') await secPanelCodex();
     else if (s === 'edits') await secEdits();
     else if (s === 'undo') await secUndo();
     else if (s === 'layouts') await secLayouts();
@@ -1836,6 +2357,8 @@ try {
     else if (s === 'options') await secOptions();
     else if (s === 'quests') await secQuests();
     else if (s === 'characters') await secCharacters();
+    else if (s === 'mobile') await secMobile();
+    else if (s === 'webmcp') await secWebmcp();
   }
 } catch (e) {
   console.error('SUITE ERROR:', e.message);

@@ -43,6 +43,16 @@ jobs:
       - name: Install dependencies
         run: npm install --no-audit --no-fund
 
+      # The region overlay is a committed artifact generated from a live wiki, so
+      # it goes stale the moment a region page gains a ==Resources== heading or a
+      # resource. This re-mines the canonical pages (through the generator's own
+      # 1 req/s) and fails the deploy instead of shipping an overlay the repo no
+      # longer matches; a page the run cannot fetch is reported as unjudged rather
+      # than as drift, so a wiki blip cannot block a release. To fix a real
+      # failure: node scripts/build-region-resources.mjs, commit the result.
+      - name: Check the region overlay is current (drift guard)
+        run: node scripts/build-region-resources.mjs --check
+
       - name: Configure Pages
         id: pages
         uses: actions/configure-pages@v5

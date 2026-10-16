@@ -94,11 +94,14 @@ them; do not redefine them locally.
 | Wide annotation tables | docs/checklists generators — prettier-aligned `\|` tables, `x` marks, Notes prose |
 | Toasts (with optional Undo) | `toastWithUndo` / `.toast-undo` — 5s life, gold border button |
 | Complexity callout (help + welcome) | `.h-note` / `#welcome .w-note` — gold-wash box, gold display label, the "it is necessarily complicated itself" note (same copy in both places) |
-| Owned emphasis (codex) | `#panel.owned` — gold border + gold inset wash when the selected item is in the ledger; the header's ☆/★ is the toggle |
+| Owned emphasis (codex) | `#panel.owned` — gold border + gold inset wash when the selected item is in the ledger; the header's ☆/★ is the toggle, and every ownable chip or row the panel lists carries its own `.own-star` (☆/★, `margin-left:auto`), so what you found can be ticked without opening each item. The star swallows its own click: the row still jumps. `.mat.owned` / `.found-row.owned` / `.used-row.owned` wear the teal "you have it" tint |
+| Exploration rows (codex actions) | `.p-actions` — three stacked flex rows: the two direction buttons (**Made from ⤵**/**Makes ⤴** for an item, **Contains ⤴** for a region, **Set in ⤵**/**Rewards ⤴** for a quest, **Needs ⤵** for a mount — `HIGHLIGHT_WORDS`) with Step back and Reset, then `Isolate tree` *beside* the depth box and direction select (`.p-actions-iso`: the button takes the leftover width, the two inputs keep theirs), then the wiki link. Never wider than the panel at any width — that is what the split is for |
+| Found-in rows (region → method) | `.found-row` — one tight icon column (18px + a 6px gap) and one FIXED 118px name column that ellipsises, so the method column starts at the same x on every row; `data-goto` on the row, the owned ☆ at its end |
 | Next level's unlock (skill hub) | `.p-section.next-unlock` — teal-wash box above the full ladder, `.nu-lv` names the level and your current one |
 | Requirement status (skill gates) | `.unlock-row.met` + `.gate-ok` (teal ✓) / `.gate-miss` (ember "needs N — you have M"); `.recipe-unlock.needs` for an unowned unlock item |
 | Visitor-facing walkthrough window | `#dataGuideModal` — `.help-card.guide-card`: `.guide-block` sections for the prose and `ol.guide-steps` for the numbered loop (gold Cinzel step titles, one short paragraph each), with a `.guide-actions` button row at the last step. Opened by `#guideBtn` (help) and `#editsGuideBtn` (edits window); the copy is the in-app half of CONTRIBUTOR-DATA.md |
-| Story layer in the codex (region / quest / mount) | `renderPanelBody`'s early branches — a region lists "What you find here" + "Quests here", a quest leads with **Where to start** then jumpable reward rows (`❖` rune pin, no ☆), a mount gets `.mount-card` with "How to get it" + requirements. All rows are `data-goto` jumps, same as found-in rows |
+| Story layer in the codex (region / quest / mount) | `renderPanelBody`'s early branches — a region lists "What you find here" + "Quests here" (and, when it has neither, one `.p-hint` naming the reason: the wiki's page has no Resources section yet), a quest leads with **Where to start** then jumpable reward rows (`❖` rune pin, each reward item carrying its own ☆), a mount gets `.mount-card` with "How to get it" + requirements, and every kind's exploration rows are its own words (see the row above). All rows are `data-goto` jumps, same as found-in rows |
+| Legend on a phone | `#legendBtn` (◈, header-right, `display:none` above 720px) toggles `.legend.open`, which turns the pinned legend into a scrolling sheet at 720px and below — same DOM, every row live, and the only way to reach the link layers there. Desktop never sees the button; the sheet is never stacked over the panel it was opened from |
 
 Buttons: `.s-btn` vocabulary — default (quiet, `--line` border), `.gold`
 (primary), `.danger` (red hover). Icon-only buttons carry `title` +
@@ -127,6 +130,9 @@ Buttons: `.s-btn` vocabulary — default (quiet, `--line` border), `.gold`
   motion. Keep new motion within those budgets.
 - Canvas-first app: Cytoscape owns the graph; DOM chrome must never overlay
   the stage center except the welcome card and the arranging pill.
+- Responsive rule for chrome: what a narrow viewport cannot hold (minimap,
+  pinned legend, breadcrumb slot) is hidden by media query, and anything a phone
+  still needs from it gets a header door (◈ layers) rather than being dropped.
 
 ## Anti-goals (things this design deliberately rejects)
 

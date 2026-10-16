@@ -22,7 +22,7 @@ import {
 } from './plans.js';
 import {
   initPath, armPath, armPathOwned, clearPath, disarmPath, runPath,
-  pathStepsHTML, pathArmed, getLastPath, tryPathTarget,
+  pathStepsHTML, pathArmed, getLastPath, tryPathTarget, routeBetween,
 } from './path.js';
 import {
   LINK_RELS, LINK_LABEL, dataEdits, addedNodeIds, bundledNodes, snapshotNodeFields,
@@ -32,8 +32,9 @@ import {
 import { maybeAskToCleanupEdits, dismissCleanup } from './cleanup.js';
 import {
   initHighlight, resetHighlightState, forgetHighlight, restoreHighlight, highlightActive,
-  hasHighlight, showRequires, showEnables, stepBackHighlight, clearHighlight,
+  hasHighlight, showRequires, showEnables, stepBackHighlight, clearHighlight, highlightSummary,
 } from './highlight.js';
+import { initWebMcp } from './webmcp.js';
 import {
   initLayoutProgress, markLayoutStart, layoutElapsed, lastLayout,
   startProgressBar, stopProgressBar, startLayoutPill, stopLayoutPill, recordLayoutDone,
@@ -186,6 +187,7 @@ try {
 } catch { /* corrupt storage → calm defaults */ }
 let selectedId = null;
 let isolatedRoot = null;
+let isoDirUsed = 'needs'; // the direction the last isolateTree() walk took (for the WebMCP state tool)
 // default isolate walk: everything it needs (full upstream) + 1 level of enables
 const DEFAULT_ISO_DIR = 'needs';
 let focusOwned = false;
@@ -461,15 +463,21 @@ for (const [region, members] of Object.entries(window.DW_REGION_RESOURCES?.regio
     for (const method of methods) into.get(itemId).add(method);
   }
 }
+// A hub for every canonical region, members or not: the Ashenfall page names all
+// 34, the wiki names some of them nowhere but their own page, and a region you
+// cannot click is a region you cannot find. An empty one is not a lie — it says
+// so in its codex, and `stubs` (the pages with no ==Resources== heading at all)
+// is what lets it name the reason instead of showing a blank list.
+const regionStubs = new Set((window.DW_REGION_RESOURCES && window.DW_REGION_RESOURCES.stubs) || []);
 for (const region of CANON_REGIONS) {
   const members = regionMembers.get(region) || new Map();
   const quests = regionQuests.get(region) || [];
-  if (!members.size && !quests.length) continue;
   nodeById.set(region, { id: region, name: region, kind: 'region' }); // searchable + openable
   registerSlug(region, region);
   const bits = [];
   if (members.size) bits.push(`${members.size} found here`);
   if (quests.length) bits.push(`${quests.length} quest${quests.length > 1 ? 's' : ''}`);
+  if (!bits.length) bits.push('no resources listed yet');
   eles.push({
     group: 'nodes',
     data: {
@@ -973,13 +981,29 @@ function runLayout(preset = currentLayout, { skipSaved = false, forceMain = fals
       // nodes absent from the snapshot (region pseudo-nodes added after it was
       // captured) sit at the centroid of their laid-out neighbours instead of
       // piling up at the origin
+      const unsnapped = [];
       for (const n of cy.nodes()) {
         if (savedMap[n.id()]) continue;
         const nb = n.neighborhood('node').filter(x => savedMap[x.id()]);
-        if (!nb.length) continue;
+        if (!nb.length) { unsnapped.push(n); continue; } // a hub with nothing in it
         let sx = 0, sy = 0;
         nb.forEach(x => { const p = savedMap[x.id()]; sx += p.x; sy += p.y; });
         n.position({ x: Math.round(sx / nb.length), y: Math.round(sy / nb.length) });
+      }
+      // …and a hub with no neighbours at all has no centroid to borrow: an empty
+      // region, which is a real node now. Left alone they would all stack on
+      // (0,0) in the middle of the map, so they get their own row under it.
+      let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+      for (const p of Object.values(savedMap)) {
+        if (p.x < minX) minX = p.x;
+        if (p.x > maxX) maxX = p.x;
+        if (p.y < minY) minY = p.y;
+        if (p.y > maxY) maxY = p.y;
+      }
+      if (unsnapped.length && Number.isFinite(minX) && Number.isFinite(maxY)) {
+        const step = (maxX - minX) / (unsnapped.length + 1);
+        const rowY = Math.round(maxY + Math.max(100, (maxY - minY) * 0.04));
+        unsnapped.forEach((n, i) => n.position({ x: Math.round(minX + step * (i + 1)), y: rowY }));
       }
     });
     layoutRunning = false;
@@ -988,7 +1012,7 @@ function runLayout(preset = currentLayout, { skipSaved = false, forceMain = fals
     setLayoutIndicator(false, `${usingCustomPositions ? 'custom' : usingCuratedPositions ? 'curated' : 'saved'} · ${preset}`); // brief flash
     setTimeout(() => { if (!layoutRunning) setLayoutIndicator(false); }, 1200);
     hideVeil();
-    if (!isolatedRoot) cy.fit(undefined, 60);
+    fitVisible();
     updateReadout();
     return;
   }
@@ -1024,7 +1048,7 @@ function runLayout(preset = currentLayout, { skipSaved = false, forceMain = fals
         stopProgressBar(preset, true); // worker durations feed the same EMA
         recordLayoutDone(layoutElapsed(), (visibleOnly ? cy.nodes(':visible') : cy.nodes()).length); // ⏱ header readout
         hideVeil();
-        if (!isolatedRoot) cy.fit(undefined, 60);
+        fitVisible();
         updateReadout();
         if (pendingSave && pendingSave.preset === preset) {
           const p = pendingSave; pendingSave = null;
@@ -1065,7 +1089,7 @@ function runLayout(preset = currentLayout, { skipSaved = false, forceMain = fals
     stopProgressBar(preset, true); // record duration → EMA refines the bar each run
     recordLayoutDone(layoutElapsed(), cy.nodes(':visible').length); // ⏱ header readout
     hideVeil();
-    if (!isolatedRoot) cy.fit(undefined, 60);
+    fitVisible();
     updateReadout();
     // 💾 armed during the run? capture now — positions are final (P3-1b)
     if (pendingSave && pendingSave.preset === preset) {
@@ -1180,10 +1204,31 @@ function scheduleReflow() {
   }, 180);
 }
 
+// Fit the SHOWN nodes, never the whole model: an isolated subtree (or a solo
+// kind view) otherwise keeps the full map's bounding box, which is why isolating
+// 44 nodes still framed all 2,123 and left them as a speck. `:visible` reads the
+// hidden class, so this is the same call the full map always got.
+function fitVisible(pad = 60) {
+  cy.fit(cy.elements(':visible'), pad);
+}
+
 let fitTimer = null;
 function fitSoon() {
   clearTimeout(fitTimer);
-  fitTimer = setTimeout(() => { if (!isolatedRoot) cy.fit(undefined, 60); }, 400);
+  fitTimer = setTimeout(() => fitVisible(), 400);
+}
+
+/** Arrange exactly what is shown, right now, as an EXPLICIT request.
+ *
+ *  The panel's own buttons use this (Isolate, the highlight two-step): a click
+ *  the user makes is not an automatic graph change, so it recomputes even when
+ *  "re-layout on graph change" is off — that option governs reflows nobody
+ *  asked for, and the header's layout select already works this way. The call
+ *  has to land a beat AFTER the .hidden classes are written: visibleOnly reads
+ *  ':visible', which the style pass applies after the class write in the same
+ *  tick (hence the timers at the call sites). */
+function layoutShownNow() {
+  runLayout(currentLayout, { skipSaved: true, visibleOnly: true, reflow: false });
 }
 
 // Skill-gate edges start HIDDEN on a fresh browser (P3-1: the default view is
@@ -1223,6 +1268,15 @@ function applyEdgeVisibility() {
 // kind/link chips are retired (kept hidden in the DOM for probe/script
 // compatibility and mirrored so legacy clicks stay correct).
 const legend = document.getElementById('legend');
+// the ◈ layers button (phone-only — see controls.css): the legend is pinned open
+// on a desktop and hidden at 720px and below, and the link layers live in it, so
+// without this a phone could not turn Region links or Quest links on at all.
+// Deliberately a plain sheet toggle: it does not close on a row click, because
+// the reason to open it is usually to toggle two or three layers.
+const legendBtn = document.getElementById('legendBtn');
+if (legendBtn) legendBtn.onclick = () => {
+  legendBtn.setAttribute('aria-expanded', String(legend.classList.toggle('open')));
+};
 const lgRows = {}; // kind → legend row element
 function lgMakeRow({ cls = '', swatch, label, on = true, onclick, mirrors = [] } = {}) {
   const row = document.createElement('div');
@@ -1543,7 +1597,7 @@ function updateReadout() {
 /* ── zoom controls ───────────────────────────────────────────── */
 document.getElementById('zoomIn').onclick = () => cy.zoom(cy.zoom() * 1.35);
 document.getElementById('zoomOut').onclick = () => cy.zoom(cy.zoom() / 1.35);
-document.getElementById('zoomFit').onclick = () => cy.fit(undefined, 60);
+document.getElementById('zoomFit').onclick = () => fitVisible();
 
 /* ── layout selector ─────────────────────────────────────────── */
 const layoutSelect = document.getElementById('layoutSelect');
@@ -1752,7 +1806,7 @@ function clearIsolation() {
   syncUrl(); // no isolation any more — drop ?iso= from the shared view
 }
 
-function isolateTree(id, depthOverride = null) {
+function isolateTree(id, depthOverride = null, dirOverride = null) {
   // depth: number of recipe steps up & down (1 = direct neighbors only);
   // empty input = unlimited (full tree to the leaves)
   const dEl = document.getElementById('isoDepth');
@@ -1769,13 +1823,25 @@ function isolateTree(id, depthOverride = null) {
   // precedence: a select present in the open panel wins (it mirrors the stored
   // choice); otherwise the persisted pref; otherwise the default.
   const dirEl = document.getElementById('isoDir');
-  const dir = dirEl ? dirEl.value
-    : (urlOpt('isodir') || localStorage.getItem('dw.isoDir') || DEFAULT_ISO_DIR); // needs | down | up | both (?isodir= wins)
+  const dir = dirOverride || (dirEl ? dirEl.value
+    : (urlOpt('isodir') || localStorage.getItem('dw.isoDir') || DEFAULT_ISO_DIR)); // needs | down | up | both (?isodir= wins)
   if (dirEl) storeOpt('isoDir', dir);
+  isoDirUsed = dir;
   isolatedRoot = id;
   resetHighlightState(); // a fresh isolation is the new visible-tree base
   const keep = new Map([[id, 0]]);
-  if (dir === 'needs') {
+  const rootNode = nodeById.get(id);
+  if (rootNode && STORY_KINDS.has(rootNode.kind)) {
+    // A story hub's "tree" is one hop of overlay spokes, sideways rather than
+    // up: a region holds its gatherables and its quests, a quest is set in
+    // regions and rewards items (plus the mounts it unlocks), a mount needs its
+    // quests. Its members come from the overlays, not from D.edges, so the recipe
+    // walks below would have found nothing at all, and spokeNeighbours already
+    // knows which direction is which — which is why all three share this branch,
+    // and why the hub's panel offers the directions its kind actually has.
+    for (const neighbour of spokeNeighbours(id, 'up')) keep.set(neighbour, 1);
+    for (const neighbour of spokeNeighbours(id, 'down')) keep.set(neighbour, 1);
+  } else if (dir === 'needs') {
     // all requires: depth-first over every recipe input, no depth cap
     const seen = new Set([id]);
     const stack = [id];
@@ -1825,8 +1891,17 @@ function isolateTree(id, depthOverride = null) {
     });
   });
   selectNode(id, { fly: false });
-  setTimeout(() => cy.fit(undefined, 70), 60);
+  // the shown graph just changed shape: frame it, then arrange it. This used to
+  // leave the subtree sitting in full-map coordinates — the panel's own button
+  // did not recalculate anything (the TODO's "the graph does not recalculate").
+  setTimeout(() => fitVisible(70), 60);
+  setTimeout(layoutShownNow, 60);
   syncUrl(); // the isolated tree is part of the shared view (?iso=)
+  const storySummary = { region: 'things found there', quest: 'regions, rewards and mounts', mount: 'quests' }[rootNode && rootNode.kind];
+  if (storySummary) {
+    toast(`${rootNode.name} · ${keep.size - 1} ${storySummary}`);
+    return;
+  }
   const dirLabel = dir === 'needs' ? 'everything it needs + 1 level out'
     : dir === 'down' ? 'outputs only' : dir === 'up' ? 'inputs only' : 'inputs + outputs';
   const depthNote = dir === 'needs' ? '' : ` · depth ${raw === Infinity ? 'all' : raw}`;
@@ -1834,16 +1909,112 @@ function isolateTree(id, depthOverride = null) {
 }
 
 
+/** Wire the codex's exploration controls.
+ *
+ *  One place, because every panel now has them: the highlight two-step (whose
+ *  words come from the node's kind — see HIGHLIGHT_WORDS) and Isolate with the
+ *  depth box and direction select beside it. The region hub's panel calls this
+ *  too, with only the outgoing half rendered, so the two cannot drift apart. */
+function wireExploreControls(id) {
+  const on = (btnId, fn) => { const el = document.getElementById(btnId); if (el) el.onclick = fn; };
+  on('btnRequires', () => showRequires(id));
+  on('btnEnables', () => showEnables(id));
+  on('btnStepBack', () => stepBackHighlight());
+  on('btnResetHighlight', () => clearHighlight());
+  const bi = document.getElementById('btnIsolate');
+  if (!bi) return;
+  bi.onclick = () => isolateTree(id);
+  const dEl = document.getElementById('isoDepth');
+  if (dEl) {
+    const uDepth = urlOpt('isodepth');
+    dEl.value = uDepth === 'all' ? '' : (uDepth ?? localStorage.getItem('dw.isoDepth') ?? '');
+    dEl.onkeydown = ev => { if (ev.key === 'Enter') { ev.preventDefault(); isolateTree(id); } };
+  }
+  const dirEl = document.getElementById('isoDir');
+  if (dirEl) {
+    const saved = urlOpt('isodir') || localStorage.getItem('dw.isoDir');
+    dirEl.value = ['needs', 'down', 'up', 'both'].includes(saved) ? saved : DEFAULT_ISO_DIR;
+    dirEl.onchange = () => { storeOpt('isoDir', dirEl.value); syncUrl(); };
+  }
+}
+
 // the planner engine lives in src/plans.js — hand it the live ledger + id map
 initPlans({ owned, nodeById });
 
-// the requires/enables highlight owns node visibility, so it needs the filter
-// state and the readout/fit callbacks back from app.js via a context object
+/* The story layer's neighbours, for the highlight walk.
+
+   highlight.js only walks D.edges (recipe and skill-gate edges). A region's
+   members, a quest's rewards and a mount's quests are overlay spokes — they are
+   drawn by this file, not by the dataset — so the walk asks here for the extra
+   neighbours of a node, per direction, and adds them at the same depth an edge
+   would. `up` on a region is empty on purpose: nothing contains a region, which
+   is why its panel shows the outgoing half of the two buttons only. */
+function spokeNeighbours(nodeId, dir) {
+  const n = nodeById.get(nodeId);
+  if (!n) return [];
+  if (n.kind === 'region') {
+    if (dir === 'up') return [];
+    return [
+      ...(regionMembers.get(nodeId) || new Map()).keys(),
+      ...(regionQuests.get(nodeId) || []),
+    ].filter(id => nodeById.has(id));
+  }
+  if (n.kind === 'quest') {
+    const q = questById.get(nodeId);
+    if (!q) return [];
+    if (dir === 'up') return (q.regions || []).filter(r => nodeById.has(r));
+    return [
+      ...(q.rewards || []).map(r => r.item),
+      // the mounts this quest unlocks — the Mount page's requirements column
+      ...[...mountById].filter(([, m]) => (m.quests || []).includes(nodeId)).map(([mid]) => mid),
+    ].filter(id => nodeById.has(id));
+  }
+  if (n.kind === 'mount') {
+    if (dir === 'down') return [];
+    const m = mountById.get(nodeId);
+    return ((m && m.quests) || []).filter(q => nodeById.has(q));
+  }
+  return [];
+}
+
+/** The direction as a verb, for the toasts — "contains", "makes", "rewards". */
+function hlDirWord(dir, id) {
+  const n = nodeById.get(id);
+  const words = highlightLabels(n || { kind: 'other' });
+  const label = (dir === 'up' ? words.up : words.down) || '';
+  return label.replace(/\s*[⤴⤵]\s*$/, '').toLowerCase() || (dir === 'up' ? 'made from' : 'makes');
+}
+
+/** Why clicking again would do nothing — said in this node's own terms. */
+function hlNothing(dir, id) {
+  const n = nodeById.get(id) || { name: 'This node', kind: 'other' };
+  if (n.kind === 'region') return `Nothing further to reveal — everything ${n.name} holds is already shown.`;
+  if (n.kind === 'quest') {
+    return dir === 'up'
+      ? `Nothing upstream — ${n.name} is not set in a region the atlas knows.`
+      : `Nothing further to reveal — every reward of ${n.name} is already shown.`;
+  }
+  if (n.kind === 'mount') return `Nothing further — every quest ${n.name} needs is already shown.`;
+  return dir === 'down'
+    ? `Nothing further downstream — everything ${n.name} leads to is shown. Use ${highlightLabels(n).up} to expand what these are made from.`
+    : `Nothing further upstream — every ingredient of ${n.name} is shown. Use ${highlightLabels(n).down} to expand what they make.`;
+}
+
+// the highlight owns node visibility, so it needs the filter state, the story
+// layer's neighbours and the readout/fit callbacks back from app.js
 initHighlight({
   cy, nodeById, kindLabel, activeCats,
   getIsolatedRoot: () => isolatedRoot, setIsolatedRoot: (v) => { isolatedRoot = v; },
   getShowOrphans: () => showOrphans, setShowOrphans: (v) => { showOrphans = v; },
   lgSyncKind, applyCategoryVisibility, updateReadout, fitSoon, toast,
+  // a highlight click changes which nodes are shown, so it gets the same
+  // recompute-and-frame courtesy the panel's Isolate button does (see
+  // reflowAndFrame in src/highlight.js — it used to fit the whole model)
+  scheduleReflow, autoRelayoutOn, fitVisible, layoutShown: layoutShownNow,
+  spokeNeighbours, hlDirWord, hlNothing,
+  // a story node's highlight is its own spokes and nothing else — see
+  // HIGHLIGHT_WORDS and spokeNeighbours above
+  spokeOnly: (rootId) => ['region', 'quest', 'mount'].includes((nodeById.get(rootId) || {}).kind),
 });
 
 /* ── URL routing (hash deep links) ───────────────────────────────
@@ -1966,10 +2137,14 @@ cy.on('mouseout', 'node', () => {
 const panel = document.getElementById('panel');
 const panelBody = document.getElementById('panelBody');
 
+// The one place a node's icon is rendered. A node with no icon file gets a
+// kind rune instead, sized by its container in the stylesheet — it used to carry
+// `width:100%` inline, which inside a flex row meant "take the whole row" and
+// pushed every row's name/verb columns to the right of a huge empty gap.
 function iconImg(id, cls = '') {
   const n = nodeById.get(id);
   if (n && n.icon) return `<img src="${n.icon}" alt="" loading="lazy" class="${cls}">`;
-  return `<span class="p-glyph" style="display:grid;place-items:center;width:100%;height:100%">${kindGlyph[n ? n.kind : 'other'] || '✦'}</span>`;
+  return `<span class="p-glyph${cls ? ' ' + cls : ''}">${kindGlyph[n ? n.kind : 'other'] || '✦'}</span>`;
 }
 
 
@@ -2300,6 +2475,117 @@ function panelTypeText(n, sp) {
     (outDegree.get(n.id) ? ` · used in ${outDegree.get(n.id)}` : '');
 }
 
+/* What the two highlight buttons say, per kind of node.
+
+   The engine walks the same graph for every kind, but "Requires ⤵ / Enables ⤴"
+   is a *recipe's* vocabulary: a region does not require, it contains; a quest
+   does not enable, it rewards. So the words are chosen from the node's own kind
+   (`up` = the direction the first button walks, `down` = the second), and a kind
+   with nothing to walk upstream offers only the direction that exists
+   (`up: null` — a region has no "contained by"). Ids, the walk and the persisted
+   highlight are untouched: this is copy, in the one place that renders it. */
+const HIGHLIGHT_WORDS = {
+  region: {
+    up: null,
+    down: 'Contains ⤴',
+    downTitle: 'Reveal what this region holds — the items gathered there and the quests set in it',
+    defaultDir: 'contains',
+    isolateLabel: 'Isolate what it holds',
+  },
+  quest: {
+    up: 'Set in ⤵',
+    down: 'Rewards ⤴',
+    upTitle: 'Highlight the regions this quest is set in',
+    downTitle: 'Highlight what finishing this quest gives you — its reward items and the mounts it unlocks',
+    defaultDir: 'set in + 1 reward',
+    isolateLabel: 'Isolate its region and rewards',
+  },
+  mount: {
+    up: 'Needs ⤵',
+    down: null,
+    upTitle: 'Highlight the quests this mount requires',
+    downTitle: '',
+    defaultDir: 'needs',
+    isolateLabel: 'Isolate its quests',
+  },
+};
+const HIGHLIGHT_WORDS_DEFAULT = {
+  up: 'Made from ⤵',
+  down: 'Makes ⤴',
+  upTitle: 'Highlight everything this item is made from, directly or upstream',
+  downTitle: 'Highlight everything this item is used to make, directly or downstream',
+  defaultDir: 'made from + 1 makes',
+  isolateLabel: 'Isolate tree',
+};
+
+/** The story layer: nodes whose neighbourhood is overlay spokes, not recipes. */
+const STORY_KINDS = new Set(['region', 'quest', 'mount']);
+
+/** The exploration rows a story node's codex gets — its own two highlight
+ *  buttons (whichever directions it has: a region has no "contained by", a mount
+ *  no "makes"), step back / reset, and Isolate. One place, because a region, a
+ *  quest and a mount must not drift apart in wording or wiring. */
+function storyActionsHTML(n) {
+  const hl = highlightLabels(n);
+  return `<div class="p-section p-actions">
+    ${hl.up ? `<button class="btn" id="btnRequires" title="${esc(hl.upTitle)}">${esc(hl.up)}</button>` : ''}
+    ${hl.down ? `<button class="btn" id="btnEnables" title="${esc(hl.downTitle)}">${esc(hl.down)}</button>` : ''}
+    <button class="btn" id="btnStepBack" title="Step the highlight back one level">Step back ⤵</button>
+    <button class="btn" id="btnResetHighlight" title="Clear the highlight">Reset</button>
+  </div>
+  <div class="p-section p-actions p-actions-iso">
+    <button class="btn primary" id="btnIsolate">${esc(hl.isolateLabel || 'Isolate tree')}</button>
+  </div>`;
+}
+
+/** The words for this node's two highlight buttons (see HIGHLIGHT_WORDS). */
+function highlightLabels(n) {
+  return HIGHLIGHT_WORDS[n && n.kind] || HIGHLIGHT_WORDS_DEFAULT;
+}
+
+/* Mark-as-owned, everywhere in a panel.
+
+   The ledger is about ITEMS, so the ☆ lives on every chip and row that names
+   one — the region hub's found list, "what you need", direct materials, used-to-
+   make, quest rewards, recipe unlocks — not just on the panel title. Regions,
+   quests, skills and spells are map context: nothing owns them. */
+const UNOWNABLE_KINDS = new Set(['region', 'quest', 'skill', 'spell']);
+const OWN_STAR_SELECTOR = '.mat, .found-row, .used-row, .recipe-unlock';
+
+/** Append a ☆/★ toggle to every ownable chip and row in the open panel. */
+function addOwnStars() {
+  panelBody.querySelectorAll(OWN_STAR_SELECTOR).forEach(el => {
+    const targetId = el.dataset.goto;
+    const target = targetId && nodeById.get(targetId);
+    if (!target || UNOWNABLE_KINDS.has(target.kind)) return;
+    const has = owned.has(targetId);
+    el.classList.toggle('owned', has); // the chip/row wears the teal "you have it" tint too
+    const star = document.createElement('button');
+    star.type = 'button';
+    star.className = 'own-star' + (has ? ' on' : '');
+    star.dataset.ownToggle = targetId;
+    star.setAttribute('aria-pressed', String(has));
+    star.textContent = has ? '★' : '☆';
+    star.title = has ? `You own ${targetId} — click to unmark` : `Mark ${targetId} as owned (you have it)`;
+    star.setAttribute('aria-label', star.title);
+    el.appendChild(star);
+  });
+}
+
+/** Wire the ☆ toggles addOwnStars() added. The star swallows its own click so
+ *  the row's jump-to-node handler still belongs to the rest of the row. */
+function wireOwnStars(n) {
+  panelBody.querySelectorAll('[data-own-toggle]').forEach(el => {
+    el.onclick = (ev) => {
+      ev.stopPropagation();
+      const targetId = el.dataset.ownToggle;
+      const nowOwned = toggleOwned(targetId);
+      renderPanelBody(n);
+      toast(nowOwned ? `Marked owned: ${targetId}` : `Unmarked: ${targetId}`);
+    };
+  });
+}
+
 function openPanel(id) {
   const n = nodeById.get(id);
   if (!n) return;
@@ -2384,6 +2670,12 @@ function renderPanelBody(n) {
       `<div class="found-row fi-jump" data-goto="${esc(item)}">${iconImg(item)}<span class="fr">${esc(item)}</span><span class="fw">${[...methods].map(m => esc(verb[m] || m)).join(' · ')}</span></div>`
     ).join('');
     if (members.size) sections.push(`<div class="p-section"><div class="p-label">What you find here (${members.size})</div>${rows}</div>`);
+    // an empty hub says so, and says why when the reason is known: a page with no
+    // ==Resources== heading yet is a different fact from a page whose bullets the
+    // atlas could not match, and only the generator can tell them apart
+    else sections.push(`<div class="p-section"><div class="p-hint">${regionStubs.has(id)
+      ? `The wiki's ${esc(id)} page has no Resources section yet, so there is nothing to list here — the hub is still here to be found and linked to.`
+      : `Nothing is listed for ${esc(id)} yet: the wiki's page for it names no resource the atlas knows.`}</div></div>`);
     // quests set in this region (P7) — the region → quest half of the spine
     const qHere = regionQuests.get(id) || [];
     if (qHere.length) {
@@ -2393,10 +2685,17 @@ function renderPanelBody(n) {
       }).join('');
       sections.push(`<div class="p-section"><div class="p-label">Quests here (${qHere.length})</div>${qRows}</div>`);
     }
-    sections.push(`<div class="p-section"><div class="p-hint">Region hubs are map aids mined from the wiki's location prose and its quest tables — recipes and plans ignore them. Their green links and the gold quest links toggle in the legend (LINKS).</div></div>`);
+    // the same exploration two-step an item gets, in the region's own words —
+    // and only the direction a region has: it contains (its gatherables and its
+    // quests) and is contained by nothing, so there is no upstream button here
+    sections.push(storyActionsHTML(n));
+    sections.push(`<div class="p-section"><div class="p-hint">Region hubs are map aids mined from the wiki's location prose, its region pages' own resource lists and its quest tables — recipes and plans ignore them. Their green links and the gold quest links toggle in the legend (LINKS).</div></div>`);
     panelBody.innerHTML = sections.join('');
     panelBody.scrollTop = 0;
     panelBody.querySelectorAll('[data-goto]').forEach(el => { el.onclick = () => selectNode(el.dataset.goto); });
+    wireExploreControls(id);
+    addOwnStars();
+    wireOwnStars(n);
     return;
   }
 
@@ -2420,10 +2719,15 @@ function renderPanelBody(n) {
         `<div class="found-row fi-jump" data-goto="${esc(mid)}">${iconImg(mid)}<span class="fr">${esc(mid)}</span><span class="fw">${esc(m.base)} · ${esc(m.obtain || '')}</span></div>`).join('');
       sections.push(`<div class="p-section"><div class="p-label">Unlocks mounts (${unlocks.length})</div>${rows}</div>`);
     }
+    // the quest's own exploration rows: it is set in its regions and it rewards
+    // items, so both directions exist here (a region has only the one)
+    sections.push(storyActionsHTML(n));
     sections.push(`<div class="p-section"><div class="p-hint">Quest nodes come from the wiki's Quests page — region → quest → reward. Part-completed quests count for mounts shown here too. Recipes, plans and paths ignore them; toggle their gold links in the legend (LINKS → Quest links).</div></div>`);
     panelBody.innerHTML = sections.join('');
     panelBody.scrollTop = 0;
     panelBody.querySelectorAll('[data-goto]').forEach(el => { el.onclick = () => selectNode(el.dataset.goto); });
+    addOwnStars();
+    wireOwnStars(n);
     return;
   }
 
@@ -2632,22 +2936,29 @@ function renderPanelBody(n) {
     ${linkRowsHTML(id, false)}
   </div>`);
 
-  // actions
+  // actions — two rows, because four highlight buttons, the isolate button and
+  // its two controls on one line ran 200px past the panel's right edge
+  const hl = highlightLabels(n);
+  // a kind may have only one direction (a mount has no "makes"): the button that
+  // would walk a null direction is left out rather than drawn as "null". Same
+  // fallback in the direction select's copy.
+  const isoDirUp = hl.up || hl.down;
+  const isoDirDown = hl.down || hl.up;
   sections.push(`<div class="p-section p-actions">
-    <button class="btn" id="btnRequires" title="Highlight every ingredient this item is made from, directly or upstream">Requires ⤵</button>
-    <button class="btn" id="btnEnables" title="Highlight everything this item is used to make, directly or downstream">Enables ⤴</button>
+    ${hl.up ? `<button class="btn" id="btnRequires" title="${esc(hl.upTitle)}">${esc(hl.up)}</button>` : ''}
+    ${hl.down ? `<button class="btn" id="btnEnables" title="${esc(hl.downTitle)}">${esc(hl.down)}</button>` : ''}
     <button class="btn" id="btnStepBack" title="Step the highlight back one level">Step back ⤵</button>
-    <button class="btn" id="btnResetHighlight" title="Clear the requires/enables highlight">Reset</button>
-    <button class="btn primary" id="btnIsolate">Isolate tree</button>
-    <input id="isoDepth" type="number" min="1" step="1" placeholder="all" title="How many recipe steps up & down to include. Empty = the whole tree."
-           style="width:74px;flex:0 0 auto" />
-    <select id="isoDir" title="What the isolated tree shows. Requires + 1 enable (default) walks the whole upstream — everything used to get here, no matter how deep — plus one level of what this item enables. Outputs only / inputs only / up + down use the depth box instead; the full up+down walk can swallow nearly the whole map for hub items."
-            style="width:104px;flex:0 0 auto">
-      <option value="needs">requires + 1 enable</option>
+    <button class="btn" id="btnResetHighlight" title="Clear the highlight">Reset</button>
+  </div>
+  <div class="p-section p-actions p-actions-iso">
+    <button class="btn primary" id="btnIsolate">${esc(hl.isolateLabel || 'Isolate tree')}</button>
+    ${STORY_KINDS.has(n.kind) ? '' : `<input id="isoDepth" type="number" min="1" step="1" placeholder="all" title="How many recipe steps up & down to include. Empty = the whole tree." />`}
+    ${STORY_KINDS.has(n.kind) ? '' : `<select id="isoDir" title="What the isolated tree shows. ${esc(isoDirUp)} (default) walks the whole upstream — everything used to get here, no matter how deep — plus one level of ${esc(isoDirDown.toLowerCase())}. Outputs only / inputs only / up + down use the depth box instead; the full up+down walk can swallow nearly the whole map for hub items.">
+      <option value="needs">${esc(hl.defaultDir)}</option>
       <option value="down">outputs only</option>
       <option value="up">inputs only</option>
       <option value="both">up + down</option>
-    </select>
+    </select>`}
   </div>
   <div class="p-section p-actions">
     ${n.wiki ? `<a class="btn" href="${n.wiki}" target="_blank" rel="noopener">Wiki page ↗</a>` : ''}
@@ -2660,14 +2971,9 @@ function renderPanelBody(n) {
   panelBody.querySelectorAll('[data-goto]').forEach(el => {
     el.onclick = () => { selectNode(el.dataset.goto); };
   });
-  const bt = document.getElementById('btnRequires');
-  if (bt) bt.onclick = () => showRequires(id);
-  const bto = document.getElementById('btnEnables');
-  if (bto) bto.onclick = () => showEnables(id);
-  const btb = document.getElementById('btnStepBack');
-  if (btb) btb.onclick = () => stepBackHighlight();
-  const btr = document.getElementById('btnResetHighlight');
-  if (btr) btr.onclick = () => clearHighlight();
+  wireExploreControls(id);
+  addOwnStars();
+  wireOwnStars(n);
   const bpt = document.getElementById('btnPathTo');
   if (bpt) bpt.onclick = () => armPath(id);
   const bpm = document.getElementById('btnPlanMode');
@@ -2701,22 +3007,6 @@ function renderPanelBody(n) {
   if (bwr) bwr.onclick = () => { wpReset(id); renderPanelBody(n); toast('Waypoint progress reset'); };
   const bcp = document.getElementById('btnClearPath');
   if (bcp) bcp.onclick = () => { clearPath(); renderPanelBody(n); };
-  const bi = document.getElementById('btnIsolate');
-  if (bi) {
-    bi.onclick = () => isolateTree(id);
-    const dEl = document.getElementById('isoDepth');
-    if (dEl) {
-      const uDepth = urlOpt('isodepth');
-      dEl.value = uDepth === 'all' ? '' : (uDepth ?? localStorage.getItem('dw.isoDepth') ?? '');
-      dEl.onkeydown = ev => { if (ev.key === 'Enter') { ev.preventDefault(); isolateTree(id); } };
-    }
-    const dirEl = document.getElementById('isoDir');
-    if (dirEl) {
-      const saved = urlOpt('isodir') || localStorage.getItem('dw.isoDir');
-      dirEl.value = ['needs', 'down', 'up', 'both'].includes(saved) ? saved : DEFAULT_ISO_DIR;
-      dirEl.onchange = () => { storeOpt('isoDir', dirEl.value); syncUrl(); };
-    }
-  }
   // per-character skill level editor on a skill hub (TODO #24)
   const sli = document.getElementById('skillLevelInput');
   if (sli) {
@@ -2949,7 +3239,7 @@ document.addEventListener('keydown', (e) => {
   if (e.key === '/') { e.preventDefault(); searchInput.focus(); searchInput.select(); }
   else if (e.key === '?') { e.preventDefault(); toggleHelp(); }
   else if (e.key === 'Escape') { if (pathArmed()) { disarmPath(); toast('Path query cancelled'); } if (getLastPath()) clearPath(); if (isolatedRoot) clearIsolation(); closePanel(); clearHighlight(); }
-  else if (e.key === 'f' || e.key === 'F') cy.fit(undefined, 60);
+  else if (e.key === 'f' || e.key === 'F') fitVisible();
 });
 
 /* ── minimap ──────────────────────────────────────────────────────
@@ -2976,6 +3266,98 @@ persistOwned();
 applyPossessions();
 updateReadout();
 refreshCharUI();
+
+/* ── WebMCP (agents) ──────────────────────────────────────────────
+   src/webmcp.js registers the atlas' capabilities as callable tools when the
+   browser has document.modelContext (Chrome's WebMCP), so an agent asks for a
+   plan instead of guessing which button draws one. Everything below is the
+   adapter layer: the app's OWN functions, handed over — the legend rows' clicks
+   for filters, isolateTree / the highlight buttons for the view, planFromNothing
+   and the path BFS for answers. Nothing is reimplemented, so a tool and a click
+   can never disagree. */
+
+/** Fuzzy matches over every node — the same scoring the search box uses.
+ *  @param {string} query @param {number} limit
+ *  @returns {Array<{id: string, name: string, kind: string}>} */
+function searchItemsFor(query, limit) {
+  const q = String(query || '').trim().toLowerCase();
+  if (!q) return [];
+  const hits = [];
+  for (const node of nodeById.values()) {
+    const score = fuzzyScore(q, node.name.toLowerCase());
+    if (score > 0) hits.push({ node, score });
+  }
+  hits.sort((a, b) => b.score - a.score);
+  return hits.slice(0, limit).map(hit => ({ id: hit.node.id, name: hit.node.name, kind: hit.node.kind }));
+}
+
+/** The kind's human label for any node id (region and quest nodes included).
+ *  @param {string} id @returns {string} */
+function kindLabelOf(id) {
+  const node = nodeById.get(id);
+  return (node && (kindLabel[node.kind] || node.kind)) || 'unknown';
+}
+
+/** The live view in the terms an agent asks about it.
+ *  @returns {object} the shape webmcp.js's atlas_get_state tool documents */
+function atlasViewState() {
+  return {
+    selected: selectedId ? `${selectedId} (${kindLabelOf(selectedId)})` : null,
+    isolated: isolatedRoot
+      ? { root: `${isolatedRoot} (${kindLabelOf(isolatedRoot)})`, direction: isoDirUsed, depth: isodepthOpt === 'all' ? null : isodepthOpt }
+      : null,
+    highlight: highlightSummary(),
+    // the .hidden CLASS, not ':visible': the style engine applies display:none a
+    // beat after the class lands, so ':visible' answers for the previous view —
+    // this is read immediately after an isolate/highlight click (same reason the
+    // reflow's own guard counts classes)
+    visibleNodes: cy.nodes().length - cy.nodes('.hidden').length,
+    totalNodes: cy.nodes().length,
+    hiddenKinds: Object.keys(kindColor).filter(kind => !activeCats.has(kind)),
+    linkLayers: { ...edgePrefs },
+    deadEnds: showOrphans,
+    layout: currentLayout,
+    ownedCount: owned.size,
+  };
+}
+
+/** Show exactly these kinds, the way the legend rows do. @param {string[]} kinds */
+function setVisibleKinds(kinds) {
+  const wanted = new Set(kinds);
+  for (const kind of Object.keys(kindColor)) {
+    if (wanted.has(kind)) activeCats.add(kind); else activeCats.delete(kind);
+  }
+  for (const kind of Object.keys(kindColor)) lgSyncKind(kind);
+  applyCategoryVisibility();
+}
+
+/** Toggle one link layer by clicking its legend row — the row is the single
+ *  source of truth for the pref, the stored option and the chip mirror.
+ *  @param {string} layer materials|skills|regions|quests @param {boolean} on */
+function setLinkLayer(layer, on) {
+  const row = { materials: lgMatRow, skills: lgSkillRow, regions: lgRegionRow, quests: lgQuestRow }[layer];
+  if (row && edgePrefs[layer] !== on) row.click();
+}
+
+/** Show or hide dead-end nodes. @param {boolean} on */
+function setDeadEnds(on) {
+  if (showOrphans !== on) document.getElementById('orphansChip').click();
+}
+
+initWebMcp({
+  D, nodeById, regionMembers, regionQuests, questById, mountById, foundIn,
+  regions: CANON_REGIONS,
+  kinds: Object.keys(kindColor),
+  kindLabelOf, searchItems: searchItemsFor,
+  focusNode: id => selectNode(id),
+  isolateTree: (id, direction, depth) => isolateTree(id, depth, direction),
+  showRequires, showEnables, clearHighlight,
+  planOf: id => planFromNothing(id),
+  routeBetween,
+  owned, toggleOwned,
+  setKinds: setVisibleKinds, setLinkLayer, setDeadEnds,
+  viewState: atlasViewState,
+});
 
 /* Classic scripts leaked every top-level `function` declaration onto window; a
    module keeps them in its own scope. Re-publish the handful that the guided

@@ -27067,6 +27067,14 @@
         <data key="rk0">Anima Vent (found); Ash Logs (found); Bittercap Mushroom (found); Granite (found); Limestone Rock (found, mined); Maple Tree (found); Mithril Ore (found); Redberry Bush (found); Rune Essence Geyser (found); Sandstone (found); Unusual Trout (fished)</data>
       </node>
       <node id="n2072">
+        <data key="d0">The Nexus</data>
+        <data key="k0">region</data>
+        <data key="k2">region</data>
+        <data key="k9">Region of Ashenfall - no resources listed yet (from the wiki&apos;s location prose, its region pages&apos; own resource lists and its quest tables; a map aid, not a crafting step)</data>
+        <data key="k12">-23575</data>
+        <data key="k13">100</data>
+      </node>
+      <node id="n2073">
         <data key="d0">The Library</data>
         <data key="k0">region</data>
         <data key="k2">region</data>
@@ -27075,7 +27083,7 @@
         <data key="k13">-480</data>
         <data key="rk0">Glass Owl (found); Meat Twist Sandwich (mined)</data>
       </node>
-      <node id="n2073">
+      <node id="n2074">
         <data key="d0">The Grand Hall</data>
         <data key="k0">region</data>
         <data key="k2">region</data>
@@ -27084,7 +27092,39 @@
         <data key="k13">-960</data>
         <data key="rk0">Maple Toastie (mined)</data>
       </node>
-      <node id="n2074">
+      <node id="n2075">
+        <data key="d0">The Garrison</data>
+        <data key="k0">region</data>
+        <data key="k2">region</data>
+        <data key="k9">Region of Ashenfall - no resources listed yet (from the wiki&apos;s location prose, its region pages&apos; own resource lists and its quest tables; a map aid, not a crafting step)</data>
+        <data key="k12">-15717</data>
+        <data key="k13">100</data>
+      </node>
+      <node id="n2076">
+        <data key="d0">The Pastures</data>
+        <data key="k0">region</data>
+        <data key="k2">region</data>
+        <data key="k9">Region of Ashenfall - no resources listed yet (from the wiki&apos;s location prose, its region pages&apos; own resource lists and its quest tables; a map aid, not a crafting step)</data>
+        <data key="k12">-7858</data>
+        <data key="k13">100</data>
+      </node>
+      <node id="n2077">
+        <data key="d0">The Menagerie</data>
+        <data key="k0">region</data>
+        <data key="k2">region</data>
+        <data key="k9">Region of Ashenfall - no resources listed yet (from the wiki&apos;s location prose, its region pages&apos; own resource lists and its quest tables; a map aid, not a crafting step)</data>
+        <data key="k12">0</data>
+        <data key="k13">100</data>
+      </node>
+      <node id="n2078">
+        <data key="d0">The Bastion</data>
+        <data key="k0">region</data>
+        <data key="k2">region</data>
+        <data key="k9">Region of Ashenfall - no resources listed yet (from the wiki&apos;s location prose, its region pages&apos; own resource lists and its quest tables; a map aid, not a crafting step)</data>
+        <data key="k12">7859</data>
+        <data key="k13">100</data>
+      </node>
+      <node id="n2079">
         <data key="d0">Umbral Sands</data>
         <data key="k0">region</data>
         <data key="k2">region</data>
@@ -27094,7 +27134,15 @@
         <data key="rk0">Acrid Adhesive (in chests); Adamant Logging Axe (chopped); Adamantite Ore (mined); Adamantite Ore Node (found, mined); Air Rune (in chests); Anima Vent (mined); Antifire Potion (in chests); Antipoison Potion (in chests); Applefeather Mosstail (in chests); Ascension Core (found); Ascension Shard (Power Level 7) (found); Astral Rune (in chests); Barrel Cactus (chopped, found, picked); Barrel Cactus Seed (farmed); Black Desert Cape (in chests); Black Memory of Menaphos (in chests); Bludgeoning Obsidian Construct (found); Blue Desert Cape (in chests); Blue Memory of Menaphos (in chests); Bunny Cactus (chopped, found, picked); Bunny Cactus Seed (farmed); Cactus Fibres (in chests); Cactus Steak (found); Cactus Water (found); Clay Decoration (found); Clay Vessel (found); Coal (mined); Coal Node (mined); Commemorative Coin (found); Corroded Curved Blade (in dungeons); Crimson Crybaby (in chests); Crucible Engram of Betrayal (in chests); Crucible Engram of Helplessness (in chests); Crucible Engram of Humiliation (in chests); Crucible Engram of the Hounded (in chests); Desert Cloth (in chests); Desert Thread (in chests); Desert Weed (picked); Desert Weed (plant) (found); Desert Weed Seeds (farmed); Dihydrogen Monoxide (found); Draconic Leather (in chests); Draconic Leather Scraps (in chests); Dragonstone (found); Dried Tea Leaves (in chests); Earth Rune (in chests); Elder Curiosities (drops); Elongated Obsidian Construct (found); Fibrous Pipe Cactus (chopped, found, picked); Fire Rune (in chests); Fishing Frenzy (fished); Focused Artisan Potion (in chests); Focused Attack Potion (in chests); Focused Construction Potion (in chests); Focused Cooking Potion (in chests); Focused Fishing Potion (in chests); Focused Mining Potion (in chests); Focused Runecrafting Potion (in chests); Focused Woodcutting Potion (in chests); Fuel Pellet (in chests); Fuzan&apos;s Head (found); Garou Artifact (found); Garou Chit (in chests); Garou Weave (in chests); Greater Kalphite Wing (drops); Green Desert Cape (in chests); Green Memory of Menaphos (in chests); Ground Gypsum (in chests); Ground Obsidian (in chests); Ground Tea Leaves (in chests); Gypsum (mined); Gypsum Node (found, mined); Gypsum Wax (found); Hard Leather (in chests); Hard Leather Scraps (in chests); Inspiring Insignia (found); Kalphite Bait (found); Kalphite Carapace Chest (in chests); Kalphite Egg (found, in dungeons); Kalphite Ichor (found); Kalphite Shell (found); Kalphite Shell Fragments (found); Kalphite Wing (drops); Keris (found, in dungeons); Kot Pack (found); Law Rune (in chests); Lumberjack Potion (in chests); MOUNT: Applefeather Mosstail (in chests); MOUNT: Crimson Crybaby (in chests); MOUNT: Moonsilk Weave (drops); MOUNT: Scorchsummer Ashbeak (in chests); MOUNT: Uzzerian Umber (found); Molten Glass (found); Monkfish Bait (fished); Moon Garou Pack (found); Moonsilk Weave (found); Mystic Cloth (in chests); Mystic Thread (in chests); Nature Rune (in chests); Obsidian Chest (in chests); Obsidian Device (drops); Orange Desert Cape (in chests); Orange Memory of Menaphos (in chests); Ornate Golden Scarab (found); PLAN: Moon Garou Bed (in chests); PLAN: Moon Garou Chair 01 (in chests); PLAN: Moon Garou Chair 02 (in chests); Pink Desert Cape (in chests); Pink Memory of Menaphos (in chests); Pipe Cactus Seed (farmed); Pristine Beltfish (picked); Pristine Beltfish Trophy (fished); Pristine Desert Sole (picked); Pristine Desert Sole Trophy (fished); Pristine Monkfish (picked); Pristine Monkfish Trophy (fished); Purple Desert Cape (in chests); Purple Memory of Menaphos (in chests); Quarrymaster Potion (in chests); Raw Beltfish (picked); Raw Desert Sole (picked); Raw Monkfish (fished); Red Dragon Hide (drops); Red Memory of Menaphos (in chests); Refined Obsidian (in chests); Reward Pack: Umbral Sands Bronze (found); Reward Pack: Umbral Sands Gold (found); Reward Pack: Umbral Sands Silver (found); Rune Essence (Rock) (mined); Sandstone (found); Sandstone Rock (mined); Scorchsummer Ashbeak (in chests); Shattered Black Blade (Umbral Sands) (found); Shred of Sunbleached Weave (found); Stunted Kalphite Wing (drops); Super Antifire Potion (in chests); Super Antipoison Potion (in chests); Super Focused Artisan Potion (in chests); Super Focused Attack Potion (in chests); Super Focused Construction Potion (in chests); Super Focused Cooking Potion (in chests); Super Focused Farming Potion (in chests); Super Focused Fishing Potion (in chests); Super Focused Mining Potion (in chests); Super Focused Runecrafting Potion (in chests); Super Focused Woodcutting Potion (in chests); Super Lumberjack Potion (in chests); Super Quarrymaster Potion (in chests); Tea Leaves (in chests); Toktz-Mej-Tal (drops, found); Toktz-Xil-Ak (drops); Tome of Farming - Vol 2 (in chests); Tome of Fishing - Vol 2 (in chests); TzHaar-Ket-Om (drops); Umbral Sands Arena Tapestry (found); Umbral Sands Cape (found); Umbral Sands Landscape Tapestry (found); Umbral Sands Pit Tapestry (found); Umbral Sands Ruins Tapestry (found); Umbral Sands Tower Tapestry (found); Unyielding Obsidian Construct (drops); Uzzerian Umber (found); Water Rune (found); White Desert Cape (in chests); White Memory of Menaphos (in chests); Yellow Desert Cape (in chests); Yellow Memory of Menaphos (in chests); Yew Farming Plot (farmed); Yew Logs (chopped); Yew Tree (chopped, found); Yew Tree Seed (farmed)</data>
         <data key="rk1">Brink of Extinction; Contact!; Icthlarin&apos;s Little Helper; Mapping The Sands I; Mapping The Sands II</data>
       </node>
-      <node id="n2075">
+      <node id="n2080">
+        <data key="d0">Alcarrid Oasis</data>
+        <data key="k0">region</data>
+        <data key="k2">region</data>
+        <data key="k9">Region of Ashenfall - no resources listed yet (from the wiki&apos;s location prose, its region pages&apos; own resource lists and its quest tables; a map aid, not a crafting step)</data>
+        <data key="k12">15717</data>
+        <data key="k13">100</data>
+      </node>
+      <node id="n2081">
         <data key="d0">Dunes of Uzzer</data>
         <data key="k0">region</data>
         <data key="k2">region</data>
@@ -27103,7 +27151,7 @@
         <data key="k13">0</data>
         <data key="rk0">Umbral Sands Cape (found)</data>
       </node>
-      <node id="n2076">
+      <node id="n2082">
         <data key="d0">Manafem Plains</data>
         <data key="k0">region</data>
         <data key="k2">region</data>
@@ -27112,7 +27160,15 @@
         <data key="k13">0</data>
         <data key="rk0">The Radiant&apos;s Heart (found)</data>
       </node>
-      <node id="n2077">
+      <node id="n2083">
+        <data key="d0">The Burning Spire</data>
+        <data key="k0">region</data>
+        <data key="k2">region</data>
+        <data key="k9">Region of Ashenfall - no resources listed yet (from the wiki&apos;s location prose, its region pages&apos; own resource lists and its quest tables; a map aid, not a crafting step)</data>
+        <data key="k12">23576</data>
+        <data key="k13">100</data>
+      </node>
+      <node id="n2084">
         <data key="d0">Brynmoor</data>
         <data key="k0">region</data>
         <data key="k2">region</data>
@@ -27122,7 +27178,7 @@
         <data key="rk0">Antler (found); Ash Farming Plot (farmed); Ash Tree (chopped); Bittercap Mushroom (plant) (picked); Bronze Leaf (found); Bronze Logging Axe (chopped); Brynmoor Falcon Perch (found); Brynmoor Hills Tapestry (found); Brynmoor Lake Flora Tapestry (found); Brynmoor Lake Tapestry (found); Brynmoor Swamp Night Tapestry (found); Brynmoor Swamp Tapestry (found); Brynmoor Swamp Toxic Tapestry (found); Brynmoor Valley Tapestry (found); Cabbage (picked); Cabbage Seeds (farmed); Clay Node (mined); Coarse Net (fished); Extinguished Blue Remnants (in chests); Extinguished Green Remnants (in chests); Extinguished Purple Remnants (in chests); Extinguished Red Remnants (in chests); Extinguished Yellow Remnants (in chests); Flax (plant) (picked); Flax Seeds (farmed); Ghostspeak Amulet (found); Gold Leaf (found); Harralander (plant) (picked); Harralander Seeds (farmed); Lightning Rod (found); Marentill Seeds (farmed); Marrentil (plant) (picked); Oak Logs (chopped); Oak Tree (chopped, found); Oak Tree Seed (farmed); Potato (plant) (picked); Potato Seeds (farmed); Pristine Sardine Trophy (fished); Pristine Trout Trophy (fished); Raw Sardine (fished); Raw Shrimp (fished); Raw Trout (fished); Redberry Bush (picked); Redberry Seeds (farmed); Reward Pack: Brynmoor Bronze (found); Reward Pack: Brynmoor Gold (found); Reward Pack: Brynmoor Silver (found); Silver Leaf (found); Stone Boulder (mined); Swamp Tar (found); Warped Feathers (found); Wheat (farmed); Wheat Seeds (farmed); Wool Net (fished)</data>
         <data key="rk1">Dragon Slayer; Goblin Diplomacy; Growing Pains; Highlighting the Problem; Restless Ghosts; Shrimp Catcher</data>
       </node>
-      <node id="n2078">
+      <node id="n2085">
         <data key="d0">Scorned Wilderness</data>
         <data key="k0">region</data>
         <data key="k2">region</data>
@@ -27132,7 +27188,7 @@
         <data key="rk0">Ancestral Robes (found); Ash Tree (chopped); Bittercap Mushroom (picked); Black Dragon Hide (drops); Cabbage (picked); Dead Tree (chopped); Discordant Residue (in chests); Dragon Crossbow (found); Dragon Full Helm (drops); Dragon Kiteshield (found); Dragon Med Helm (drops); Dragon Platebody (in chests); Dragon Platelegs (drops); Dragon Scimitar (found); Kuldra&apos;s Head (found); Kuldra&apos;s Wrath (drops); Lougrim&apos;s Staff (found); Luminite Deposit (found, mined); Luminite Ore (mined); Oak Tree (chopped); Onion (picked); Potato (picked); Pumpkin (picked); Queenslayer&apos;s Reward Pack (found); Redberries (picked); Runite Ore (mined); Runite Ore Node (found, mined)</data>
         <data key="rk1">Regicide</data>
       </node>
-      <node id="n2079">
+      <node id="n2086">
         <data key="d0">First Steps</data>
         <data key="k0">quest</data>
         <data key="k2">quest</data>
@@ -27142,7 +27198,7 @@
         <data key="qk0">Primary/Tutorial</data>
         <data key="qk1">Automatically started with new character.</data>
       </node>
-      <node id="n2080">
+      <node id="n2087">
         <data key="d0">Getting Started</data>
         <data key="k0">quest</data>
         <data key="k2">quest</data>
@@ -27152,7 +27208,7 @@
         <data key="qk0">Primary/Tutorial</data>
         <data key="qk1">Speak to Doric just outside of the temple.</data>
       </node>
-      <node id="n2081">
+      <node id="n2088">
         <data key="d0">Ratcatcher</data>
         <data key="k0">quest</data>
         <data key="k2">quest</data>
@@ -27162,7 +27218,7 @@
         <data key="qk0">Primary/Tutorial</data>
         <data key="qk1">Speak to Vannaka near the old windmill.</data>
       </node>
-      <node id="n2082">
+      <node id="n2089">
         <data key="d0">Rune Mysteries</data>
         <data key="k0">quest</data>
         <data key="k2">quest</data>
@@ -27172,7 +27228,7 @@
         <data key="qk0">Primary/Tutorial</data>
         <data key="qk1">Speak to Zanik on the path leading to Bramblemead Valley.</data>
       </node>
-      <node id="n2083">
+      <node id="n2090">
         <data key="d0">Dragon Slayer</data>
         <data key="k0">quest</data>
         <data key="k2">quest</data>
@@ -27183,7 +27239,7 @@
         <data key="qk1">Speak to the Wise Old Man in Bramblemead Village.</data>
         <data key="qk2">Anti-Dragon Shield; Noxious Draconic Visage</data>
       </node>
-      <node id="n2084">
+      <node id="n2091">
         <data key="d0">Withering Heights</data>
         <data key="k0">quest</data>
         <data key="k2">quest</data>
@@ -27194,7 +27250,7 @@
         <data key="qk1">Speak to the Wise Old Man near Ashien&apos;s Watch.</data>
         <data key="qk2">Dragoncurse Shield; Undead Draconic Visage</data>
       </node>
-      <node id="n2085">
+      <node id="n2092">
         <data key="d0">Black Knight&apos;s Fortress</data>
         <data key="k0">quest</data>
         <data key="k2">quest</data>
@@ -27205,7 +27261,7 @@
         <data key="qk1">Speak to Death in the Forgotten Temple.</data>
         <data key="qk2">Maple Toastie; Titan&apos;s Wrath</data>
       </node>
-      <node id="n2086">
+      <node id="n2093">
         <data key="d0">Icthlarin&apos;s Little Helper</data>
         <data key="k0">quest</data>
         <data key="k2">quest</data>
@@ -27216,7 +27272,7 @@
         <data key="qk1">Interact with the door to the Umbral Sands.</data>
         <data key="qk2">Dragonfire Shield; Smouldering Draconic Visage</data>
       </node>
-      <node id="n2087">
+      <node id="n2094">
         <data key="d0">Regicide</data>
         <data key="k0">quest</data>
         <data key="k2">quest</data>
@@ -27227,7 +27283,7 @@
         <data key="qk1">Interact with the Dragon Gate north-west of Velgar&apos;s Rise.</data>
         <data key="qk2">Dragonslayer&apos;s Cape; Lougrim Memorial Shrine; Dragon Kiteshield</data>
       </node>
-      <node id="n2088">
+      <node id="n2095">
         <data key="d0">Growing Pains</data>
         <data key="k0">quest</data>
         <data key="k2">quest</data>
@@ -27237,7 +27293,7 @@
         <data key="qk0">Secondary/Tutorial</data>
         <data key="qk1">Speak to the Wise Old Man in Bramblemead Village.</data>
       </node>
-      <node id="n2089">
+      <node id="n2096">
         <data key="d0">Shrimp Catcher</data>
         <data key="k0">quest</data>
         <data key="k2">quest</data>
@@ -27247,7 +27303,7 @@
         <data key="qk0">Secondary/Tutorial</data>
         <data key="qk1">Speak to the Wise Old Man in Bramblemead Village.</data>
       </node>
-      <node id="n2090">
+      <node id="n2097">
         <data key="d0">Restless Ghosts</data>
         <data key="k0">quest</data>
         <data key="k2">quest</data>
@@ -27257,7 +27313,7 @@
         <data key="qk0">Secondary</data>
         <data key="qk1">Interact with the crumbling well in Bramblemead Village.</data>
       </node>
-      <node id="n2091">
+      <node id="n2098">
         <data key="d0">Goblin Diplomacy</data>
         <data key="k0">quest</data>
         <data key="k2">quest</data>
@@ -27268,7 +27324,7 @@
         <data key="qk1">Speak to Zanik in Bramblemead Valley.</data>
         <data key="qk2">Goblin War Banner</data>
       </node>
-      <node id="n2092">
+      <node id="n2099">
         <data key="d0">Highlighting the Problem</data>
         <data key="k0">quest</data>
         <data key="k2">quest</data>
@@ -27279,7 +27335,7 @@
         <data key="qk1">Interact with the statue of a wizard in the Runecrafting Guild in Bramblemead Valley.</data>
         <data key="qk2">Staff of Light</data>
       </node>
-      <node id="n2093">
+      <node id="n2100">
         <data key="d0">Granite Mauled</data>
         <data key="k0">quest</data>
         <data key="k2">quest</data>
@@ -27290,7 +27346,7 @@
         <data key="qk1">Speak to Doric in the Fractured Plains.</data>
         <data key="qk2">Granite Maul</data>
       </node>
-      <node id="n2094">
+      <node id="n2101">
         <data key="d0">Heartstrings</data>
         <data key="k0">quest</data>
         <data key="k2">quest</data>
@@ -27301,7 +27357,7 @@
         <data key="qk1">Interact with the memorial on top of the hill in the Fractured Plains.</data>
         <data key="qk2">Crystal Bow</data>
       </node>
-      <node id="n2095">
+      <node id="n2102">
         <data key="d0">Dog Days</data>
         <data key="k0">quest</data>
         <data key="k2">quest</data>
@@ -27312,7 +27368,7 @@
         <data key="qk1">Speak to Vannaka at the centre of the Stormtouched Highlands.</data>
         <data key="qk2">Garou Highborn&apos;s Cloak</data>
       </node>
-      <node id="n2096">
+      <node id="n2103">
         <data key="d0">Cook&apos;s Assistant</data>
         <data key="k0">quest</data>
         <data key="k2">quest</data>
@@ -27323,7 +27379,7 @@
         <data key="qk1">Speak with Slopfinger at the southern border between Stormtouched Highlands and Fractured Plains.</data>
         <data key="qk2">Victoria Sponge Cake</data>
       </node>
-      <node id="n2097">
+      <node id="n2104">
         <data key="d0">Animal Magnetism</data>
         <data key="k0">quest</data>
         <data key="k2">quest</data>
@@ -27334,7 +27390,7 @@
         <data key="qk1">Speak to Manktongue at the southern border between Stormtouched Highlands and Fractured Plains.</data>
         <data key="qk2">Ava&apos;s Accumulator</data>
       </node>
-      <node id="n2098">
+      <node id="n2105">
         <data key="d0">A Room With A Garou</data>
         <data key="k0">quest</data>
         <data key="k2">quest</data>
@@ -27345,7 +27401,7 @@
         <data key="qk1">Speak to Caratacus in the Fractured Plains.</data>
         <data key="qk2">Hanging Tools; Pots on a Bench; Sawhorse</data>
       </node>
-      <node id="n2099">
+      <node id="n2106">
         <data key="d0">A Melody Remembered</data>
         <data key="k0">quest</data>
         <data key="k2">quest</data>
@@ -27356,7 +27412,7 @@
         <data key="qk1">Repair a broken music box found in a desk within the Stormtouched Highlands.</data>
         <data key="qk2">Ravanna&apos;s Ring</data>
       </node>
-      <node id="n2100">
+      <node id="n2107">
         <data key="d0">The Great Body Robbery</data>
         <data key="k0">quest</data>
         <data key="k2">quest</data>
@@ -27367,7 +27423,7 @@
         <data key="qk1">Speak to Doctor Fenkenstrain in the Bloodblight Swamp.</data>
         <data key="qk2">Lightning Rod; Zombie Arm</data>
       </node>
-      <node id="n2101">
+      <node id="n2108">
         <data key="d0">Even More Restless Ghosts</data>
         <data key="k0">quest</data>
         <data key="k2">quest</data>
@@ -27378,7 +27434,7 @@
         <data key="qk1">Speak to Zanik in Fellhollow.</data>
         <data key="qk2">Dorgeshuun Crossbow</data>
       </node>
-      <node id="n2102">
+      <node id="n2109">
         <data key="d0">The Wild Hunt</data>
         <data key="k0">quest</data>
         <data key="k2">quest</data>
@@ -27388,7 +27444,7 @@
         <data key="qk0">Secondary</data>
         <data key="qk1">Speak to Vannaka in Bleaksfield Valley.</data>
       </node>
-      <node id="n2103">
+      <node id="n2110">
         <data key="d0">Things That Go Boom In The Night</data>
         <data key="k0">quest</data>
         <data key="k2">quest</data>
@@ -27399,7 +27455,7 @@
         <data key="qk1">Speak to Vannaka in Bleaksfield Valley.</data>
         <data key="qk2">Spectral Chinchompa Cape</data>
       </node>
-      <node id="n2104">
+      <node id="n2111">
         <data key="d0">Seeking Salvation</data>
         <data key="k0">quest</data>
         <data key="k2">quest</data>
@@ -27410,7 +27466,7 @@
         <data key="qk1">Speak to Doric east of the Lake of Lost Souls, inside a cave.</data>
         <data key="qk2">Salve Amulet</data>
       </node>
-      <node id="n2105">
+      <node id="n2112">
         <data key="d0">Doric&apos;s Quest</data>
         <data key="k0">quest</data>
         <data key="k2">quest</data>
@@ -27421,7 +27477,7 @@
         <data key="qk1">Speak to Doric east of the Lake of Lost Souls, inside a cave.</data>
         <data key="qk2">Zombie Axe</data>
       </node>
-      <node id="n2106">
+      <node id="n2113">
         <data key="d0">Letters for the Dead</data>
         <data key="k0">quest</data>
         <data key="k2">quest</data>
@@ -27431,7 +27487,7 @@
         <data key="qk0">Secondary</data>
         <data key="qk1">Speak to Postie Pete in the Forgotten Temple.</data>
       </node>
-      <node id="n2107">
+      <node id="n2114">
         <data key="d0">What Remains is Written</data>
         <data key="k0">quest</data>
         <data key="k2">quest</data>
@@ -27441,7 +27497,7 @@
         <data key="qk0">Secondary</data>
         <data key="qk1">Speak to Abraxus The Eternal in Coalridge Pass.</data>
       </node>
-      <node id="n2108">
+      <node id="n2115">
         <data key="d0">Mirror Mirror</data>
         <data key="k0">quest</data>
         <data key="k2">quest</data>
@@ -27452,7 +27508,7 @@
         <data key="qk1">Interact with the mirror west of the Guthix shrine near Emberwood.</data>
         <data key="qk2">Ulv&apos;s Longbow</data>
       </node>
-      <node id="n2109">
+      <node id="n2116">
         <data key="d0">Biohazard</data>
         <data key="k0">quest</data>
         <data key="k2">quest</data>
@@ -27463,7 +27519,7 @@
         <data key="qk1">Attack and pick up the lootdrop of the corrupted raven in The Courtyard.</data>
         <data key="qk2">Zamorak Cape</data>
       </node>
-      <node id="n2110">
+      <node id="n2117">
         <data key="d0">Wanted!</data>
         <data key="k0">quest</data>
         <data key="k2">quest</data>
@@ -27474,7 +27530,7 @@
         <data key="qk1">Speak to Vannaka in The Courtyard.</data>
         <data key="qk2">Unholy Symbol</data>
       </node>
-      <node id="n2111">
+      <node id="n2118">
         <data key="d0">What&apos;s Theirs is Mine!</data>
         <data key="k0">quest</data>
         <data key="k2">quest</data>
@@ -27485,7 +27541,7 @@
         <data key="qk1">Speak to Doric next to the Dreaming Stone in The Nexus.</data>
         <data key="qk2">Zamorak Staff</data>
       </node>
-      <node id="n2112">
+      <node id="n2119">
         <data key="d0">Contact!</data>
         <data key="k0">quest</data>
         <data key="k2">quest</data>
@@ -27496,7 +27552,7 @@
         <data key="qk1">Speak to Avisk Crystal in Dunes of Uzzer.</data>
         <data key="qk2">Pharaoh&apos;s Sceptre</data>
       </node>
-      <node id="n2113">
+      <node id="n2120">
         <data key="d0">Brink of Extinction</data>
         <data key="k0">quest</data>
         <data key="k2">quest</data>
@@ -27507,7 +27563,7 @@
         <data key="qk1">Speak to Zi at The Burning Spire, south of the Sinking Pyramid.</data>
         <data key="qk2">Obsidian Cape</data>
       </node>
-      <node id="n2114">
+      <node id="n2121">
         <data key="d0">Mapping The Sands I</data>
         <data key="k0">quest</data>
         <data key="k2">quest</data>
@@ -27517,7 +27573,7 @@
         <data key="qk0">Secondary</data>
         <data key="qk1">Speak to Anamcara in Alcarrid Camp.</data>
       </node>
-      <node id="n2115">
+      <node id="n2122">
         <data key="d0">Mapping The Sands II</data>
         <data key="k0">quest</data>
         <data key="k2">quest</data>
@@ -85039,1807 +85095,1807 @@
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6187" source="n2072" target="n1264">
+      <edge id="e6187" source="n2073" target="n1264">
         <data key="e0">The Library (found here) Glass Owl</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6188" source="n2072" target="n762">
+      <edge id="e6188" source="n2073" target="n762">
         <data key="e0">The Library (found here) Meat Twist Sandwich</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6189" source="n2073" target="n764">
+      <edge id="e6189" source="n2074" target="n764">
         <data key="e0">The Grand Hall (found here) Maple Toastie</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6190" source="n2074" target="n1048">
+      <edge id="e6190" source="n2079" target="n1048">
         <data key="e0">Umbral Sands (found here) Acrid Adhesive</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6191" source="n2074" target="n1066">
+      <edge id="e6191" source="n2079" target="n1066">
         <data key="e0">Umbral Sands (found here) Adamant Logging Axe</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6192" source="n2074" target="n1053">
+      <edge id="e6192" source="n2079" target="n1053">
         <data key="e0">Umbral Sands (found here) Adamantite Ore</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6193" source="n2074" target="n1123">
+      <edge id="e6193" source="n2079" target="n1123">
         <data key="e0">Umbral Sands (found here) Adamantite Ore Node</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6194" source="n2074" target="n101">
+      <edge id="e6194" source="n2079" target="n101">
         <data key="e0">Umbral Sands (found here) Air Rune</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6195" source="n2074" target="n688">
+      <edge id="e6195" source="n2079" target="n688">
         <data key="e0">Umbral Sands (found here) Anima Vent</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6196" source="n2074" target="n737">
+      <edge id="e6196" source="n2079" target="n737">
         <data key="e0">Umbral Sands (found here) Antifire Potion</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6197" source="n2074" target="n829">
+      <edge id="e6197" source="n2079" target="n829">
         <data key="e0">Umbral Sands (found here) Antipoison Potion</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6198" source="n2074" target="n1296">
+      <edge id="e6198" source="n2079" target="n1296">
         <data key="e0">Umbral Sands (found here) Applefeather Mosstail</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6199" source="n2074" target="n1052">
+      <edge id="e6199" source="n2079" target="n1052">
         <data key="e0">Umbral Sands (found here) Ascension Core</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6200" source="n2074" target="n2026">
+      <edge id="e6200" source="n2079" target="n2026">
         <data key="e0">Umbral Sands (found here) Ascension Shard (Power Level 7)</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6201" source="n2074" target="n57">
+      <edge id="e6201" source="n2079" target="n57">
         <data key="e0">Umbral Sands (found here) Astral Rune</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6202" source="n2074" target="n1090">
+      <edge id="e6202" source="n2079" target="n1090">
         <data key="e0">Umbral Sands (found here) Barrel Cactus</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6203" source="n2074" target="n1099">
+      <edge id="e6203" source="n2079" target="n1099">
         <data key="e0">Umbral Sands (found here) Barrel Cactus Seed</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6204" source="n2074" target="n1179">
+      <edge id="e6204" source="n2079" target="n1179">
         <data key="e0">Umbral Sands (found here) Black Desert Cape</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6205" source="n2074" target="n1188">
+      <edge id="e6205" source="n2079" target="n1188">
         <data key="e0">Umbral Sands (found here) Black Memory of Menaphos</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6206" source="n2074" target="n1204">
+      <edge id="e6206" source="n2079" target="n1204">
         <data key="e0">Umbral Sands (found here) Bludgeoning Obsidian Construct</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6207" source="n2074" target="n1180">
+      <edge id="e6207" source="n2079" target="n1180">
         <data key="e0">Umbral Sands (found here) Blue Desert Cape</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6208" source="n2074" target="n1189">
+      <edge id="e6208" source="n2079" target="n1189">
         <data key="e0">Umbral Sands (found here) Blue Memory of Menaphos</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6209" source="n2074" target="n1089">
+      <edge id="e6209" source="n2079" target="n1089">
         <data key="e0">Umbral Sands (found here) Bunny Cactus</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6210" source="n2074" target="n1098">
+      <edge id="e6210" source="n2079" target="n1098">
         <data key="e0">Umbral Sands (found here) Bunny Cactus Seed</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6211" source="n2074" target="n1061">
+      <edge id="e6211" source="n2079" target="n1061">
         <data key="e0">Umbral Sands (found here) Cactus Fibres</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6212" source="n2074" target="n1105">
+      <edge id="e6212" source="n2079" target="n1105">
         <data key="e0">Umbral Sands (found here) Cactus Steak</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6213" source="n2074" target="n1148">
+      <edge id="e6213" source="n2079" target="n1148">
         <data key="e0">Umbral Sands (found here) Cactus Water</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6214" source="n2074" target="n173">
+      <edge id="e6214" source="n2079" target="n173">
         <data key="e0">Umbral Sands (found here) Clay Decoration</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6215" source="n2074" target="n38">
+      <edge id="e6215" source="n2079" target="n38">
         <data key="e0">Umbral Sands (found here) Clay Vessel</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6216" source="n2074" target="n267">
+      <edge id="e6216" source="n2079" target="n267">
         <data key="e0">Umbral Sands (found here) Coal</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6217" source="n2074" target="n551">
+      <edge id="e6217" source="n2079" target="n551">
         <data key="e0">Umbral Sands (found here) Coal Node</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6218" source="n2074" target="n1201">
+      <edge id="e6218" source="n2079" target="n1201">
         <data key="e0">Umbral Sands (found here) Commemorative Coin</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6219" source="n2074" target="n1220">
+      <edge id="e6219" source="n2079" target="n1220">
         <data key="e0">Umbral Sands (found here) Corroded Curved Blade</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6220" source="n2074" target="n1284">
+      <edge id="e6220" source="n2079" target="n1284">
         <data key="e0">Umbral Sands (found here) Crimson Crybaby</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6221" source="n2074" target="n1245">
+      <edge id="e6221" source="n2079" target="n1245">
         <data key="e0">Umbral Sands (found here) Crucible Engram of Betrayal</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6222" source="n2074" target="n1224">
+      <edge id="e6222" source="n2079" target="n1224">
         <data key="e0">Umbral Sands (found here) Crucible Engram of Helplessness</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6223" source="n2074" target="n1247">
+      <edge id="e6223" source="n2079" target="n1247">
         <data key="e0">Umbral Sands (found here) Crucible Engram of Humiliation</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6224" source="n2074" target="n1246">
+      <edge id="e6224" source="n2079" target="n1246">
         <data key="e0">Umbral Sands (found here) Crucible Engram of the Hounded</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6225" source="n2074" target="n1062">
+      <edge id="e6225" source="n2079" target="n1062">
         <data key="e0">Umbral Sands (found here) Desert Cloth</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6226" source="n2074" target="n1060">
+      <edge id="e6226" source="n2079" target="n1060">
         <data key="e0">Umbral Sands (found here) Desert Thread</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6227" source="n2074" target="n1094">
+      <edge id="e6227" source="n2079" target="n1094">
         <data key="e0">Umbral Sands (found here) Desert Weed</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6228" source="n2074" target="n1092">
+      <edge id="e6228" source="n2079" target="n1092">
         <data key="e0">Umbral Sands (found here) Desert Weed (plant)</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6229" source="n2074" target="n1101">
+      <edge id="e6229" source="n2079" target="n1101">
         <data key="e0">Umbral Sands (found here) Desert Weed Seeds</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6230" source="n2074" target="n1059">
+      <edge id="e6230" source="n2079" target="n1059">
         <data key="e0">Umbral Sands (found here) Dihydrogen Monoxide</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6231" source="n2074" target="n475">
+      <edge id="e6231" source="n2079" target="n475">
         <data key="e0">Umbral Sands (found here) Draconic Leather</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6232" source="n2074" target="n738">
+      <edge id="e6232" source="n2079" target="n738">
         <data key="e0">Umbral Sands (found here) Draconic Leather Scraps</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6233" source="n2074" target="n1058">
+      <edge id="e6233" source="n2079" target="n1058">
         <data key="e0">Umbral Sands (found here) Dragonstone</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6234" source="n2074" target="n1174">
+      <edge id="e6234" source="n2079" target="n1174">
         <data key="e0">Umbral Sands (found here) Dried Tea Leaves</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6235" source="n2074" target="n59">
+      <edge id="e6235" source="n2079" target="n59">
         <data key="e0">Umbral Sands (found here) Earth Rune</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6236" source="n2074" target="n1128">
+      <edge id="e6236" source="n2079" target="n1128">
         <data key="e0">Umbral Sands (found here) Elder Curiosities</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6237" source="n2074" target="n1138">
+      <edge id="e6237" source="n2079" target="n1138">
         <data key="e0">Umbral Sands (found here) Elongated Obsidian Construct</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6238" source="n2074" target="n1091">
+      <edge id="e6238" source="n2079" target="n1091">
         <data key="e0">Umbral Sands (found here) Fibrous Pipe Cactus</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6239" source="n2074" target="n60">
+      <edge id="e6239" source="n2079" target="n60">
         <data key="e0">Umbral Sands (found here) Fire Rune</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6240" source="n2074" target="n1959">
+      <edge id="e6240" source="n2079" target="n1959">
         <data key="e0">Umbral Sands (found here) Fishing Frenzy</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6241" source="n2074" target="n830">
+      <edge id="e6241" source="n2079" target="n830">
         <data key="e0">Umbral Sands (found here) Focused Artisan Potion</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6242" source="n2074" target="n832">
+      <edge id="e6242" source="n2079" target="n832">
         <data key="e0">Umbral Sands (found here) Focused Attack Potion</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6243" source="n2074" target="n833">
+      <edge id="e6243" source="n2079" target="n833">
         <data key="e0">Umbral Sands (found here) Focused Construction Potion</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6244" source="n2074" target="n834">
+      <edge id="e6244" source="n2079" target="n834">
         <data key="e0">Umbral Sands (found here) Focused Cooking Potion</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6245" source="n2074" target="n990">
+      <edge id="e6245" source="n2079" target="n990">
         <data key="e0">Umbral Sands (found here) Focused Fishing Potion</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6246" source="n2074" target="n835">
+      <edge id="e6246" source="n2079" target="n835">
         <data key="e0">Umbral Sands (found here) Focused Mining Potion</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6247" source="n2074" target="n836">
+      <edge id="e6247" source="n2079" target="n836">
         <data key="e0">Umbral Sands (found here) Focused Runecrafting Potion</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6248" source="n2074" target="n837">
+      <edge id="e6248" source="n2079" target="n837">
         <data key="e0">Umbral Sands (found here) Focused Woodcutting Potion</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6249" source="n2074" target="n555">
+      <edge id="e6249" source="n2079" target="n555">
         <data key="e0">Umbral Sands (found here) Fuel Pellet</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6250" source="n2074" target="n1225">
+      <edge id="e6250" source="n2079" target="n1225">
         <data key="e0">Umbral Sands (found here) Fuzan&apos;s Head</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6251" source="n2074" target="n1216">
+      <edge id="e6251" source="n2079" target="n1216">
         <data key="e0">Umbral Sands (found here) Garou Artifact</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6252" source="n2074" target="n1065">
+      <edge id="e6252" source="n2079" target="n1065">
         <data key="e0">Umbral Sands (found here) Garou Chit</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6253" source="n2074" target="n1113">
+      <edge id="e6253" source="n2079" target="n1113">
         <data key="e0">Umbral Sands (found here) Garou Weave</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6254" source="n2074" target="n1104">
+      <edge id="e6254" source="n2079" target="n1104">
         <data key="e0">Umbral Sands (found here) Greater Kalphite Wing</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6255" source="n2074" target="n1181">
+      <edge id="e6255" source="n2079" target="n1181">
         <data key="e0">Umbral Sands (found here) Green Desert Cape</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6256" source="n2074" target="n1190">
+      <edge id="e6256" source="n2079" target="n1190">
         <data key="e0">Umbral Sands (found here) Green Memory of Menaphos</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6257" source="n2074" target="n1056">
+      <edge id="e6257" source="n2079" target="n1056">
         <data key="e0">Umbral Sands (found here) Ground Gypsum</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6258" source="n2074" target="n1073">
+      <edge id="e6258" source="n2079" target="n1073">
         <data key="e0">Umbral Sands (found here) Ground Obsidian</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6259" source="n2074" target="n1106">
+      <edge id="e6259" source="n2079" target="n1106">
         <data key="e0">Umbral Sands (found here) Ground Tea Leaves</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6260" source="n2074" target="n1057">
+      <edge id="e6260" source="n2079" target="n1057">
         <data key="e0">Umbral Sands (found here) Gypsum</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6261" source="n2074" target="n1093">
+      <edge id="e6261" source="n2079" target="n1093">
         <data key="e0">Umbral Sands (found here) Gypsum Node</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6262" source="n2074" target="n1055">
+      <edge id="e6262" source="n2079" target="n1055">
         <data key="e0">Umbral Sands (found here) Gypsum Wax</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6263" source="n2074" target="n68">
+      <edge id="e6263" source="n2079" target="n68">
         <data key="e0">Umbral Sands (found here) Hard Leather</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6264" source="n2074" target="n576">
+      <edge id="e6264" source="n2079" target="n576">
         <data key="e0">Umbral Sands (found here) Hard Leather Scraps</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6265" source="n2074" target="n1265">
+      <edge id="e6265" source="n2079" target="n1265">
         <data key="e0">Umbral Sands (found here) Inspiring Insignia</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6266" source="n2074" target="n1122">
+      <edge id="e6266" source="n2079" target="n1122">
         <data key="e0">Umbral Sands (found here) Kalphite Bait</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6267" source="n2074" target="n1197">
+      <edge id="e6267" source="n2079" target="n1197">
         <data key="e0">Umbral Sands (found here) Kalphite Carapace Chest</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6268" source="n2074" target="n1248">
+      <edge id="e6268" source="n2079" target="n1248">
         <data key="e0">Umbral Sands (found here) Kalphite Egg</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6269" source="n2074" target="n1047">
+      <edge id="e6269" source="n2079" target="n1047">
         <data key="e0">Umbral Sands (found here) Kalphite Ichor</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6270" source="n2074" target="n1050">
+      <edge id="e6270" source="n2079" target="n1050">
         <data key="e0">Umbral Sands (found here) Kalphite Shell</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6271" source="n2074" target="n1049">
+      <edge id="e6271" source="n2079" target="n1049">
         <data key="e0">Umbral Sands (found here) Kalphite Shell Fragments</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6272" source="n2074" target="n1103">
+      <edge id="e6272" source="n2079" target="n1103">
         <data key="e0">Umbral Sands (found here) Kalphite Wing</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6273" source="n2074" target="n1175">
+      <edge id="e6273" source="n2079" target="n1175">
         <data key="e0">Umbral Sands (found here) Keris</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6274" source="n2074" target="n1072">
+      <edge id="e6274" source="n2079" target="n1072">
         <data key="e0">Umbral Sands (found here) Kot Pack</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6275" source="n2074" target="n50">
+      <edge id="e6275" source="n2079" target="n50">
         <data key="e0">Umbral Sands (found here) Law Rune</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6276" source="n2074" target="n839">
+      <edge id="e6276" source="n2079" target="n839">
         <data key="e0">Umbral Sands (found here) Lumberjack Potion</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6277" source="n2074" target="n1235">
+      <edge id="e6277" source="n2079" target="n1235">
         <data key="e0">Umbral Sands (found here) MOUNT: Applefeather Mosstail</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6278" source="n2074" target="n1234">
+      <edge id="e6278" source="n2079" target="n1234">
         <data key="e0">Umbral Sands (found here) MOUNT: Crimson Crybaby</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6279" source="n2074" target="n1277">
+      <edge id="e6279" source="n2079" target="n1277">
         <data key="e0">Umbral Sands (found here) MOUNT: Moonsilk Weave</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6280" source="n2074" target="n1236">
+      <edge id="e6280" source="n2079" target="n1236">
         <data key="e0">Umbral Sands (found here) MOUNT: Scorchsummer Ashbeak</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6281" source="n2074" target="n1250">
+      <edge id="e6281" source="n2079" target="n1250">
         <data key="e0">Umbral Sands (found here) MOUNT: Uzzerian Umber</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6282" source="n2074" target="n384">
+      <edge id="e6282" source="n2079" target="n384">
         <data key="e0">Umbral Sands (found here) Molten Glass</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6283" source="n2074" target="n1074">
+      <edge id="e6283" source="n2079" target="n1074">
         <data key="e0">Umbral Sands (found here) Monkfish Bait</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6284" source="n2074" target="n1202">
+      <edge id="e6284" source="n2079" target="n1202">
         <data key="e0">Umbral Sands (found here) Moon Garou Pack</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6285" source="n2074" target="n1346">
+      <edge id="e6285" source="n2079" target="n1346">
         <data key="e0">Umbral Sands (found here) Moonsilk Weave</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6286" source="n2074" target="n727">
+      <edge id="e6286" source="n2079" target="n727">
         <data key="e0">Umbral Sands (found here) Mystic Cloth</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6287" source="n2074" target="n726">
+      <edge id="e6287" source="n2079" target="n726">
         <data key="e0">Umbral Sands (found here) Mystic Thread</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6288" source="n2074" target="n61">
+      <edge id="e6288" source="n2079" target="n61">
         <data key="e0">Umbral Sands (found here) Nature Rune</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6289" source="n2074" target="n1159">
+      <edge id="e6289" source="n2079" target="n1159">
         <data key="e0">Umbral Sands (found here) Obsidian Chest</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6290" source="n2074" target="n1129">
+      <edge id="e6290" source="n2079" target="n1129">
         <data key="e0">Umbral Sands (found here) Obsidian Device</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6291" source="n2074" target="n1182">
+      <edge id="e6291" source="n2079" target="n1182">
         <data key="e0">Umbral Sands (found here) Orange Desert Cape</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6292" source="n2074" target="n1191">
+      <edge id="e6292" source="n2079" target="n1191">
         <data key="e0">Umbral Sands (found here) Orange Memory of Menaphos</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6293" source="n2074" target="n1208">
+      <edge id="e6293" source="n2079" target="n1208">
         <data key="e0">Umbral Sands (found here) Ornate Golden Scarab</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6294" source="n2074" target="n1298">
+      <edge id="e6294" source="n2079" target="n1298">
         <data key="e0">Umbral Sands (found here) PLAN: Moon Garou Bed</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6295" source="n2074" target="n2045">
+      <edge id="e6295" source="n2079" target="n2045">
         <data key="e0">Umbral Sands (found here) PLAN: Moon Garou Chair 01</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6296" source="n2074" target="n2046">
+      <edge id="e6296" source="n2079" target="n2046">
         <data key="e0">Umbral Sands (found here) PLAN: Moon Garou Chair 02</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6297" source="n2074" target="n1183">
+      <edge id="e6297" source="n2079" target="n1183">
         <data key="e0">Umbral Sands (found here) Pink Desert Cape</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6298" source="n2074" target="n1192">
+      <edge id="e6298" source="n2079" target="n1192">
         <data key="e0">Umbral Sands (found here) Pink Memory of Menaphos</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6299" source="n2074" target="n1100">
+      <edge id="e6299" source="n2079" target="n1100">
         <data key="e0">Umbral Sands (found here) Pipe Cactus Seed</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6300" source="n2074" target="n1163">
+      <edge id="e6300" source="n2079" target="n1163">
         <data key="e0">Umbral Sands (found here) Pristine Beltfish</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6301" source="n2074" target="n1839">
+      <edge id="e6301" source="n2079" target="n1839">
         <data key="e0">Umbral Sands (found here) Pristine Beltfish Trophy</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6302" source="n2074" target="n1166">
+      <edge id="e6302" source="n2079" target="n1166">
         <data key="e0">Umbral Sands (found here) Pristine Desert Sole</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6303" source="n2074" target="n1841">
+      <edge id="e6303" source="n2079" target="n1841">
         <data key="e0">Umbral Sands (found here) Pristine Desert Sole Trophy</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6304" source="n2074" target="n1167">
+      <edge id="e6304" source="n2079" target="n1167">
         <data key="e0">Umbral Sands (found here) Pristine Monkfish</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6305" source="n2074" target="n1840">
+      <edge id="e6305" source="n2079" target="n1840">
         <data key="e0">Umbral Sands (found here) Pristine Monkfish Trophy</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6306" source="n2074" target="n1184">
+      <edge id="e6306" source="n2079" target="n1184">
         <data key="e0">Umbral Sands (found here) Purple Desert Cape</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6307" source="n2074" target="n1193">
+      <edge id="e6307" source="n2079" target="n1193">
         <data key="e0">Umbral Sands (found here) Purple Memory of Menaphos</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6308" source="n2074" target="n840">
+      <edge id="e6308" source="n2079" target="n840">
         <data key="e0">Umbral Sands (found here) Quarrymaster Potion</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6309" source="n2074" target="n1161">
+      <edge id="e6309" source="n2079" target="n1161">
         <data key="e0">Umbral Sands (found here) Raw Beltfish</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6310" source="n2074" target="n1164">
+      <edge id="e6310" source="n2079" target="n1164">
         <data key="e0">Umbral Sands (found here) Raw Desert Sole</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6311" source="n2074" target="n1132">
+      <edge id="e6311" source="n2079" target="n1132">
         <data key="e0">Umbral Sands (found here) Raw Monkfish</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6312" source="n2074" target="n1139">
+      <edge id="e6312" source="n2079" target="n1139">
         <data key="e0">Umbral Sands (found here) Red Dragon Hide</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6313" source="n2074" target="n1194">
+      <edge id="e6313" source="n2079" target="n1194">
         <data key="e0">Umbral Sands (found here) Red Memory of Menaphos</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6314" source="n2074" target="n1071">
+      <edge id="e6314" source="n2079" target="n1071">
         <data key="e0">Umbral Sands (found here) Refined Obsidian</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6315" source="n2074" target="n1330">
+      <edge id="e6315" source="n2079" target="n1330">
         <data key="e0">Umbral Sands (found here) Reward Pack: Umbral Sands Bronze</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6316" source="n2074" target="n1331">
+      <edge id="e6316" source="n2079" target="n1331">
         <data key="e0">Umbral Sands (found here) Reward Pack: Umbral Sands Gold</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6317" source="n2074" target="n1332">
+      <edge id="e6317" source="n2079" target="n1332">
         <data key="e0">Umbral Sands (found here) Reward Pack: Umbral Sands Silver</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6318" source="n2074" target="n371">
+      <edge id="e6318" source="n2079" target="n371">
         <data key="e0">Umbral Sands (found here) Rune Essence (Rock)</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6319" source="n2074" target="n211">
+      <edge id="e6319" source="n2079" target="n211">
         <data key="e0">Umbral Sands (found here) Sandstone</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6320" source="n2074" target="n276">
+      <edge id="e6320" source="n2079" target="n276">
         <data key="e0">Umbral Sands (found here) Sandstone Rock</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6321" source="n2074" target="n1295">
+      <edge id="e6321" source="n2079" target="n1295">
         <data key="e0">Umbral Sands (found here) Scorchsummer Ashbeak</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6322" source="n2074" target="n1203">
+      <edge id="e6322" source="n2079" target="n1203">
         <data key="e0">Umbral Sands (found here) Shattered Black Blade (Umbral Sands)</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6323" source="n2074" target="n1333">
+      <edge id="e6323" source="n2079" target="n1333">
         <data key="e0">Umbral Sands (found here) Shred of Sunbleached Weave</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6324" source="n2074" target="n1102">
+      <edge id="e6324" source="n2079" target="n1102">
         <data key="e0">Umbral Sands (found here) Stunted Kalphite Wing</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6325" source="n2074" target="n1227">
+      <edge id="e6325" source="n2079" target="n1227">
         <data key="e0">Umbral Sands (found here) Super Antifire Potion</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6326" source="n2074" target="n1230">
+      <edge id="e6326" source="n2079" target="n1230">
         <data key="e0">Umbral Sands (found here) Super Antipoison Potion</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6327" source="n2074" target="n1231">
+      <edge id="e6327" source="n2079" target="n1231">
         <data key="e0">Umbral Sands (found here) Super Focused Artisan Potion</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6328" source="n2074" target="n1254">
+      <edge id="e6328" source="n2079" target="n1254">
         <data key="e0">Umbral Sands (found here) Super Focused Attack Potion</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6329" source="n2074" target="n1255">
+      <edge id="e6329" source="n2079" target="n1255">
         <data key="e0">Umbral Sands (found here) Super Focused Construction Potion</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6330" source="n2074" target="n1256">
+      <edge id="e6330" source="n2079" target="n1256">
         <data key="e0">Umbral Sands (found here) Super Focused Cooking Potion</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6331" source="n2074" target="n1257">
+      <edge id="e6331" source="n2079" target="n1257">
         <data key="e0">Umbral Sands (found here) Super Focused Farming Potion</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6332" source="n2074" target="n1258">
+      <edge id="e6332" source="n2079" target="n1258">
         <data key="e0">Umbral Sands (found here) Super Focused Fishing Potion</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6333" source="n2074" target="n1149">
+      <edge id="e6333" source="n2079" target="n1149">
         <data key="e0">Umbral Sands (found here) Super Focused Mining Potion</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6334" source="n2074" target="n1259">
+      <edge id="e6334" source="n2079" target="n1259">
         <data key="e0">Umbral Sands (found here) Super Focused Runecrafting Potion</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6335" source="n2074" target="n1260">
+      <edge id="e6335" source="n2079" target="n1260">
         <data key="e0">Umbral Sands (found here) Super Focused Woodcutting Potion</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6336" source="n2074" target="n1228">
+      <edge id="e6336" source="n2079" target="n1228">
         <data key="e0">Umbral Sands (found here) Super Lumberjack Potion</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6337" source="n2074" target="n1229">
+      <edge id="e6337" source="n2079" target="n1229">
         <data key="e0">Umbral Sands (found here) Super Quarrymaster Potion</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6338" source="n2074" target="n1107">
+      <edge id="e6338" source="n2079" target="n1107">
         <data key="e0">Umbral Sands (found here) Tea Leaves</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6339" source="n2074" target="n1137">
+      <edge id="e6339" source="n2079" target="n1137">
         <data key="e0">Umbral Sands (found here) Toktz-Mej-Tal</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6340" source="n2074" target="n1210">
+      <edge id="e6340" source="n2079" target="n1210">
         <data key="e0">Umbral Sands (found here) Toktz-Xil-Ak</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6341" source="n2074" target="n556">
+      <edge id="e6341" source="n2079" target="n556">
         <data key="e0">Umbral Sands (found here) Tome of Farming - Vol 2</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6342" source="n2074" target="n1008">
+      <edge id="e6342" source="n2079" target="n1008">
         <data key="e0">Umbral Sands (found here) Tome of Fishing - Vol 2</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6343" source="n2074" target="n1211">
+      <edge id="e6343" source="n2079" target="n1211">
         <data key="e0">Umbral Sands (found here) TzHaar-Ket-Om</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6344" source="n2074" target="n1894">
+      <edge id="e6344" source="n2079" target="n1894">
         <data key="e0">Umbral Sands (found here) Umbral Sands Arena Tapestry</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6345" source="n2074" target="n1223">
+      <edge id="e6345" source="n2079" target="n1223">
         <data key="e0">Umbral Sands (found here) Umbral Sands Cape</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6346" source="n2074" target="n1893">
+      <edge id="e6346" source="n2079" target="n1893">
         <data key="e0">Umbral Sands (found here) Umbral Sands Landscape Tapestry</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6347" source="n2074" target="n1892">
+      <edge id="e6347" source="n2079" target="n1892">
         <data key="e0">Umbral Sands (found here) Umbral Sands Pit Tapestry</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6348" source="n2074" target="n1891">
+      <edge id="e6348" source="n2079" target="n1891">
         <data key="e0">Umbral Sands (found here) Umbral Sands Ruins Tapestry</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6349" source="n2074" target="n1890">
+      <edge id="e6349" source="n2079" target="n1890">
         <data key="e0">Umbral Sands (found here) Umbral Sands Tower Tapestry</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6350" source="n2074" target="n1319">
+      <edge id="e6350" source="n2079" target="n1319">
         <data key="e0">Umbral Sands (found here) Unyielding Obsidian Construct</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6351" source="n2074" target="n1299">
+      <edge id="e6351" source="n2079" target="n1299">
         <data key="e0">Umbral Sands (found here) Uzzerian Umber</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6352" source="n2074" target="n130">
+      <edge id="e6352" source="n2079" target="n130">
         <data key="e0">Umbral Sands (found here) Water Rune</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6353" source="n2074" target="n1186">
+      <edge id="e6353" source="n2079" target="n1186">
         <data key="e0">Umbral Sands (found here) White Desert Cape</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6354" source="n2074" target="n1195">
+      <edge id="e6354" source="n2079" target="n1195">
         <data key="e0">Umbral Sands (found here) White Memory of Menaphos</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6355" source="n2074" target="n1187">
+      <edge id="e6355" source="n2079" target="n1187">
         <data key="e0">Umbral Sands (found here) Yellow Desert Cape</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6356" source="n2074" target="n1196">
+      <edge id="e6356" source="n2079" target="n1196">
         <data key="e0">Umbral Sands (found here) Yellow Memory of Menaphos</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6357" source="n2074" target="n1835">
+      <edge id="e6357" source="n2079" target="n1835">
         <data key="e0">Umbral Sands (found here) Yew Farming Plot</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6358" source="n2074" target="n1070">
+      <edge id="e6358" source="n2079" target="n1070">
         <data key="e0">Umbral Sands (found here) Yew Logs</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6359" source="n2074" target="n1051">
+      <edge id="e6359" source="n2079" target="n1051">
         <data key="e0">Umbral Sands (found here) Yew Tree</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6360" source="n2074" target="n1097">
+      <edge id="e6360" source="n2079" target="n1097">
         <data key="e0">Umbral Sands (found here) Yew Tree Seed</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6361" source="n2075" target="n1223">
+      <edge id="e6361" source="n2081" target="n1223">
         <data key="e0">Dunes of Uzzer (found here) Umbral Sands Cape</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6362" source="n2076" target="n1262">
+      <edge id="e6362" source="n2082" target="n1262">
         <data key="e0">Manafem Plains (found here) The Radiant&apos;s Heart</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6363" source="n2077" target="n23">
+      <edge id="e6363" source="n2084" target="n23">
         <data key="e0">Brynmoor (found here) Antler</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6364" source="n2077" target="n1707">
+      <edge id="e6364" source="n2084" target="n1707">
         <data key="e0">Brynmoor (found here) Ash Farming Plot</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6365" source="n2077" target="n0">
+      <edge id="e6365" source="n2084" target="n0">
         <data key="e0">Brynmoor (found here) Ash Tree</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6366" source="n2077" target="n370">
+      <edge id="e6366" source="n2084" target="n370">
         <data key="e0">Brynmoor (found here) Bittercap Mushroom (plant)</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6367" source="n2077" target="n1313">
+      <edge id="e6367" source="n2084" target="n1313">
         <data key="e0">Brynmoor (found here) Bronze Leaf</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6368" source="n2077" target="n83">
+      <edge id="e6368" source="n2084" target="n83">
         <data key="e0">Brynmoor (found here) Bronze Logging Axe</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6369" source="n2077" target="n1877">
+      <edge id="e6369" source="n2084" target="n1877">
         <data key="e0">Brynmoor (found here) Brynmoor Falcon Perch</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6370" source="n2077" target="n1899">
+      <edge id="e6370" source="n2084" target="n1899">
         <data key="e0">Brynmoor (found here) Brynmoor Hills Tapestry</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6371" source="n2077" target="n1906">
+      <edge id="e6371" source="n2084" target="n1906">
         <data key="e0">Brynmoor (found here) Brynmoor Lake Flora Tapestry</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6372" source="n2077" target="n1898">
+      <edge id="e6372" source="n2084" target="n1898">
         <data key="e0">Brynmoor (found here) Brynmoor Lake Tapestry</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6373" source="n2077" target="n1895">
+      <edge id="e6373" source="n2084" target="n1895">
         <data key="e0">Brynmoor (found here) Brynmoor Swamp Night Tapestry</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6374" source="n2077" target="n1897">
+      <edge id="e6374" source="n2084" target="n1897">
         <data key="e0">Brynmoor (found here) Brynmoor Swamp Tapestry</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6375" source="n2077" target="n1896">
+      <edge id="e6375" source="n2084" target="n1896">
         <data key="e0">Brynmoor (found here) Brynmoor Swamp Toxic Tapestry</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6376" source="n2077" target="n1870">
+      <edge id="e6376" source="n2084" target="n1870">
         <data key="e0">Brynmoor (found here) Brynmoor Valley Tapestry</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6377" source="n2077" target="n11">
+      <edge id="e6377" source="n2084" target="n11">
         <data key="e0">Brynmoor (found here) Cabbage</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6378" source="n2077" target="n483">
+      <edge id="e6378" source="n2084" target="n483">
         <data key="e0">Brynmoor (found here) Cabbage Seeds</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6379" source="n2077" target="n278">
+      <edge id="e6379" source="n2084" target="n278">
         <data key="e0">Brynmoor (found here) Clay Node</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6380" source="n2077" target="n958">
+      <edge id="e6380" source="n2084" target="n958">
         <data key="e0">Brynmoor (found here) Coarse Net</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6381" source="n2077" target="n1267">
+      <edge id="e6381" source="n2084" target="n1267">
         <data key="e0">Brynmoor (found here) Extinguished Blue Remnants</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6382" source="n2077" target="n1273">
+      <edge id="e6382" source="n2084" target="n1273">
         <data key="e0">Brynmoor (found here) Extinguished Green Remnants</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6383" source="n2077" target="n1274">
+      <edge id="e6383" source="n2084" target="n1274">
         <data key="e0">Brynmoor (found here) Extinguished Purple Remnants</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6384" source="n2077" target="n1275">
+      <edge id="e6384" source="n2084" target="n1275">
         <data key="e0">Brynmoor (found here) Extinguished Red Remnants</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6385" source="n2077" target="n1272">
+      <edge id="e6385" source="n2084" target="n1272">
         <data key="e0">Brynmoor (found here) Extinguished Yellow Remnants</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6386" source="n2077" target="n364">
+      <edge id="e6386" source="n2084" target="n364">
         <data key="e0">Brynmoor (found here) Flax (plant)</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6387" source="n2077" target="n484">
+      <edge id="e6387" source="n2084" target="n484">
         <data key="e0">Brynmoor (found here) Flax Seeds</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6388" source="n2077" target="n70">
+      <edge id="e6388" source="n2084" target="n70">
         <data key="e0">Brynmoor (found here) Ghostspeak Amulet</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6389" source="n2077" target="n1311">
+      <edge id="e6389" source="n2084" target="n1311">
         <data key="e0">Brynmoor (found here) Gold Leaf</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6390" source="n2077" target="n367">
+      <edge id="e6390" source="n2084" target="n367">
         <data key="e0">Brynmoor (found here) Harralander (plant)</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6391" source="n2077" target="n492">
+      <edge id="e6391" source="n2084" target="n492">
         <data key="e0">Brynmoor (found here) Harralander Seeds</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6392" source="n2077" target="n1859">
+      <edge id="e6392" source="n2084" target="n1859">
         <data key="e0">Brynmoor (found here) Lightning Rod</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6393" source="n2077" target="n491">
+      <edge id="e6393" source="n2084" target="n491">
         <data key="e0">Brynmoor (found here) Marentill Seeds</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6394" source="n2077" target="n366">
+      <edge id="e6394" source="n2084" target="n366">
         <data key="e0">Brynmoor (found here) Marrentil (plant)</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6395" source="n2077" target="n119">
+      <edge id="e6395" source="n2084" target="n119">
         <data key="e0">Brynmoor (found here) Oak Logs</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6396" source="n2077" target="n238">
+      <edge id="e6396" source="n2084" target="n238">
         <data key="e0">Brynmoor (found here) Oak Tree</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6397" source="n2077" target="n523">
+      <edge id="e6397" source="n2084" target="n523">
         <data key="e0">Brynmoor (found here) Oak Tree Seed</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6398" source="n2077" target="n288">
+      <edge id="e6398" source="n2084" target="n288">
         <data key="e0">Brynmoor (found here) Potato (plant)</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6399" source="n2077" target="n485">
+      <edge id="e6399" source="n2084" target="n485">
         <data key="e0">Brynmoor (found here) Potato Seeds</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6400" source="n2077" target="n1783">
+      <edge id="e6400" source="n2084" target="n1783">
         <data key="e0">Brynmoor (found here) Pristine Sardine Trophy</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6401" source="n2077" target="n1785">
+      <edge id="e6401" source="n2084" target="n1785">
         <data key="e0">Brynmoor (found here) Pristine Trout Trophy</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6402" source="n2077" target="n944">
+      <edge id="e6402" source="n2084" target="n944">
         <data key="e0">Brynmoor (found here) Raw Sardine</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6403" source="n2077" target="n945">
+      <edge id="e6403" source="n2084" target="n945">
         <data key="e0">Brynmoor (found here) Raw Shrimp</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6404" source="n2077" target="n946">
+      <edge id="e6404" source="n2084" target="n946">
         <data key="e0">Brynmoor (found here) Raw Trout</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6405" source="n2077" target="n62">
+      <edge id="e6405" source="n2084" target="n62">
         <data key="e0">Brynmoor (found here) Redberry Bush</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6406" source="n2077" target="n486">
+      <edge id="e6406" source="n2084" target="n486">
         <data key="e0">Brynmoor (found here) Redberry Seeds</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6407" source="n2077" target="n1320">
+      <edge id="e6407" source="n2084" target="n1320">
         <data key="e0">Brynmoor (found here) Reward Pack: Brynmoor Bronze</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6408" source="n2077" target="n1314">
+      <edge id="e6408" source="n2084" target="n1314">
         <data key="e0">Brynmoor (found here) Reward Pack: Brynmoor Gold</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6409" source="n2077" target="n1321">
+      <edge id="e6409" source="n2084" target="n1321">
         <data key="e0">Brynmoor (found here) Reward Pack: Brynmoor Silver</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6410" source="n2077" target="n1312">
+      <edge id="e6410" source="n2084" target="n1312">
         <data key="e0">Brynmoor (found here) Silver Leaf</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6411" source="n2077" target="n330">
+      <edge id="e6411" source="n2084" target="n330">
         <data key="e0">Brynmoor (found here) Stone Boulder</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6412" source="n2077" target="n184">
+      <edge id="e6412" source="n2084" target="n184">
         <data key="e0">Brynmoor (found here) Swamp Tar</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6413" source="n2077" target="n1309">
+      <edge id="e6413" source="n2084" target="n1309">
         <data key="e0">Brynmoor (found here) Warped Feathers</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6414" source="n2077" target="n480">
+      <edge id="e6414" source="n2084" target="n480">
         <data key="e0">Brynmoor (found here) Wheat</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6415" source="n2077" target="n482">
+      <edge id="e6415" source="n2084" target="n482">
         <data key="e0">Brynmoor (found here) Wheat Seeds</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6416" source="n2077" target="n961">
+      <edge id="e6416" source="n2084" target="n961">
         <data key="e0">Brynmoor (found here) Wool Net</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6417" source="n2078" target="n1276">
+      <edge id="e6417" source="n2085" target="n1276">
         <data key="e0">Scorned Wilderness (found here) Ancestral Robes</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6418" source="n2078" target="n0">
+      <edge id="e6418" source="n2085" target="n0">
         <data key="e0">Scorned Wilderness (found here) Ash Tree</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6419" source="n2078" target="n22">
+      <edge id="e6419" source="n2085" target="n22">
         <data key="e0">Scorned Wilderness (found here) Bittercap Mushroom</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6420" source="n2078" target="n1353">
+      <edge id="e6420" source="n2085" target="n1353">
         <data key="e0">Scorned Wilderness (found here) Black Dragon Hide</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6421" source="n2078" target="n11">
+      <edge id="e6421" source="n2085" target="n11">
         <data key="e0">Scorned Wilderness (found here) Cabbage</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6422" source="n2078" target="n533">
+      <edge id="e6422" source="n2085" target="n533">
         <data key="e0">Scorned Wilderness (found here) Dead Tree</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6423" source="n2078" target="n1347">
+      <edge id="e6423" source="n2085" target="n1347">
         <data key="e0">Scorned Wilderness (found here) Discordant Residue</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6424" source="n2078" target="n1411">
+      <edge id="e6424" source="n2085" target="n1411">
         <data key="e0">Scorned Wilderness (found here) Dragon Crossbow</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6425" source="n2078" target="n1359">
+      <edge id="e6425" source="n2085" target="n1359">
         <data key="e0">Scorned Wilderness (found here) Dragon Full Helm</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6426" source="n2078" target="n1365">
+      <edge id="e6426" source="n2085" target="n1365">
         <data key="e0">Scorned Wilderness (found here) Dragon Kiteshield</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6427" source="n2078" target="n1401">
+      <edge id="e6427" source="n2085" target="n1401">
         <data key="e0">Scorned Wilderness (found here) Dragon Med Helm</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6428" source="n2078" target="n1362">
+      <edge id="e6428" source="n2085" target="n1362">
         <data key="e0">Scorned Wilderness (found here) Dragon Platebody</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6429" source="n2078" target="n1363">
+      <edge id="e6429" source="n2085" target="n1363">
         <data key="e0">Scorned Wilderness (found here) Dragon Platelegs</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6430" source="n2078" target="n1337">
+      <edge id="e6430" source="n2085" target="n1337">
         <data key="e0">Scorned Wilderness (found here) Dragon Scimitar</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6431" source="n2078" target="n1412">
+      <edge id="e6431" source="n2085" target="n1412">
         <data key="e0">Scorned Wilderness (found here) Kuldra&apos;s Head</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6432" source="n2078" target="n1397">
+      <edge id="e6432" source="n2085" target="n1397">
         <data key="e0">Scorned Wilderness (found here) Kuldra&apos;s Wrath</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6433" source="n2078" target="n1405">
+      <edge id="e6433" source="n2085" target="n1405">
         <data key="e0">Scorned Wilderness (found here) Lougrim&apos;s Staff</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6434" source="n2078" target="n1344">
+      <edge id="e6434" source="n2085" target="n1344">
         <data key="e0">Scorned Wilderness (found here) Luminite Deposit</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6435" source="n2078" target="n1345">
+      <edge id="e6435" source="n2085" target="n1345">
         <data key="e0">Scorned Wilderness (found here) Luminite Ore</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6436" source="n2078" target="n238">
+      <edge id="e6436" source="n2085" target="n238">
         <data key="e0">Scorned Wilderness (found here) Oak Tree</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6437" source="n2078" target="n205">
+      <edge id="e6437" source="n2085" target="n205">
         <data key="e0">Scorned Wilderness (found here) Onion</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6438" source="n2078" target="n58">
+      <edge id="e6438" source="n2085" target="n58">
         <data key="e0">Scorned Wilderness (found here) Potato</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6439" source="n2078" target="n513">
+      <edge id="e6439" source="n2085" target="n513">
         <data key="e0">Scorned Wilderness (found here) Pumpkin</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6440" source="n2078" target="n1366">
+      <edge id="e6440" source="n2085" target="n1366">
         <data key="e0">Scorned Wilderness (found here) Queenslayer&apos;s Reward Pack</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6441" source="n2078" target="n3">
+      <edge id="e6441" source="n2085" target="n3">
         <data key="e0">Scorned Wilderness (found here) Redberries</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6442" source="n2078" target="n1351">
+      <edge id="e6442" source="n2085" target="n1351">
         <data key="e0">Scorned Wilderness (found here) Runite Ore</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6443" source="n2078" target="n1424">
+      <edge id="e6443" source="n2085" target="n1424">
         <data key="e0">Scorned Wilderness (found here) Runite Ore Node</data>
         <data key="ek0">region</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6444" source="n2052" target="n2079">
+      <edge id="e6444" source="n2052" target="n2086">
         <data key="e0">Temple Woods (quest here) First Steps</data>
         <data key="ek0">quest</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6445" source="n2052" target="n2080">
+      <edge id="e6445" source="n2052" target="n2087">
         <data key="e0">Temple Woods (quest here) Getting Started</data>
         <data key="ek0">quest</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6446" source="n2052" target="n2081">
+      <edge id="e6446" source="n2052" target="n2088">
         <data key="e0">Temple Woods (quest here) Ratcatcher</data>
         <data key="ek0">quest</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6447" source="n2052" target="n2082">
+      <edge id="e6447" source="n2052" target="n2089">
         <data key="e0">Temple Woods (quest here) Rune Mysteries</data>
         <data key="ek0">quest</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6448" source="n2077" target="n2083">
+      <edge id="e6448" source="n2084" target="n2090">
         <data key="e0">Brynmoor (quest here) Dragon Slayer</data>
         <data key="ek0">quest</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6449" source="n2055" target="n2083">
+      <edge id="e6449" source="n2055" target="n2090">
         <data key="e0">Ghornfell (quest here) Dragon Slayer</data>
         <data key="ek0">quest</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6450" source="n2083" target="n127">
+      <edge id="e6450" source="n2090" target="n127">
         <data key="e0">Dragon Slayer (rewards) Anti-Dragon Shield</data>
         <data key="ek0">quest</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6451" source="n2083" target="n265">
+      <edge id="e6451" source="n2090" target="n265">
         <data key="e0">Dragon Slayer (rewards) Noxious Draconic Visage</data>
         <data key="ek0">quest</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6452" source="n2059" target="n2084">
+      <edge id="e6452" source="n2059" target="n2091">
         <data key="e0">Fellhollow (quest here) Withering Heights</data>
         <data key="ek0">quest</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6453" source="n2084" target="n567">
+      <edge id="e6453" source="n2091" target="n567">
         <data key="e0">Withering Heights (rewards) Dragoncurse Shield</data>
         <data key="ek0">quest</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6454" source="n2084" target="n599">
+      <edge id="e6454" source="n2091" target="n599">
         <data key="e0">Withering Heights (rewards) Undead Draconic Visage</data>
         <data key="ek0">quest</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6455" source="n2069" target="n2085">
+      <edge id="e6455" source="n2069" target="n2092">
         <data key="e0">Dowdun Reach (quest here) Black Knight&apos;s Fortress</data>
         <data key="ek0">quest</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6456" source="n2085" target="n764">
+      <edge id="e6456" source="n2092" target="n764">
         <data key="e0">Black Knight&apos;s Fortress (rewards) Maple Toastie</data>
         <data key="ek0">quest</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6457" source="n2085" target="n799">
+      <edge id="e6457" source="n2092" target="n799">
         <data key="e0">Black Knight&apos;s Fortress (rewards) Titan&apos;s Wrath</data>
         <data key="ek0">quest</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6458" source="n2074" target="n2086">
+      <edge id="e6458" source="n2079" target="n2093">
         <data key="e0">Umbral Sands (quest here) Icthlarin&apos;s Little Helper</data>
         <data key="ek0">quest</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6459" source="n2086" target="n1108">
+      <edge id="e6459" source="n2093" target="n1108">
         <data key="e0">Icthlarin&apos;s Little Helper (rewards) Dragonfire Shield</data>
         <data key="ek0">quest</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6460" source="n2086" target="n1232">
+      <edge id="e6460" source="n2093" target="n1232">
         <data key="e0">Icthlarin&apos;s Little Helper (rewards) Smouldering Draconic Visage</data>
         <data key="ek0">quest</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6461" source="n2078" target="n2087">
+      <edge id="e6461" source="n2085" target="n2094">
         <data key="e0">Scorned Wilderness (quest here) Regicide</data>
         <data key="ek0">quest</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6462" source="n2087" target="n1403">
+      <edge id="e6462" source="n2094" target="n1403">
         <data key="e0">Regicide (rewards) Dragonslayer&apos;s Cape</data>
         <data key="ek0">quest</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6463" source="n2087" target="n1871">
+      <edge id="e6463" source="n2094" target="n1871">
         <data key="e0">Regicide (rewards) Lougrim Memorial Shrine</data>
         <data key="ek0">quest</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6464" source="n2087" target="n1365">
+      <edge id="e6464" source="n2094" target="n1365">
         <data key="e0">Regicide (rewards) Dragon Kiteshield</data>
         <data key="ek0">quest</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6465" source="n2077" target="n2088">
+      <edge id="e6465" source="n2084" target="n2095">
         <data key="e0">Brynmoor (quest here) Growing Pains</data>
         <data key="ek0">quest</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6466" source="n2077" target="n2089">
+      <edge id="e6466" source="n2084" target="n2096">
         <data key="e0">Brynmoor (quest here) Shrimp Catcher</data>
         <data key="ek0">quest</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6467" source="n2077" target="n2090">
+      <edge id="e6467" source="n2084" target="n2097">
         <data key="e0">Brynmoor (quest here) Restless Ghosts</data>
         <data key="ek0">quest</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6468" source="n2077" target="n2091">
+      <edge id="e6468" source="n2084" target="n2098">
         <data key="e0">Brynmoor (quest here) Goblin Diplomacy</data>
         <data key="ek0">quest</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6469" source="n2091" target="n129">
+      <edge id="e6469" source="n2098" target="n129">
         <data key="e0">Goblin Diplomacy (rewards) Goblin War Banner</data>
         <data key="ek0">quest</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6470" source="n2077" target="n2092">
+      <edge id="e6470" source="n2084" target="n2099">
         <data key="e0">Brynmoor (quest here) Highlighting the Problem</data>
         <data key="ek0">quest</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6471" source="n2092" target="n91">
+      <edge id="e6471" source="n2099" target="n91">
         <data key="e0">Highlighting the Problem (rewards) Staff of Light</data>
         <data key="ek0">quest</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6472" source="n2055" target="n2093">
+      <edge id="e6472" source="n2055" target="n2100">
         <data key="e0">Ghornfell (quest here) Granite Mauled</data>
         <data key="ek0">quest</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6473" source="n2093" target="n189">
+      <edge id="e6473" source="n2100" target="n189">
         <data key="e0">Granite Mauled (rewards) Granite Maul</data>
         <data key="ek0">quest</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6474" source="n2055" target="n2094">
+      <edge id="e6474" source="n2055" target="n2101">
         <data key="e0">Ghornfell (quest here) Heartstrings</data>
         <data key="ek0">quest</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6475" source="n2094" target="n126">
+      <edge id="e6475" source="n2101" target="n126">
         <data key="e0">Heartstrings (rewards) Crystal Bow</data>
         <data key="ek0">quest</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6476" source="n2055" target="n2095">
+      <edge id="e6476" source="n2055" target="n2102">
         <data key="e0">Ghornfell (quest here) Dog Days</data>
         <data key="ek0">quest</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6477" source="n2095" target="n156">
+      <edge id="e6477" source="n2102" target="n156">
         <data key="e0">Dog Days (rewards) Garou Highborn&apos;s Cloak</data>
         <data key="ek0">quest</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6478" source="n2055" target="n2096">
+      <edge id="e6478" source="n2055" target="n2103">
         <data key="e0">Ghornfell (quest here) Cook&apos;s Assistant</data>
         <data key="ek0">quest</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6479" source="n2096" target="n956">
+      <edge id="e6479" source="n2103" target="n956">
         <data key="e0">Cook&apos;s Assistant (rewards) Victoria Sponge Cake</data>
         <data key="ek0">quest</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6480" source="n2055" target="n2097">
+      <edge id="e6480" source="n2055" target="n2104">
         <data key="e0">Ghornfell (quest here) Animal Magnetism</data>
         <data key="ek0">quest</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6481" source="n2097" target="n733">
+      <edge id="e6481" source="n2104" target="n733">
         <data key="e0">Animal Magnetism (rewards) Ava&apos;s Accumulator</data>
         <data key="ek0">quest</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6482" source="n2055" target="n2098">
+      <edge id="e6482" source="n2055" target="n2105">
         <data key="e0">Ghornfell (quest here) A Room With A Garou</data>
         <data key="ek0">quest</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6483" source="n2098" target="n1802">
+      <edge id="e6483" source="n2105" target="n1802">
         <data key="e0">A Room With A Garou (rewards) Hanging Tools</data>
         <data key="ek0">quest</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6484" source="n2098" target="n1803">
+      <edge id="e6484" source="n2105" target="n1803">
         <data key="e0">A Room With A Garou (rewards) Pots on a Bench</data>
         <data key="ek0">quest</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6485" source="n2098" target="n1804">
+      <edge id="e6485" source="n2105" target="n1804">
         <data key="e0">A Room With A Garou (rewards) Sawhorse</data>
         <data key="ek0">quest</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6486" source="n2055" target="n2099">
+      <edge id="e6486" source="n2055" target="n2106">
         <data key="e0">Ghornfell (quest here) A Melody Remembered</data>
         <data key="ek0">quest</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6487" source="n2099" target="n1035">
+      <edge id="e6487" source="n2106" target="n1035">
         <data key="e0">A Melody Remembered (rewards) Ravanna&apos;s Ring</data>
         <data key="ek0">quest</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6488" source="n2055" target="n2100">
+      <edge id="e6488" source="n2055" target="n2107">
         <data key="e0">Ghornfell (quest here) The Great Body Robbery</data>
         <data key="ek0">quest</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6489" source="n2100" target="n1859">
+      <edge id="e6489" source="n2107" target="n1859">
         <data key="e0">The Great Body Robbery (rewards) Lightning Rod</data>
         <data key="ek0">quest</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6490" source="n2100" target="n1207">
+      <edge id="e6490" source="n2107" target="n1207">
         <data key="e0">The Great Body Robbery (rewards) Zombie Arm</data>
         <data key="ek0">quest</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6491" source="n2059" target="n2101">
+      <edge id="e6491" source="n2059" target="n2108">
         <data key="e0">Fellhollow (quest here) Even More Restless Ghosts</data>
         <data key="ek0">quest</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6492" source="n2101" target="n541">
+      <edge id="e6492" source="n2108" target="n541">
         <data key="e0">Even More Restless Ghosts (rewards) Dorgeshuun Crossbow</data>
         <data key="ek0">quest</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6493" source="n2059" target="n2102">
+      <edge id="e6493" source="n2059" target="n2109">
         <data key="e0">Fellhollow (quest here) The Wild Hunt</data>
         <data key="ek0">quest</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6494" source="n2059" target="n2103">
+      <edge id="e6494" source="n2059" target="n2110">
         <data key="e0">Fellhollow (quest here) Things That Go Boom In The Night</data>
         <data key="ek0">quest</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6495" source="n2103" target="n666">
+      <edge id="e6495" source="n2110" target="n666">
         <data key="e0">Things That Go Boom In The Night (rewards) Spectral Chinchompa Cape</data>
         <data key="ek0">quest</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6496" source="n2059" target="n2104">
+      <edge id="e6496" source="n2059" target="n2111">
         <data key="e0">Fellhollow (quest here) Seeking Salvation</data>
         <data key="ek0">quest</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6497" source="n2104" target="n534">
+      <edge id="e6497" source="n2111" target="n534">
         <data key="e0">Seeking Salvation (rewards) Salve Amulet</data>
         <data key="ek0">quest</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6498" source="n2059" target="n2105">
+      <edge id="e6498" source="n2059" target="n2112">
         <data key="e0">Fellhollow (quest here) Doric&apos;s Quest</data>
         <data key="ek0">quest</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6499" source="n2105" target="n663">
+      <edge id="e6499" source="n2112" target="n663">
         <data key="e0">Doric&apos;s Quest (rewards) Zombie Axe</data>
         <data key="ek0">quest</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6500" source="n2059" target="n2106">
+      <edge id="e6500" source="n2059" target="n2113">
         <data key="e0">Fellhollow (quest here) Letters for the Dead</data>
         <data key="ek0">quest</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6501" source="n2059" target="n2107">
+      <edge id="e6501" source="n2059" target="n2114">
         <data key="e0">Fellhollow (quest here) What Remains is Written</data>
         <data key="ek0">quest</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6502" source="n2059" target="n2108">
+      <edge id="e6502" source="n2059" target="n2115">
         <data key="e0">Fellhollow (quest here) Mirror Mirror</data>
         <data key="ek0">quest</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6503" source="n2108" target="n678">
+      <edge id="e6503" source="n2115" target="n678">
         <data key="e0">Mirror Mirror (rewards) Ulv&apos;s Longbow</data>
         <data key="ek0">quest</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6504" source="n2069" target="n2109">
+      <edge id="e6504" source="n2069" target="n2116">
         <data key="e0">Dowdun Reach (quest here) Biohazard</data>
         <data key="ek0">quest</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6505" source="n2109" target="n826">
+      <edge id="e6505" source="n2116" target="n826">
         <data key="e0">Biohazard (rewards) Zamorak Cape</data>
         <data key="ek0">quest</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6506" source="n2069" target="n2110">
+      <edge id="e6506" source="n2069" target="n2117">
         <data key="e0">Dowdun Reach (quest here) Wanted!</data>
         <data key="ek0">quest</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6507" source="n2110" target="n718">
+      <edge id="e6507" source="n2117" target="n718">
         <data key="e0">Wanted! (rewards) Unholy Symbol</data>
         <data key="ek0">quest</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6508" source="n2069" target="n2111">
+      <edge id="e6508" source="n2069" target="n2118">
         <data key="e0">Dowdun Reach (quest here) What&apos;s Theirs is Mine!</data>
         <data key="ek0">quest</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6509" source="n2111" target="n776">
+      <edge id="e6509" source="n2118" target="n776">
         <data key="e0">What&apos;s Theirs is Mine! (rewards) Zamorak Staff</data>
         <data key="ek0">quest</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6510" source="n2074" target="n2112">
+      <edge id="e6510" source="n2079" target="n2119">
         <data key="e0">Umbral Sands (quest here) Contact!</data>
         <data key="ek0">quest</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6511" source="n2112" target="n1131">
+      <edge id="e6511" source="n2119" target="n1131">
         <data key="e0">Contact! (rewards) Pharaoh&apos;s Sceptre</data>
         <data key="ek0">quest</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6512" source="n2074" target="n2113">
+      <edge id="e6512" source="n2079" target="n2120">
         <data key="e0">Umbral Sands (quest here) Brink of Extinction</data>
         <data key="ek0">quest</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6513" source="n2113" target="n1176">
+      <edge id="e6513" source="n2120" target="n1176">
         <data key="e0">Brink of Extinction (rewards) Obsidian Cape</data>
         <data key="ek0">quest</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6514" source="n2074" target="n2114">
+      <edge id="e6514" source="n2079" target="n2121">
         <data key="e0">Umbral Sands (quest here) Mapping The Sands I</data>
         <data key="ek0">quest</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6515" source="n2074" target="n2115">
+      <edge id="e6515" source="n2079" target="n2122">
         <data key="e0">Umbral Sands (quest here) Mapping The Sands II</data>
         <data key="ek0">quest</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6516" source="n2115" target="n1136">
+      <edge id="e6516" source="n2122" target="n1136">
         <data key="e0">Mapping The Sands II (rewards) Bow of Elidinis</data>
         <data key="ek0">quest</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6517" source="n2102" target="n1282">
+      <edge id="e6517" source="n2109" target="n1282">
         <data key="e0">The Wild Hunt (unlocks mount) Terrorbird</data>
         <data key="ek0">mount</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6518" source="n2086" target="n1283">
+      <edge id="e6518" source="n2093" target="n1283">
         <data key="e0">Icthlarin&apos;s Little Helper (unlocks mount) Infernal Blightbeak</data>
         <data key="ek0">mount</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6519" source="n2102" target="n1284">
+      <edge id="e6519" source="n2109" target="n1284">
         <data key="e0">The Wild Hunt (unlocks mount) Crimson Crybaby</data>
         <data key="ek0">mount</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6520" source="n2086" target="n1284">
+      <edge id="e6520" source="n2093" target="n1284">
         <data key="e0">Icthlarin&apos;s Little Helper (unlocks mount) Crimson Crybaby</data>
         <data key="ek0">mount</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6521" source="n2084" target="n1285">
+      <edge id="e6521" source="n2091" target="n1285">
         <data key="e0">Withering Heights (unlocks mount) Mossbeak Hunter</data>
         <data key="ek0">mount</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6522" source="n2102" target="n1290">
+      <edge id="e6522" source="n2109" target="n1290">
         <data key="e0">The Wild Hunt (unlocks mount) Springdown Runner</data>
         <data key="ek0">mount</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6523" source="n2102" target="n1291">
+      <edge id="e6523" source="n2109" target="n1291">
         <data key="e0">The Wild Hunt (unlocks mount) Grassfoot Screecher</data>
         <data key="ek0">mount</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6524" source="n2102" target="n1292">
+      <edge id="e6524" source="n2109" target="n1292">
         <data key="e0">The Wild Hunt (unlocks mount) Leafwood Strider</data>
         <data key="ek0">mount</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6525" source="n2102" target="n1286">
+      <edge id="e6525" source="n2109" target="n1286">
         <data key="e0">The Wild Hunt (unlocks mount) Oakfeather Raptor</data>
         <data key="ek0">mount</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6526" source="n2084" target="n1286">
+      <edge id="e6526" source="n2091" target="n1286">
         <data key="e0">Withering Heights (unlocks mount) Oakfeather Raptor</data>
         <data key="ek0">mount</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6527" source="n2102" target="n1287">
+      <edge id="e6527" source="n2109" target="n1287">
         <data key="e0">The Wild Hunt (unlocks mount) Coastal Sunbeak</data>
         <data key="ek0">mount</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6528" source="n2085" target="n1287">
+      <edge id="e6528" source="n2092" target="n1287">
         <data key="e0">Black Knight&apos;s Fortress (unlocks mount) Coastal Sunbeak</data>
         <data key="ek0">mount</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6529" source="n2102" target="n1297">
+      <edge id="e6529" source="n2109" target="n1297">
         <data key="e0">The Wild Hunt (unlocks mount) Summerbellied Wagtail</data>
         <data key="ek0">mount</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6530" source="n2085" target="n1297">
+      <edge id="e6530" source="n2092" target="n1297">
         <data key="e0">Black Knight&apos;s Fortress (unlocks mount) Summerbellied Wagtail</data>
         <data key="ek0">mount</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6531" source="n2102" target="n1293">
+      <edge id="e6531" source="n2109" target="n1293">
         <data key="e0">The Wild Hunt (unlocks mount) Eclipseborn Sharpbeak</data>
         <data key="ek0">mount</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6532" source="n2085" target="n1293">
+      <edge id="e6532" source="n2092" target="n1293">
         <data key="e0">Black Knight&apos;s Fortress (unlocks mount) Eclipseborn Sharpbeak</data>
         <data key="ek0">mount</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6533" source="n2102" target="n1294">
+      <edge id="e6533" source="n2109" target="n1294">
         <data key="e0">The Wild Hunt (unlocks mount) Sunkissed Clawfoot</data>
         <data key="ek0">mount</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6534" source="n2085" target="n1294">
+      <edge id="e6534" source="n2092" target="n1294">
         <data key="e0">Black Knight&apos;s Fortress (unlocks mount) Sunkissed Clawfoot</data>
         <data key="ek0">mount</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6535" source="n2102" target="n1288">
+      <edge id="e6535" source="n2109" target="n1288">
         <data key="e0">The Wild Hunt (unlocks mount) Astralbeak Warbler</data>
         <data key="ek0">mount</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6536" source="n2085" target="n1288">
+      <edge id="e6536" source="n2092" target="n1288">
         <data key="e0">Black Knight&apos;s Fortress (unlocks mount) Astralbeak Warbler</data>
         <data key="ek0">mount</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6537" source="n2102" target="n1289">
+      <edge id="e6537" source="n2109" target="n1289">
         <data key="e0">The Wild Hunt (unlocks mount) Zamorakian Pledgesaddle</data>
         <data key="ek0">mount</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6538" source="n2086" target="n1289">
+      <edge id="e6538" source="n2093" target="n1289">
         <data key="e0">Icthlarin&apos;s Little Helper (unlocks mount) Zamorakian Pledgesaddle</data>
         <data key="ek0">mount</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6539" source="n2102" target="n1295">
+      <edge id="e6539" source="n2109" target="n1295">
         <data key="e0">The Wild Hunt (unlocks mount) Scorchsummer Ashbeak</data>
         <data key="ek0">mount</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6540" source="n2086" target="n1295">
+      <edge id="e6540" source="n2093" target="n1295">
         <data key="e0">Icthlarin&apos;s Little Helper (unlocks mount) Scorchsummer Ashbeak</data>
         <data key="ek0">mount</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6541" source="n2102" target="n1296">
+      <edge id="e6541" source="n2109" target="n1296">
         <data key="e0">The Wild Hunt (unlocks mount) Applefeather Mosstail</data>
         <data key="ek0">mount</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6542" source="n2086" target="n1296">
+      <edge id="e6542" source="n2093" target="n1296">
         <data key="e0">Icthlarin&apos;s Little Helper (unlocks mount) Applefeather Mosstail</data>
         <data key="ek0">mount</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6543" source="n2086" target="n1021">
+      <edge id="e6543" source="n2093" target="n1021">
         <data key="e0">Icthlarin&apos;s Little Helper (unlocks mount) MOUNT: Magic Carpet</data>
         <data key="ek0">mount</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6544" source="n2086" target="n1299">
+      <edge id="e6544" source="n2093" target="n1299">
         <data key="e0">Icthlarin&apos;s Little Helper (unlocks mount) Uzzerian Umber</data>
         <data key="ek0">mount</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6545" source="n2086" target="n1280">
+      <edge id="e6545" source="n2093" target="n1280">
         <data key="e0">Icthlarin&apos;s Little Helper (unlocks mount) Manafem Midnight</data>
         <data key="ek0">mount</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6546" source="n2086" target="n1422">
+      <edge id="e6546" source="n2093" target="n1422">
         <data key="e0">Icthlarin&apos;s Little Helper (unlocks mount) Scorchweave Rug</data>
         <data key="ek0">mount</data>
         <data key="ek7">false</data>
       </edge>
-      <edge id="e6547" source="n2086" target="n1346">
+      <edge id="e6547" source="n2093" target="n1346">
         <data key="e0">Icthlarin&apos;s Little Helper (unlocks mount) Moonsilk Weave</data>
         <data key="ek0">mount</data>
         <data key="ek7">false</data>

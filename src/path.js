@@ -52,6 +52,17 @@ function findPath(a, b) {
   return steps;
 }
 
+/** The same BFS route runPath() draws on the map, as plain steps.
+ *  For callers that only want the answer — the WebMCP atlas_find_path tool and
+ *  anything else that should not move the user's view. Null when no route exists.
+ *  @param {string} fromId @param {string} toId @returns {Array<{from: string, to: string, qty: number|null, facility: string|null}>|null} */
+export function routeBetween(fromId, toId) {
+  if (!ctx.nodeById.has(fromId) || !ctx.nodeById.has(toId)) return null;
+  const steps = findPath(fromId, toId);
+  if (!steps) return null;
+  return steps.map(s => ({ from: s.from, to: s.to, qty: s.e.qty ?? null, facility: s.e.facility || null }));
+}
+
 // dedicated top bar for the armed path query (TODO #18) — visible from arming
 // until the path is cleared, so the query state is never invisible
 const pathbar = document.getElementById('pathbar');
