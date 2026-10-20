@@ -19,7 +19,9 @@ or scraper could want lives in the static data files linked below. The dataset i
 repository, so the site is fully reproducible from source.
 
 Interactions worth knowing about: click a node to open its codex panel (recipes,
-facilities, skills, a from-nothing Gather/Build/Train plan), Shift+Click to isolate its
+facilities, skills, a from-nothing Gather/Build/Train plan, and a **Live map ↗** hand-off
+for gatherables — the atlas has regions but no coordinates, so that opens the Wyrmwatch
+map pre-filtered to the item's own markers), Shift+Click to isolate its
 crafting tree, type to search; the ⚙ panel offers force-directed / dagre / ELK layouts
 with snapshot save/restore; scripted guided tours live in `src/tours.js`
 (deep-link `?tour=robes`, `?tour=outputs`, `?tour=inputs`). Every item also has a
@@ -28,22 +30,32 @@ that item's codex panel, `#/dragon_slayer` opens a quest and `#/ash_logs/iron_sw
 opens the crafting path between the two (rules in `src/routing.js`; the fragment
 never reaches the server). Every
 graph option is settable from the query string too — `?layout=elk-layered-wide`,
-`?cats=food`, `?links=0`, `?iso=iron_sword&isodir=up&isodepth=2`, and the rest of
-`OPTION_PARAMS` — and a value from the URL overrides the visitor's stored setting for
+`?cats=food`, `?links=0`, `?starter=0`, `?iso=iron_sword&isodir=up&isodepth=2`, and the
+rest of `OPTION_PARAMS` — and a value from the URL overrides the visitor's stored setting for
 that session without ever being saved, so a link reproduces a view exactly; the
-address bar is kept in step as options change. All data is non-commercial
-fan content used under the
+address bar is kept in step as options change.
+
+A page with no options opens on the **beginning of the game**, not the whole map: the
+tutorial quest, the region it is set in (Temple Woods) and the division above it
+(Brynmoor), everything found in that region, every skill node, and the region's dead
+ends — the gatherables, which have no recipe (41 nodes). So "Nodes drawn: 41 of 2123"
+from `atlas_get_state` means the starting view is on, and that tool says so in a line of
+its own; a visitor leaves it by clicking a kind row, typing in the search box or choosing
+Show everything, and `?starter=0` asks for the whole map from a link (`atlas_set_filters`
+also leaves it, since asking for one kind is the same request a kind row makes). All data
+is non-commercial fan content used under the
 [RuneScape Fan Content Policy](https://www.jagex.com/en-GB/legal/fan-content).
 
 ## Agents (WebMCP)
 
 The page registers callable tools through [WebMCP](https://developer.chrome.com/docs/ai/webmcp)
 (`document.modelContext.registerTool`) wherever the browser exposes that API, so an agent
-can ask for an answer instead of scraping the DOM. Thirteen tools, each a thin adapter
+can ask for an answer instead of scraping the DOM. Fourteen tools, each a thin adapter
 over what the site's own controls do:
 
 - `atlas_search_items` `{query, limit?}` — find any item, station, skill, region, quest or mount by partial name.
 - `atlas_get_item` `{item}` — one node's codex: kind, recipes (inputs, station, skill, XP), what it is used to make, where it is found, owned state.
+- `atlas_map_link` `{item}` — where exactly it is gathered: a link to the live Wyrmwatch map filtered to that item's marker type and framed on them, or an explanation when the map draws nothing of its kind.
 - `atlas_get_plan` `{item, from_owned?}` — what to gather, build and train, plus the critical chain.
 - `atlas_find_path` `{from, to}` — the shortest crafting route between two nodes, as ordered steps.
 - `atlas_get_region` `{region}` — what a region or territory holds and the quests set in it.
@@ -68,6 +80,7 @@ cyjs files are exports of it for desktop graph tools.
 
 - [data.json](https://rudeboy.dev/dragonwilds-crafting-atlas/data.json): the full dependency graph (~3 MB). `nodes[]` carry `id`, `name`, `kind` (material, station, tool, weapon, armour, food, drink, potion, spell, skill, trinket, ammo, resource, mount, implicit, other) and a `wiki` URL; `edges[]` run `from` (ingredient) → `to` (product) with `qty`, `facility`, `skill` and `xp` fields. The graph is a DAG except for three deliberate metal-recycling loops (Bronze/Silver/Gold Bar ⇄ Leaf); a cycle audit lives at `scripts/audit-cycles.mjs`.
 - [found-in.js](https://rudeboy.dev/dragonwilds-crafting-atlas/found-in.js): per-region gather annotations for Ashenfall's populated regions — which items are found where and how they are gathered, mined from the item pages' prose.
+- [map-links.js](https://rudeboy.dev/dragonwilds-crafting-atlas/map-links.js): the live-map hand-off — for each atlas node the Wyrmwatch map draws, the marker type key(s) it is drawn under and the `#view=<x>,<y>,<zoom>&filters=…` fragment that frames them (`window.DW_MAP_LINKS`, with the source page, reference snapshot and attribution). The atlas itself has no coordinates; this is the join, made once at build time and filtered strictly by name.
 - [region-resources.js](https://rudeboy.dev/dragonwilds-crafting-atlas/region-resources.js): the other direction — what each of Ashenfall's regions and territories holds, taken from the `==Resources==` section of its own wiki page (`{ region: { itemId: [gather method] }, stubs: [region] }`, `window.DW_REGION_RESOURCES`; `stubs` names the pages with no `==Resources==` heading yet). The map unions this with found-in.js into its green region hubs, and every canonical region gets a hub whether or not either source names it.
 - [quests.js](https://rudeboy.dev/dragonwilds-crafting-atlas/quests.js): the quest layer — every quest on the wiki's Quests page with its type, region, "Where to Start" line and reward items (`window.DW_QUESTS`).
 - [mounts.js](https://rudeboy.dev/dragonwilds-crafting-atlas/mounts.js): the mount layer — per mount its base type, the quest(s) that unlock it, how to obtain it and its lore (`window.DW_MOUNTS`).

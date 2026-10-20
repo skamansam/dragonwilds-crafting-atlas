@@ -14,10 +14,21 @@ import { describeFeature, loadFeature } from "@amiceli/vitest-cucumber";
 import { expect } from "vitest";
 import {
 	collectResources,
+	parseRegionHierarchy,
 	parseResources,
 	resolveNodeId,
 	splitRegionPages,
 } from "../../scripts/region-resources-core.mjs";
+
+// The canonical regions the hierarchy scenarios are read against: two divisions
+// and the regions they hold, plus one region no division names.
+const CANON_REGIONS = [
+	"Brynmoor",
+	"Ghornfell",
+	"Temple Woods",
+	"Bramblemead Valley",
+	"Fractured Plains",
+];
 
 interface ResourceLink {
 	section: string;
@@ -50,6 +61,9 @@ let asked: Array<{ region: string; links: ResourceLink[] }>;
 let collected: Collected;
 let stubs: string[];
 let unknown: string[];
+let geoBlocks: Array<{ head: string; bullets: string[] }>; // the Ashenfall page's ==Geography==
+let worldSections: Section[]; // …and any other section of that same page
+let hierarchy: { divisions: Record<string, string[]>; unmatched: string[] };
 
 const byLowerId = () => new Map(nodes);
 const redirectOf = (title: string) =>
@@ -81,6 +95,37 @@ const page = () => {
 
 const link = (title: string) => links.find((l) => l.title === title);
 
+/** The block for `head`, created on demand so a second step can add to it. */
+const geoBlock = (head: string) => {
+	let found = geoBlocks.find((b) => b.head === head);
+	if (!found) {
+		found = { head, bullets: [] };
+		geoBlocks.push(found);
+	}
+	return found;
+};
+
+/** A non-Geography section of the Ashenfall page (==Inhabitants== and friends). */
+const worldSection = (header: string): Section => {
+	let found = worldSections.find((s) => s.header === header);
+	if (!found) {
+		found = { header, level: 2, lines: [] };
+		worldSections.push(found);
+	}
+	return found;
+};
+
+/** The Ashenfall page: its Geography block, then whatever else was added. */
+const worldPage = () => {
+	const geo = geoBlocks.length
+		? `==Geography==\n${geoBlocks.map((b) => `${b.head}\n${b.bullets.join("\n")}`).join("\n")}\n`
+		: "";
+	const rest = worldSections
+		.map((s) => `==${s.header}==\n${s.lines.join("\n")}\n`)
+		.join("");
+	return `'''Ashenfall''' is the island.\n\n${geo}\n${rest}`;
+};
+
 describeFeature(feature, ({ Scenario, Background }) => {
 	Background(({ Given }) => {
 		// the atlas every scenario is read against — a tree with its logs, and an
@@ -97,6 +142,9 @@ describeFeature(feature, ({ Scenario, Background }) => {
 			collected = { resolved: {}, unresolved: [], skipped: [] };
 			stubs = [];
 			unknown = [];
+			geoBlocks = [];
+			worldSections = [];
+			hierarchy = { divisions: {}, unmatched: [] };
 			for (const [id, kind] of [
 				["Ash Tree", "resource"],
 				["Ash Logs", "material"],
@@ -568,6 +616,128 @@ describeFeature(feature, ({ Scenario, Background }) => {
 			});
 			And("the unknown pages are {string}", (_ctx, list: string) => {
 				expect(unknown.join(", ")).toBe(list);
+			});
+		},
+	);
+
+	Scenario(
+		"The Geography section names the regions a division is made of",
+		({ Given, When, Then, And }) => {
+			Given(
+				"an Ashenfall page whose Geography section puts {string} under {string}",
+				(_ctx, child: string, division: string) => {
+					geoBlock(`===\u005b\u005b${division}\u005d\u005d===`).bullets.push(
+						`* \u005b\u005b${child}\u005d\u005d`,
+					);
+				},
+			);
+			And(
+				"that section puts {string} under {string}",
+				(_ctx, child: string, division: string) => {
+					geoBlock(`===\u005b\u005b${division}\u005d\u005d===`).bullets.push(
+						`* \u005b\u005b${child}\u005d\u005d`,
+					);
+				},
+			);
+			When("the sub-region hierarchy is parsed", () => {
+				hierarchy = parseRegionHierarchy(worldPage(), CANON_REGIONS);
+			});
+			Then(
+				"{string} holds the sub-regions {string}",
+				(_ctx, division: string, list: string) => {
+					expect((hierarchy.divisions[division] || []).join(", ")).toBe(list);
+				},
+			);
+			And("the hierarchy holds {int} divisions", (_ctx, count: number) => {
+				expect(Object.keys(hierarchy.divisions).length).toBe(count);
+			});
+		},
+	);
+
+	Scenario(
+		"A heading that names no canonical region ends the block",
+		({ Given, When, Then, And }) => {
+			Given(
+				"an Ashenfall page whose Geography section puts {string} under {string}",
+				(_ctx, child: string, division: string) => {
+					geoBlock(`===\u005b\u005b${division}\u005d\u005d===`).bullets.push(
+						`* \u005b\u005b${child}\u005d\u005d`,
+					);
+				},
+			);
+			And(
+				"the Geography section has an unnamed heading {string} listing {string}",
+				(_ctx, heading: string, entry: string) => {
+					geoBlock(`===${heading}===`).bullets.push(`* \u005b\u005b${entry}\u005d\u005d`);
+				},
+			);
+			When("the sub-region hierarchy is parsed", () => {
+				hierarchy = parseRegionHierarchy(worldPage(), CANON_REGIONS);
+			});
+			Then(
+				"{string} holds the sub-regions {string}",
+				(_ctx, division: string, list: string) => {
+					expect((hierarchy.divisions[division] || []).join(", ")).toBe(list);
+				},
+			);
+			And("{string} is reported as unmatched", (_ctx, name: string) => {
+				expect(hierarchy.unmatched).toContain(name);
+			});
+			And("the hierarchy holds {int} divisions", (_ctx, count: number) => {
+				expect(Object.keys(hierarchy.divisions).length).toBe(count);
+			});
+		},
+	);
+
+	Scenario(
+		"Only the Geography section is read, so an Inhabitants list is not regions",
+		({ Given, When, Then, And }) => {
+			Given(
+				"an Ashenfall page whose Geography section puts {string} under {string}",
+				(_ctx, child: string, division: string) => {
+					geoBlock(`===\u005b\u005b${division}\u005d\u005d===`).bullets.push(
+						`* \u005b\u005b${child}\u005d\u005d`,
+					);
+				},
+			);
+			And(
+				"the page's {string} section puts {string} under {string}",
+				(_ctx, header: string, child: string, division: string) => {
+					const s = worldSection(header);
+					s.lines.push(`===\u005b\u005b${division}\u005d\u005d===`, `* \u005b\u005b${child}\u005d\u005d`);
+				},
+			);
+			When("the sub-region hierarchy is parsed", () => {
+				hierarchy = parseRegionHierarchy(worldPage(), CANON_REGIONS);
+			});
+			Then("the hierarchy holds {int} divisions", (_ctx, count: number) => {
+				expect(Object.keys(hierarchy.divisions).length).toBe(count);
+			});
+			And("{string} holds no sub-regions", (_ctx, division: string) => {
+				expect(hierarchy.divisions[division] || []).toEqual([]);
+			});
+		},
+	);
+
+	Scenario(
+		"A sub-region the canonical list does not carry is reported, never invented",
+		({ Given, When, Then, And }) => {
+			Given(
+				"an Ashenfall page whose Geography section puts {string} under {string}",
+				(_ctx, child: string, division: string) => {
+					geoBlock(`===\u005b\u005b${division}\u005d\u005d===`).bullets.push(
+						`* \u005b\u005b${child}\u005d\u005d`,
+					);
+				},
+			);
+			When("the sub-region hierarchy is parsed", () => {
+				hierarchy = parseRegionHierarchy(worldPage(), CANON_REGIONS);
+			});
+			Then("{string} holds no sub-regions", (_ctx, division: string) => {
+				expect(hierarchy.divisions[division] || []).toEqual([]);
+			});
+			And("{string} is reported as unmatched", (_ctx, name: string) => {
+				expect(hierarchy.unmatched).toContain(name);
 			});
 		},
 	);

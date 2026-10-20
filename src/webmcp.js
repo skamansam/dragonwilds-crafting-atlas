@@ -28,6 +28,13 @@
    false. Nothing here is irreversible, so nothing carries consequentialHint.
    ═══════════════════════════════════════════════════════════════ */
 
+/* The tools describe what the atlas itself knows; atlas_map_link is the
+   exception — it hands over a link to somebody else's map, because the atlas has
+   no coordinates to draw a pin with. The wording of what that link opens comes
+   from src/map-links.js, so the tool, the panel button's tooltip and the link
+   itself can never describe three different things. */
+import { mapLinkSummary } from "./map-links.js";
+
 /**
  * One atlas node, as the tools return it.
  * @typedef {object} AtlasNode
@@ -66,6 +73,7 @@
  * @property {(on: boolean) => void} setDeadEnds
  * @property {() => object} viewState
  * @property {(id: string) => string} kindLabelOf
+ * @property {(id: string) => object|null} mapLink the live-map link for a node, or null when the map draws none of its kind
  */
 
 let ctx = null;
@@ -156,6 +164,8 @@ function buildTools() {
         if (found.length) {
           out += `Found in:\n${found.map(f => `  · ${f.region} — ${f.method}${f.tool ? ` with a ${f.tool}` : ''}`).join('\n')}\n`;
         }
+        const link = ctx.mapLink(node.id);
+        if (link) out += `Live map: ${mapLinkSummary(link)} — ${link.href}\n`;
         if (members?.size) {
           out += `Holds ${members.size} gatherable item${members.size === 1 ? '' : 's'}: ` +
             [...members.entries()].slice(0, 40).map(([id, set]) => `${id} (${methods(set)})`).join(', ') + '\n';
@@ -166,6 +176,25 @@ function buildTools() {
         if (mount) out += `Mount (${mount.base}) — how to get it: ${mount.obtain || 'unknown'}${mount.quests?.length ? `\nRequires quest: ${mount.quests.join(', ')}` : ''}\n`;
         if (node.wiki) out += `Wiki page: ${node.wiki}\n`;
         return out;
+      },
+    },
+    {
+      name: 'atlas_map_link',
+      description: 'A link to the live Wyrmwatch map (survivalservers.com) showing where an item is gathered, filtered to that item\'s own marker type and framed on them. The atlas draws no pins of its own — it has no coordinates, only the regions items come from — so this is the link to give a user who asks "where exactly do I find X". Read-only: it returns the URL and opens nothing.',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          item: { type: 'string', description: 'Item name or id, e.g. "Iron Ore Node".' },
+        },
+        required: ['item'],
+      },
+      annotations: readOnly(),
+      execute: async ({ item }) => {
+        const { node, error } = resolveItem(item);
+        if (error) return error;
+        const link = ctx.mapLink(node.id);
+        if (!link) return `${node.name} has no markers on the live map — the atlas knows which region it comes from, but that map draws nothing of this kind. Use atlas_get_item for its regions.`;
+        return `${node.name} — ${mapLinkSummary(link)}:\n${link.href}`;
       },
     },
     {
@@ -280,7 +309,7 @@ function buildTools() {
     },
     {
       name: 'atlas_get_state',
-      description: 'The current atlas view — what the user is looking at right now: the selected node, an isolated crafting tree (root, direction, depth), an active highlight, which kinds and link layers are shown, the layout algorithm, and how many nodes are drawn.',
+      description: 'The current atlas view — what the user is looking at right now: the selected node, an isolated crafting tree (root, direction, depth), an active highlight, which kinds and link layers are shown, whether the starting-area view is on (a fresh page opens on the first minutes of the game, so few nodes are drawn), the layout algorithm, and how many nodes are drawn.',
       inputSchema: { type: 'object', properties: {} },
       annotations: readOnly(),
       execute: async () => {
@@ -291,6 +320,7 @@ function buildTools() {
         out += `Highlight: ${s.highlight || 'none'}\n`;
         out += `Nodes drawn: ${s.visibleNodes} of ${s.totalNodes} (${s.hiddenKinds.length ? `hidden kinds: ${s.hiddenKinds.join(', ')}` : 'every kind shown'})\n`;
         out += `Link layers: ${Object.entries(s.linkLayers).map(([k, v]) => `${k} ${v ? 'on' : 'off'}`).join(', ')}\n`;
+        out += `Starting area: ${s.startingView ? 'on — the first minutes of the game, so most of the map is not drawn' : 'off — the whole map is showing'}\n`;
         out += `Dead ends: ${s.deadEnds ? 'shown' : 'hidden'} · Layout: ${s.layout}\n`;
         out += `Owned items: ${s.ownedCount}\n`;
         return out;
@@ -379,7 +409,7 @@ function buildTools() {
     },
     {
       name: 'atlas_set_filters',
-      description: 'Show or hide layers of the atlas: node kinds (items, stations, skills, tools, spells…), the link layers (recipe links, skill gates, region links, quest links) and dead-end nodes. Use it to strip the map down to what a question is about.',
+      description: 'Show or hide layers of the atlas: node kinds (items, stations, skills, tools, spells…), the link layers (recipe links, skill gates, region links, unlock links, quest links) and dead-end nodes. Use it to strip the map down to what a question is about.',
       inputSchema: {
         type: 'object',
         properties: {
@@ -389,7 +419,8 @@ function buildTools() {
             properties: {
               materials: { type: 'boolean', description: 'Recipe links.' },
               skills: { type: 'boolean', description: 'Skill-gate links.' },
-              regions: { type: 'boolean', description: 'Region links.' },
+              regions: { type: 'boolean', description: 'Region links — what a region holds, and which division holds a region.' },
+              unlocks: { type: 'boolean', description: 'Unlock links — the item a recipe is learned from, and the item that unlocks a mount.' },
               quests: { type: 'boolean', description: 'Quest and mount links.' },
             },
             description: 'Link layers to turn on or off. Omit to leave them alone.',
@@ -407,7 +438,7 @@ function buildTools() {
           done.push(`showing kinds: ${wanted.length ? wanted.join(', ') : 'none'}`);
         }
         if (links && typeof links === 'object') {
-          for (const layer of ['materials', 'skills', 'regions', 'quests']) {
+          for (const layer of ['materials', 'skills', 'regions', 'unlocks', 'quests']) {
             if (layer in links) { ctx.setLinkLayer(layer, !!links[layer]); done.push(`${layer} links ${links[layer] ? 'on' : 'off'}`); }
           }
         }

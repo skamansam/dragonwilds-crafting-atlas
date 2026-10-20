@@ -252,13 +252,17 @@ test.describe("Crafting Atlas", () => {
 
 	test("the URL tracks options changed by hand", async ({ page }) => {
 		await boot(page);
+		// every link layer starts ON, so the hand-change this test makes is the
+		// click that turns one off — the URL has to follow whatever the row did
+		const before = new URL(page.url()).searchParams.get("skilllinks");
+		expect(before).toBe("1");
 		await page.evaluate(() => {
 			const row = [...document.querySelectorAll("#legend .lg-row")].find((r) =>
 				r.textContent?.includes("Skill gates")
 			);
 			(row as HTMLElement).click();
 		});
-		await expect.poll(() => new URL(page.url()).searchParams.get("skilllinks")).toBe("1");
+		await expect.poll(() => new URL(page.url()).searchParams.get("skilllinks")).toBe("0");
 		expect(new URL(page.url()).searchParams.get("layout")).toBeTruthy(); // the whole state rides along
 	});
 

@@ -4,8 +4,9 @@ Feature: Reading what a region holds off its own wiki page
   into public/region-resources.js, the complement of the found-in overlay: it
   reads the *place* pages where found-in reads the *item* pages. The parsing and
   the title → node-id resolution are pure (scripts/region-resources-core.mjs),
-  so they are driven directly here; the generator only adds the cache and the
-  network, and the app folds the result into the region hubs.
+  so they are driven directly here; the generator only adds the cache and  the network, and the app folds the result into the region hubs. The same page
+  that names the 34 regions also says how they nest, so its ==Geography== section
+  is parsed here too: the five divisions and the regions each one holds.
 
   Background: the atlas the region pages are read against
     Given the atlas holds a tree, its logs and a coal node
@@ -99,6 +100,34 @@ Feature: Reading what a region holds off its own wiki page
     When the canonical regions are split by their pages
     Then the stub pages are ""
     And the unknown pages are ""
+
+  Scenario: The Geography section names the regions a division is made of
+    Given an Ashenfall page whose Geography section puts "Temple Woods" under "Brynmoor"
+    And that section puts "Bramblemead Valley" under "Brynmoor"
+    When the sub-region hierarchy is parsed
+    Then "Brynmoor" holds the sub-regions "Temple Woods, Bramblemead Valley"
+    And the hierarchy holds 1 divisions
+
+  Scenario: A heading that names no canonical region ends the block
+    Given an Ashenfall page whose Geography section puts "Temple Woods" under "Brynmoor"
+    And the Geography section has an unnamed heading "Garou" listing "Fractured Plains"
+    When the sub-region hierarchy is parsed
+    Then "Brynmoor" holds the sub-regions "Temple Woods"
+    And "Garou" is reported as unmatched
+    And the hierarchy holds 1 divisions
+
+  Scenario: Only the Geography section is read, so an Inhabitants list is not regions
+    Given an Ashenfall page whose Geography section puts "Temple Woods" under "Brynmoor"
+    And the page's "Inhabitants" section puts "Ghornfell" under "Garou"
+    When the sub-region hierarchy is parsed
+    Then the hierarchy holds 1 divisions
+    And "Ghornfell" holds no sub-regions
+
+  Scenario: A sub-region the canonical list does not carry is reported, never invented
+    Given an Ashenfall page whose Geography section puts "Nowhere Vale" under "Brynmoor"
+    When the sub-region hierarchy is parsed
+    Then "Brynmoor" holds no sub-regions
+    And "Nowhere Vale" is reported as unmatched
 
   Scenario: Two regions keep their own members
     Given a region page whose "Trees" section lists "[[Ash tree]]"

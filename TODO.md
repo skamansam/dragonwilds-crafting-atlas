@@ -277,3 +277,50 @@ skill level for each base node.
     each — it renders, every ownable row carries its ☆, and its last row is the wiki link
     (null for the kind no page describes). The sweep found the one ownable row that had no star:
     the station a recipe is made at (`.recipe-facility`), which the plan already lets you tick.
+
+[x] I think the graph should default to showing basically what you see in the beginning of the
+game. The Brynmoor region, temple woods, the first steps quest, and all the skill nodes.
+
+    → DONE (2026-10-16): a fresh browser opens on the **beginning of the game** instead of all
+    2,123 nodes — 41 nodes and 43 edges, computed from the data rather than listed by hand: the
+    tutorial quest (**First Steps**, the one whose wiki page says it starts automatically with a
+    new character), the region it is set in (**Temple Woods**), that region's division
+    (**Brynmoor**, from the Ashenfall page's ==Geography== overlay — no region page says which
+    division it belongs to), everything found in the region (26 items, the union of found-in.js
+    and the region page's own ==Resources== list, exactly as the hub computes them) and all
+    **12 skill nodes**, because the skills panel is the other thing a new character already has.
+    Its **dead ends come with it**: 9 of the 41 are drop-only gatherables (41 → 32 with the
+    dead-end row off), and the tutorial region is mostly ore veins, trees and drops — a filter
+    meant to cut 253 orphan leaves out of the 1,477-node DAG would have hidden the very items
+    this view exists to show. So `showOrphans` is on for a visitor whose link did not say
+    otherwise (`?orphans=0` still gets what it asks for), and the Dead ends row reads ◆ from the
+    first paint — one `setDeadEnds()` beside the legend row now owns the flag, its storage and
+    both controls (the retired header chip and WebMCP's `dead_ends` arg went through two other
+    copies, one of which left the row stale). It is a **view, not a mode**: a kind row, a search
+    or **Show everything** leaves it and remembers that (`dw.starterView`), **↺ All** returns to
+    it node for node, and a node it hides is *revealed* rather than refused when asked for by
+    name — a `#/iron_bar` deep link, a recipe chip, an agent tool call. Two params describe it,
+    `?starter=` and `?orphans=`, both pinned in `OPTION_PARAMS`. The agent interface got the
+    half of this an agent cannot see: `atlas_get_state` now says `Starting area: on — the first
+    minutes of the game, so most of the map is not drawn` (41 of 2,123 is not a bug to triage),
+    and `atlas_set_filters` leaves the view, because asking for one kind is the same request a
+    kind row makes — it used to answer with a handful of nodes and no way to know why.
+    Coverage: a new **`starter`** acceptance section (15 checks — the set it holds is exactly
+    the tutorial's neighbourhood and nothing else, all 12 skills, the dead ends, the row that
+    turns them off and back, leaving via a kind row and the storage it writes, ↺ All returning
+    the identical id set, a search leaving it, a deep link revealing a hidden node while the
+    view stays on, and both URL options) and `scripts/test-ui.mjs`'s `boot()` grew its contract:
+    the suite's baseline is the whole map (`?starter=0`, pinned) with a `firstLoad` argument for
+    the one section that must boot the real default and a `hard` one that reloads a hash-only
+    URL, since that alone is a same-document navigation. Three checks that pinned the old
+    behaviour were rewritten to the new intent rather than relaxed: the quests section now
+    asserts Region links start ON (then off, then on — it had pinned "off by default"), the
+    phone check proves a phone can reach the row by switching the layer off and back on, and the
+    WebMCP isolation check compares the tree it drew against the map instead of against a page
+    that happened to start from 42 nodes. Docs in step: README (a **first view** section, the
+    legend paragraph, the URL table, the tests paragraph), CONTRIBUTOR.md (the `boot()` contract),
+    public/llms.txt (what an agent should read into "Nodes drawn: 41 of 2123"); `vitest`
+    **519/519**, the acceptance suite green section by section, `npm run build` clean.
+
+[x] "Where exactly do I find this?" — the atlas knew the region, not the spot: the codex now hands the reader to the live Wyrmwatch map, pre-filtered to that node's own markers.
+    → DONE (2026-10-16): data.json carries no coordinates for anything, so "show me where" had no answer inside the site. The Wyrmwatch map on survivalservers.com draws 25,298 markers from the game's own files, and its reference file says which type key each one is drawn under. New pure scripts/map-links-core.mjs joins an atlas node's name to those keys (case/underscore-insensitive, a trailing disambiguator tolerated, never substring/prefix — that is how Soul Stone would land on 3,377 Stone boulders) and fits the view that frames the type's own markers; scripts/build-map-links.mjs adds the cache and the network and writes public/map-links.js (window.DW_MAP_LINKS, an overlay like the others — data.json untouched). Result: 78 nodes / 54 of the 83 gatherable marker types / 21,113 markers behind them, 42 of 49 resources; the seven with no counterpart (Blightwood Root, Blurite Ore Node, Dead Tree, Fibrous Pipe Cactus, Kalphite Egg, Sapling, Soul Stone) are reported by name and stay unlinked rather than guessed. The link shape came out of the map's own wyrmwatch-map.js and was confirmed in a browser: it is a HASH (`#view=x,y,zoom&filters=keys`, plus `level=1` underground) — a query string does nothing, and a filter-only hash silently shows the map's defaults — so every link carries a fitted view, and the map's "copy view" button re-encodes one to the identical string. src/map-links.js turns an artifact entry into that hash and one summary sentence; src/app.js renders the codex's `Live map ↗` row only when mapLinkFor() answers, so a node the map draws nothing of gets no row (its wiki row is still there); the agent gets atlas_map_link, the 14th WebMCP tool, returning the same URL and a plain explanation on a miss. The reference file is cached, not committed; --refresh re-downloads it (the host challenges scripts with Cloudflare, so the header explains saving it from a browser) and --check compares the committed overlay when a reference exists and always verifies every linked id against data.json — the deploy workflow runs it. Coverage: new Gherkin tests/features/map-links.{feature,spec.ts} (18 tests — the strict join, multi-key labels, underground, the framing zoom, world-bounds clamping, the artifact naming only types it carries, the resource report, and the exact hash for surface/underground) plus a new `maplinks` acceptance section (9 checks — the row's exact href/target/rel/tooltip, a view+filters hash with all seven anima keys, all 78 nodes through the real panel, 20 unlinked nodes with no row, Soul Stone keeping its wiki row, and both WebMCP answers). Docs in step: README, CONTRIBUTOR.md, CONTRIBUTOR-DATA.md, public/llms.txt and this file.

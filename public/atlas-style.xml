@@ -93,6 +93,8 @@
                     <discreteMappingEntry attributeValue="spell" value="#8f9fd9"/>
                     <discreteMappingEntry attributeValue="skill-gate" value="#6d6a5e"/>
                     <discreteMappingEntry attributeValue="region" value="#8cc8aa"/>
+                    <discreteMappingEntry attributeValue="subregion" value="#c4f0d8"/>
+                    <discreteMappingEntry attributeValue="unlock" value="#58c9b9"/>
                     <discreteMappingEntry attributeValue="quest" value="#d9a13f"/>
                     <discreteMappingEntry attributeValue="mount" value="#c9a0e0"/>
                 </discreteMapping>
@@ -103,6 +105,8 @@
                     <discreteMappingEntry attributeValue="spell" value="#8f9fd9"/>
                     <discreteMappingEntry attributeValue="skill-gate" value="#6d6a5e"/>
                     <discreteMappingEntry attributeValue="region" value="#8cc8aa"/>
+                    <discreteMappingEntry attributeValue="subregion" value="#c4f0d8"/>
+                    <discreteMappingEntry attributeValue="unlock" value="#58c9b9"/>
                     <discreteMappingEntry attributeValue="quest" value="#d9a13f"/>
                     <discreteMappingEntry attributeValue="mount" value="#c9a0e0"/>
                 </discreteMapping>
@@ -120,6 +124,8 @@
                     <discreteMappingEntry attributeValue="spell" value="LONG_DASH"/>
                     <discreteMappingEntry attributeValue="skill-gate" value="DASH"/>
                     <discreteMappingEntry attributeValue="region" value="DASH"/>
+                    <discreteMappingEntry attributeValue="subregion" value="DASH"/>
+                    <discreteMappingEntry attributeValue="unlock" value="DOT"/>
                     <discreteMappingEntry attributeValue="quest" value="DASH"/>
                     <discreteMappingEntry attributeValue="mount" value="DOT"/>
                 </discreteMapping>
@@ -130,6 +136,8 @@
                     <discreteMappingEntry attributeValue="spell" value="1.6"/>
                     <discreteMappingEntry attributeValue="skill-gate" value="1.2"/>
                     <discreteMappingEntry attributeValue="region" value="1"/>
+                    <discreteMappingEntry attributeValue="subregion" value="1.6"/>
+                    <discreteMappingEntry attributeValue="unlock" value="1.2"/>
                     <discreteMappingEntry attributeValue="quest" value="1.6"/>
                     <discreteMappingEntry attributeValue="mount" value="1.4"/>
                 </discreteMapping>

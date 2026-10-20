@@ -93,6 +93,23 @@ a 10-step walkthrough of the whole atlas plus 30-second scripted mini-tours that
 one real question (plan the *Dark Mage Robes*, see what *Ash Logs* make, price a *Blast
 Furnace*) — deep-linkable via `?tour=robes` and friends.
 
+### The first view — the beginning of the game
+
+A fresh browser does not open on all 2,000+ nodes at once: it opens on the start of the game,
+computed from the data rather than listed by hand — the tutorial quest (**First Steps**, the one
+the wiki says starts automatically), the region it is set in (**Temple Woods**) and the division
+above it (**Brynmoor**), everything found in that region, and every **skill** node, because the
+skills panel is the other thing a new character already has (41 nodes). Its **dead ends** come with
+it: the tutorial region is mostly ore veins, trees and drops, and those have no recipe, so the
+ordinary dead-end filter would hide the very items the view exists to show.
+
+It is a **view, not a mode**. Anything that asks for more leaves it, and that is remembered for the
+next visit: a kind row, a search, **Show everything**. **↺ All** returns to it, node for node, and a
+node it hides is *revealed* rather than refused when you ask for it by name — a `#/iron_bar` deep
+link, a recipe chip, or an agent's tool call opens it and leaves the rest of the view quiet. Two
+query params describe it: `?starter=1` (`0` opens the whole map) and `?orphans=1` (the dead ends,
+which the starting view turns on unless the link says otherwise).
+
 ### Deep links
 
 Every item has a stable URL name — the **snake_case** form of its display name — so a link
@@ -134,10 +151,13 @@ can describe the whole view, not just a selection:
 | `dens` | node density | 50–200 (clamped) |
 | `auto` | re-layout on graph change | `1`/`0` |
 | `cats` | legend item kinds | `all`, `none`, or a list (`food,weapon`) |
+| `starter` | the starting view | `1`/`0` (`0` = the whole map) |
 | `orphans` | dead ends | `1`/`0` |
 | `links` | material edges | `1`/`0` |
 | `skilllinks` | skill-gate edges | `1`/`0` |
-| `regions` | region edges | `1`/`0` |
+| `regions` | region edges (members + sub-regions) | `1`/`0` |
+| `unlocklinks` | unlock edges (recipe blueprints + mount vestiges) | `1`/`0` |
+| `questlinks` | quest edges | `1`/`0` |
 | `possessions` | focus on owned items | `1`/`0` |
 | `iso` | isolate this item | an item slug (`iron_sword`) |
 | `isodir` | isolation direction | `needs` (default), `down`, `up` or `both` |
@@ -158,6 +178,7 @@ unrelated params such as `?tour=robes` are preserved. The parameter list lives i
 | Action | Result |
 |---|---|
 | **Click a node** | Opens its codex panel (top-right): description, stats, all recipes & facilities, skill gates, what it unlocks when obtained, everything it is used to make |
+| **Live map ↗** (codex panel) | For a gatherable the Wyrmwatch map draws, opens that map pre-filtered to the node's own markers — so "where in the region?" has an answer even though `data.json` carries no coordinates |
 | **Shift+Click a node** | Isolates the crafting *tree* of that item — by default **everything it requires** plus **one level** of what it enables; the panel's direction select switches to *outputs only*, *inputs only* or the full both-way walk |
 | **Hover a node** | Direct neighbours highlight |
 | **Breadcrumb** (top right) | Crafting lineage of the current selection; click any step to walk the chain |
@@ -239,17 +260,21 @@ unrelated params such as `?tour=robes` are preserved. The parameter list lives i
   and always shows the full upstream.
 - **Search**: fuzzy matching across all 1,900+ nodes with icon suggestions; **/** focuses it.
 - **Legend = the control surface**: everything that shapes what the map shows toggles from
-  the top-left legend. **Crafts** — every item kind; **View** — **Dead ends** (items nothing
-  crafts), **Show everything** (all items + all link kinds back on in one click) and
-  **Possessions** with a live owned-item count badge (flip to see only what you can reach
-  from what you own); **Links** — **Recipe links** (cool blue) vs gold **Skill gates**
-  (start hidden on a fresh browser; choices persist), **Region links** (hidden) and
-  **Quest links** (on — gold region → quest → reward spokes plus the violet quest → mount
-  unlocks); then **↺ All — reset view** back to the calm first-load state. The old header
-  kind/link chips are retired (hidden, still scriptable). **On a phone** (720px and below,
-  where the pinned legend would eat the screen) the same legend opens from the header's
-  **◈ Layers** button as a scrolling sheet — that button is the one door to the link layers
-  there, since Region links start hidden.
+  the top-left legend. **Crafts** — every item kind; **View** — **Starting area** (the
+  first-load view above), **Dead ends** (items nothing crafts — on with the starting view,
+  since that is what you gather there), **Show everything** (all items + all link kinds back
+  on in one click) and **Possessions** with a live owned-item count badge (flip to see only
+  what you can reach from what you own); **Links** — **Recipe links** (cool blue), gold
+  **Skill gates**, **Region links** (soft green: what a region holds, plus a brighter green
+  division → sub-region inside-edge) and teal **Unlock links** (the item that teaches a
+  recipe or unlocks a mount), violet-and-gold **Quest links** (region → quest → reward spokes
+  plus quest → mount unlocks) — every layer **starts on**, because a layer that is off looks
+  like a relation the data does not have; each row turns one off and the choice persists;
+  then **↺ All — reset view** back to the first-load state (the starting area, link layers on).
+  The old header kind/link chips are retired (hidden, still scriptable). **On a phone** (720px
+  and below, where the pinned legend would eat the screen) the same legend opens from the
+  header's **◈ Layers** button as a scrolling sheet — that button is the one door to the link
+  layers there.
 
 ### Characters
 
@@ -398,6 +423,7 @@ node scripts/fetch-icons.mjs       # resolve icon URLs → cache/icons/manifest.
 node scripts/build-data.mjs        # nodes/edges/recipes/spells/skills → public/data.js + public/data.json (fetch-icon-files rewrites both with local icon paths)
 node scripts/build-found-in.mjs    # location prose in cache/raw → public/found-in.js
 node scripts/build-region-resources.mjs  # each region page's ==Resources== section → public/region-resources.js (fetch-page.mjs pulls any page the cache lacks); --check compares the committed overlay with the live wiki and exits 1 on drift (the CI deploy runs it)
+node scripts/build-map-links.mjs    # Wyrmwatch's marker reference → public/map-links.js (the codex's Live map button); --refresh re-downloads the ~4.7 MB reference, --check compares the committed overlay with the cached reference and always verifies its node ids against data.json (the CI deploy runs it; the reference itself is cached, not committed)
 node scripts/build-quests.mjs      # the wiki's Quests page → public/quests.js (fetch-page.mjs pulls the page on demand)
 node scripts/build-mounts.mjs      # the wiki's Mount page → public/mounts.js (needs quests.js first)
 node scripts/build-exports.mjs     # public/data.js → data.cyjs + data.graphml + atlas-style.xml
@@ -448,14 +474,19 @@ slug/hash rules and the query-string option parser. The Playwright specs in
 layout selection, persisted settings, guided-tour deep links, URL deep links,
 URL graph options, console cleanliness); `scripts/test-ui.mjs` adds a `route`
 section for the hash deep links (selection, path, in-place hash edits, unknown
-slugs) and an `options` section for the query params (each param, no persistence,
-live URL sync, isolation on load, foreign-param preservation, bad values).
+slugs), an `options` section for the query params (each param, no persistence,
+live URL sync, isolation on load, foreign-param preservation, bad values) and a
+`starter` section for the first-load view (what it holds, what leaves it, ↺ All
+returning to it node for node, a deep link revealing a hidden node, and the two
+params that describe it).
 Its `panelcodex` section pins the codex panel's own behaviour (each node kind's button
 vocabulary, the owned ☆ on every listed item, found-in alignment, no action row wider
 than the panel, and Isolate/highlight re-arranging and refitting the map to what they
-show) and its `webmcp` section drives the agent tools: it stubs `document.modelContext`
-the way Chrome exposes it, checks all 13 register with a schema and safety hints, and
-executes each one against the live app.
+show), its `maplinks` section follows the live-map hand-off (every linked node opens its own
+pre-filtered view in the codex, a node the map draws nothing for gets no row, and the agent
+tool returns the same URL) and its `webmcp` section drives the agent tools: it stubs
+`document.modelContext` the way Chrome exposes it, checks all 14 register with a schema and
+safety hints, and executes each one against the live app.
 
 ### Location checklists — the hand-annotation loop
 

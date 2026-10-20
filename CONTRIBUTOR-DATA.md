@@ -56,6 +56,7 @@ re-scrape, which re-litigates rows someone already checked in game.
 | `public/data.json` | ✅ | The same dataset as strict JSON (scripts, desktop tools, tests) |
 | `public/found-in.js` | ✅ | `window.DW_FOUND_IN` — region / gather-method / tool annotations, mined from the **item** pages |
 | `public/region-resources.js` | ✅ | `window.DW_REGION_RESOURCES` — what each region and territory holds, mined from the **place** pages' own `==Resources==` sections, plus a `stubs` list naming the pages with no `==Resources==` heading yet (so an empty hub's codex can say why) |
+| `public/map-links.js` | ✅ | `window.DW_MAP_LINKS` — which atlas node opens the live Wyrmwatch map on which of its marker types, the view that frames them and the artifact's own source/attribution. Joins node names to the map's reference file; `data.json` untouched |
 | `public/quests.js` | ✅ | `window.DW_QUESTS` — the quest layer (type, region, "Where to Start", reward items) |
 | `public/mounts.js` | ✅ | `window.DW_MOUNTS` — per mount its base type, unlocking quests, acquisition line and lore |
 | `public/data.cyjs`, `public/data.graphml`, `public/atlas-style.xml` | ✅ | Cytoscape Desktop export bundle |
@@ -117,8 +118,17 @@ Conventions that matter:
   found?" from the item pages; `region-resources.js` answers "what does this
   place hold?" from the region pages' own `==Resources==` sections. The app
   unions them per hub (an item both name carries both gather methods), which is
-  why a territory no item page mentions still appears. The two generators read
+  why a territory no item page mentions still appears.  The two generators read
   the same `cache/raw/` and neither writes `data.json`.
+- **Where an item is found is not where it grows.** The atlas has regions, not
+  coordinates, so `map-links.js` joins a node's **name** to the Wyrmwatch map's marker
+  types and the codex hands the reader over pre-filtered. The join is deliberately
+  exact after normalising case, underscores and a trailing disambiguator — a tolerant
+  rule (substring, prefix) reads well until *Soul Stone* matches the map's `stone`
+  type and aims a reader at thousands of boulders — and a name it cannot answer stays
+  unlinked and is reported by the generator. Only types the atlas actually gathers
+  from are offered (a monster's own marker is not a find), and the artifact names
+  every type it filters on so a version skew cannot open a silently empty map.
 - **Every canonical region is a hub**, `src/regions.js`'s list being the whole
   set (32 place names plus the 2 quest-only regions the Quests page uses):
   members, quests or neither. A region the wiki has written nothing for yet is a real node with an
@@ -445,6 +455,7 @@ Needs internet. Run in order; each step reads the previous step's cache.
 | 6 | `node scripts/fetch-icon-files.mjs` | downloads icons into `public/icons/` and rewrites the icon fields in `data.js`/`data.json` to local paths |
 | 7 | `node scripts/build-found-in.mjs` | `public/found-in.js` — the region/gather annotations, mined from the item pages' prose |
 | 7b | `node scripts/build-region-resources.mjs` | `public/region-resources.js` — every region and territory page's `==Resources==` list (cached pages only, plus one polite fetch per title the cache cannot resolve, remembered in `cache/redirects.json`; `--offline` skips the network). `--check` writes nothing, re-mines the wiki and exits 1 when the committed overlay no longer matches it — the deploy workflow runs that before building, so this file cannot go stale; pages the run could not fetch are reported as unjudged rather than as drift |
+| 7c | `node scripts/build-map-links.mjs` | `public/map-links.js` — atlas node → the Wyrmwatch map's marker type(s) and the view that frames them, for the codex's **Live map ↗** button. Reads the map's reference file from `cache/wyrmwatch/reference.json` (gitignored, ~4.7 MB; **not** committed), `--refresh` re-downloads it, `--file=` reads one from elsewhere. The host answers scripts with a Cloudflare challenge, so the header explains how to save the reference from a browser. `--check` compares the committed overlay with the cached reference when there is one and always verifies every linked id still exists in `data.json` — the deploy workflow runs it before building |
 | 8 | `node scripts/build-quests.mjs` | `public/quests.js` — the Quests page parsed into quest records (fetched on demand through `scripts/fetch-page.mjs`; `--refresh` re-pulls it) |
 | 9 | `node scripts/build-mounts.mjs` | `public/mounts.js` — the Mount page parsed into per-mount requirements/acquisition (needs step 8 first; `--refresh` re-pulls it) |
 | 10 | `node scripts/build-exports.mjs` | `public/data.cyjs`, `public/data.graphml`, `public/atlas-style.xml` (incl. the quest nodes, `interaction: quest \| mount`) |

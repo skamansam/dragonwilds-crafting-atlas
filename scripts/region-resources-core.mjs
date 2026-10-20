@@ -68,6 +68,65 @@ export function linksIn(line) {
 export const hasResourcesSection = (wikitext) =>
 	/==\s*Resources\s*==/.test(String(wikitext));
 
+/** Page titles are space-normalised and underscore-insensitive on the wiki. */
+const normalize = (title) =>
+	String(title || "")
+		.replace(/_/g, " ")
+		.replace(/\s+/g, " ")
+		.trim();
+
+/**
+ * The sub-region hierarchy off the Ashenfall page's ==Geography== section: the
+ * five territorial divisions and the regions each one is made of
+ * (`===[[Brynmoor]]===` followed by its bullets). No region page says which
+ * division it belongs to — the overview page is the only source — so without
+ * this "Brynmoor" and "Temple Woods" are two hubs that merely happen to share
+ * members, and nothing says the one is part of the other.
+ *
+ * Only the ==Geography== section is read, and only its own bullet lists: the
+ * page repeats the same `===` heading level under ==Inhabitants== (Garou,
+ * Goblins, Undead …) with bullets of *people*, which would otherwise be taken
+ * as sub-regions of whichever division came last.
+ *
+ * @param {string} wikitext the whole Ashenfall page
+ * @param {string[]} [canonRegions] the canonical list, for spelling and order
+ * @returns {{ divisions: Record<string, string[]>, unmatched: string[] }} unmatched = headings/bullets no canonical region answers to
+ */
+export function parseRegionHierarchy(wikitext, canonRegions = []) {
+	const section = /==\s*Geography\s*==([\s\S]*?)(?=\n==[^=]|$)/.exec(
+		String(wikitext),
+	);
+	if (!section) return { divisions: {}, unmatched: [] };
+	const canon = new Map(canonRegions.map((r) => [r.toLowerCase(), r]));
+	const asRegion = (title) =>
+		canon.get(normalize(title).toLowerCase()) || null;
+	const divisions = {};
+	const unmatched = [];
+	let division = null;
+	for (const line of section[1].split("\n")) {
+		const head = /^\s*={3,4}\s*(.+?)\s*={3,4}\s*$/.exec(line);
+		if (head) {
+			// a heading that is not one of the canonical divisions (the Inhabitants
+			// section's Garou, Goblins, …) ends the block rather than starting one
+			const title = headerText(head[1]);
+			division = asRegion(title);
+			if (division) divisions[division] = divisions[division] || [];
+			else unmatched.push(title);
+			continue;
+		}
+		if (!division || !/^\s*[*#]/.test(line)) continue;
+		const link = linksIn(line)[0];
+		if (!link) continue;
+		const child = asRegion(link.title);
+		if (!child) {
+			unmatched.push(link.title);
+			continue;
+		}
+		if (!divisions[division].includes(child)) divisions[division].push(child);
+	}
+	return { divisions, unmatched };
+}
+
 /**
  * Split the canonical regions by what their pages gave us, in display order:
  * `stubs` are pages with no ==Resources== heading at all, `unknown` are pages
@@ -124,13 +183,6 @@ export function parseResources(wikitext) {
 	}
 	return out;
 }
-
-/** Page titles are space-normalised and underscore-insensitive on the wiki. */
-const normalize = (title) =>
-	String(title || "")
-		.replace(/_/g, " ")
-		.replace(/\s+/g, " ")
-		.trim();
 
 /** "Rune Essence (Rock)" → "Rune Essence"; the disambiguator is wiki bookkeeping. */
 const withoutParen = (title) =>

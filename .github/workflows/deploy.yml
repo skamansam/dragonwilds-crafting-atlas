@@ -53,6 +53,17 @@ jobs:
       - name: Check the region overlay is current (drift guard)
         run: node scripts/build-region-resources.mjs --check
 
+      # The live-map overlay is the same kind of committed artifact, with one
+      # difference: its ~4.7 MB source is gitignored (the host refuses scripted
+      # downloads), so CI usually has no reference to compare against. The check
+      # still runs the half that needs no source — every linked node id must exist
+      # in data.json, every filter must name a type the artifact carries, every
+      # view must be a real place — and reports the comparison as unjudged rather
+      # than failing over someone else's downtime. To fix a real failure:
+      # node scripts/build-map-links.mjs, commit the result.
+      - name: Check the live-map overlay still describes this dataset
+        run: node scripts/build-map-links.mjs --check
+
       - name: Configure Pages
         id: pages
         uses: actions/configure-pages@v5

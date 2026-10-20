@@ -17,6 +17,7 @@ import {
   charActive, charSkillSectionHTML, refreshSkillLabels, refreshCharUI, initCharactersUI,
 } from './characters-ui.js';
 import { initMinimap } from './minimap.js';
+import { mapLinkFor, mapLinkSummary } from './map-links.js';
 import {
   initPlans, planState, cyclePlanMode, planFromNothing, planChecklist, wpRecord, wpSave, wpReset,
 } from './plans.js';
@@ -398,6 +399,9 @@ for (const e of D.edges) {
 // walk (plans, paths, requires/enables highlights, isolation, possessions) stay recipe-only.
 const REGION_EDGE_COLOR = 'rgba(140,200,170,0.30)'; // soft green — geography, not crafting
 const REGION_EDGE_SWATCH = '#8cc8aa';
+const SUBREGION_EDGE_COLOR = 'rgba(196,240,216,0.55)'; // brighter green — a division holding one of its regions
+const UNLOCK_EDGE_COLOR = 'rgba(88,201,185,0.34)'; // teal — the item that teaches a recipe or unlocks a mount
+const UNLOCK_EDGE_SWATCH = '#58c9b9';
 const QUEST_EDGE_COLOR = 'rgba(217,161,63,0.36)';  // gold — the story spine (region → quest → reward)
 const QUEST_EDGE_SWATCH = '#d9a13f';
 const MOUNT_EDGE_COLOR = 'rgba(201,160,224,0.40)'; // violet — a quest unlocking a mount
@@ -469,12 +473,29 @@ for (const [region, members] of Object.entries(window.DW_REGION_RESOURCES?.regio
 // so in its codex, and `stubs` (the pages with no ==Resources== heading at all)
 // is what lets it name the reason instead of showing a blank list.
 const regionStubs = new Set((window.DW_REGION_RESOURCES && window.DW_REGION_RESOURCES.stubs) || []);
+// The Ashenfall page's ==Geography== section rides the same overlay, because no
+// region page says which division it belongs to: without it "Brynmoor" and
+// "Temple Woods" are two hubs that merely share members, and nothing says one
+// is part of the other.
+const regionParent = new Map();   // region → the division it sits in
+const regionChildren = new Map(); // division → [its regions]
+for (const [division, children] of Object.entries(window.DW_REGION_RESOURCES?.divisions || {})) {
+  if (!CANON_REGIONS.includes(division)) continue;
+  const kids = (children || []).filter(c => CANON_REGIONS.includes(c) && c !== division);
+  if (!kids.length) continue;
+  regionChildren.set(division, kids);
+  for (const child of kids) if (!regionParent.has(child)) regionParent.set(child, division);
+}
 for (const region of CANON_REGIONS) {
   const members = regionMembers.get(region) || new Map();
   const quests = regionQuests.get(region) || [];
+  const division = regionParent.get(region);
+  const subRegions = regionChildren.get(region) || [];
   nodeById.set(region, { id: region, name: region, kind: 'region' }); // searchable + openable
   registerSlug(region, region);
   const bits = [];
+  if (division) bits.push(`found in ${division}`);
+  if (subRegions.length) bits.push(`contains ${subRegions.length} region${subRegions.length > 1 ? 's' : ''}`);
   if (members.size) bits.push(`${members.size} found here`);
   if (quests.length) bits.push(`${quests.length} quest${quests.length > 1 ? 's' : ''}`);
   if (!bits.length) bits.push('no resources listed yet');
@@ -485,10 +506,23 @@ for (const region of CANON_REGIONS) {
       label: region,
       borderColor: kindColor.region,
       nodeSize: 26 + Math.min(20, (members.size + quests.length) * 0.35),
-      meta: { kind: 'region', deg: members.size, quests: quests.length, description: `Region of Ashenfall — ${bits.join(' · ')}` },
+      meta: {
+        kind: 'region', deg: members.size, quests: quests.length,
+        division: division || null, subRegions: subRegions.length,
+        description: `${subRegions.length ? 'Division' : 'Region'} of Ashenfall — ${bits.join(' · ')}`,
+      },
     },
     classes: 'noIcon',
   });
+  // a division → its regions: the same green layer as the members, drawn
+  // brighter, because "is inside" is not the same claim as "found here"
+  for (const child of subRegions) {
+    eles.push({
+      group: 'edges',
+      data: { id: `${region} ⊃ ${child}`, source: region, target: child, meta: { region: true, subregion: true }, lineColor: SUBREGION_EDGE_COLOR },
+      classes: 'regionEdge subRegionEdge',
+    });
+  }
   for (const item of members.keys()) {
     eles.push({
       group: 'edges',
@@ -546,6 +580,74 @@ if (questById.size) {
       });
     }
   }
+}
+
+/* ── unlock links ────────────────────────────────────────────────
+   Two relations the wiki states in the dataset's own fields and that the codex
+   already prints — a recipe's `blueprint=` (the item you must pick up to be
+   taught it, listed under "Unlocks when obtained") and a mount's vestige (the
+   item that unlocks the mount) — but that never reached the graph, so an item
+   like Simply Splendid Feather showed no links at all. Both say the same thing
+   (this item leads to that recipe or mount), so both ride one layer. */
+for (const [blueprint, outputs] of unlocksRecipes) {
+  if (!nodeById.has(blueprint)) continue;
+  for (const [output, facilities] of outputs) {
+    if (!nodeById.has(output)) continue;
+    eles.push({
+      group: 'edges',
+      data: { id: `${blueprint} ✦ ${output}`, source: blueprint, target: output, meta: { unlock: true, facilities: [...facilities] }, lineColor: UNLOCK_EDGE_COLOR },
+      classes: 'unlockEdge',
+    });
+  }
+}
+for (const [mountId, mount] of mountById) {
+  if (!nodeById.has(mountId) || !mount.vestige || !nodeById.has(mount.vestige)) continue;
+  eles.push({
+    group: 'edges',
+    data: { id: `${mount.vestige} ✦ ${mountId}`, source: mount.vestige, target: mountId, meta: { unlock: true, mount: true }, lineColor: UNLOCK_EDGE_COLOR },
+    classes: 'unlockEdge',
+  });
+}
+
+/* ── the starting view ───────────────────────────────────────────
+   A fresh browser used to open on all 2,053 items and every link at once — the
+   whole atlas, but not what a player meets first. It opens on the beginning of
+   the game instead, computed from the data rather than listed by hand: the
+   tutorial quest (the one the wiki says starts automatically), the region it is
+   set in, that region's division (Brynmoor holds Temple Woods — the ==Geography==
+   hierarchy above), everything found in that region, and every skill node,
+   because the skills panel is the other thing a new character already has.
+
+   It is a view, not a mode: any kind row, a search or "Show everything" leaves
+   it and remembers that for the next visit, ↺ All comes back to it, and a node
+   it hides is revealed (not refused) when the visitor asks for it by name. */
+const STARTER_QUEST = [...questById].find(([, q]) => /automatically started/i.test(q.whereToStart || ''))?.[0] || null;
+const starterNodes = new Set();
+for (const node of nodeById.values()) if (node.kind === 'skill') starterNodes.add(node.id);
+if (STARTER_QUEST) {
+  starterNodes.add(STARTER_QUEST);
+  for (const region of questById.get(STARTER_QUEST).regions || []) {
+    if (!nodeById.has(region)) continue;
+    starterNodes.add(region);
+    const division = regionParent.get(region);
+    if (division) starterNodes.add(division);
+    for (const item of (regionMembers.get(region) || new Map()).keys()) starterNodes.add(item);
+  }
+}
+let starterOnly = false; // defaults read once the URL options exist (see below)
+const starterRevealed = new Set(); // ids asked for by name while the view is on
+/** The dead ends a browser starts from: the starting view is mostly things you
+ *  pick up (ore veins, trees, drops), and those have no recipe — so its dead
+ *  ends are on by default. A stored choice is the visitor's word and wins.
+ *  @returns {boolean} */
+function deadEndDefault() {
+  const stored = localStorage.getItem('dw.showOrphans');
+  return stored === null ? starterOnly : stored === '1';
+}
+/** Does the starting view show this node — because it belongs to it, or because
+ *  the visitor has opened it since? @param {string} id @returns {boolean} */
+function shownByStarter(id) {
+  return !starterOnly || starterNodes.has(id) || starterRevealed.has(id);
 }
 
 let layoutRunning = false;
@@ -714,7 +816,8 @@ const OPT_PARAM_OF_KEY = {
   layout: 'layout', animate: 'anim', savedLayouts: 'saved', worker: 'worker',
   dens: 'dens', autoRelayout: 'auto', legendKinds: 'cats', showOrphans: 'orphans',
   showMatEdges: 'links', showSkillEdges: 'skilllinks', showRegionEdges: 'regions',
-  showQuestEdges: 'questlinks',
+  showQuestEdges: 'questlinks', showUnlockEdges: 'unlocklinks',
+  starterView: 'starter',
   isoDepth: 'isodepth', isoDir: 'isodir', force: 'force',
 };
 // the ONE place option prefs are persisted, so the URL rule can't be forgotten
@@ -732,8 +835,14 @@ if (urlOpt('cats')) {
     if (k in kindLabel) activeCats.add(k);
   }
 }
-if (urlOpt('orphans')) showOrphans = urlBool('orphans', showOrphans);
 if (urlOpt('possessions')) focusOwned = urlBool('possessions', focusOwned);
+// the starting view is on unless the visitor (or this browser) has left it
+starterOnly = urlBool('starter', localStorage.getItem('dw.starterView') !== '0');
+// the dead ends come with it (deadEndDefault — the tutorial region is mostly
+// things you pick up, which have no recipe): a stored choice or a link that
+// spells out ?orphans= still gets what it asked for. This reads AFTER the line
+// above, because the default is "on while the starting view is".
+showOrphans = urlBool('orphans', deadEndDefault());
 
 // the whole option state as ?params — the source syncUrl() writes from
 let isodepthOpt = urlOpt('isodepth') || 'all'; // updated by isolateTree
@@ -754,9 +863,11 @@ function optionState() {
       : activeCats.size === 0 ? 'none'
         : kinds.filter(k => activeCats.has(k)).join(','),
     orphans: showOrphans ? '1' : '0',
+    starter: starterOnly ? '1' : '0',
     links: edgePrefs.materials ? '1' : '0',
     skilllinks: edgePrefs.skills ? '1' : '0',
     regions: edgePrefs.regions ? '1' : '0',
+    unlocklinks: edgePrefs.unlocks ? '1' : '0',
     questlinks: edgePrefs.quests ? '1' : '0',
     possessions: focusOwned ? '1' : '0',
     iso: isolatedRoot ? (slugIndex.toSlug.get(isolatedRoot) || null) : null,
@@ -1157,10 +1268,46 @@ setTimeout(populate, 60); // rAF can stall in hidden/backgrounded tabs
 
 /* ── visibility: category filter ─────────────────────────────── */
 function catAllowed(kind) { return activeCats.has(kind); }
+
+/** Turn the starting view on or off (`dw.starterView`, `?starter=`), and redraw.
+ *  @param {boolean} on @param {boolean} [quiet] skip the toast */
+function setStarterView(on, quiet = false) {
+  starterOnly = on;
+  starterRevealed.clear();
+  storeOpt('starterView', on ? '1' : '0');
+  lgStarterRow.classList.toggle('off', !on);
+  lgStarterRow.querySelector('.lg-check').textContent = on ? '◆' : '◇';
+  if (on) setDeadEnds(deadEndDefault()); // what you gather there has no recipe (see boot)
+  applyCategoryVisibility();
+  if (!quiet) toast(on
+    ? `Starting area — the first minutes of the game (${starterNodes.size} nodes)`
+    : 'Every item is showing again');
+}
+
+/** Leave the starting view because the visitor asked to see more — a kind row, a
+ *  search, "Show everything". Silent: the caller says what it is showing. */
+function leaveStarterView() {
+  if (!starterOnly) return;
+  starterOnly = false;
+  starterRevealed.clear();
+  storeOpt('starterView', '0');
+  lgStarterRow.classList.toggle('off', true);
+  lgStarterRow.querySelector('.lg-check').textContent = '◇';
+}
 function applyCategoryVisibility() {
   cy.batch(() => {
     for (const n of cy.nodes()) {
-      const allow = catAllowed(n.data('meta').kind) && (showOrphans || !n.hasClass('orphan'));
+      // An isolation owns the shown set. This pass runs on every kind / starting
+      // view / dead-end change and re-derives each node's .hidden from scratch,
+      // which quietly undid an active isolation — `?iso=iron_sword` on load
+      // showed the starting view instead of the tree it named, and the panel's
+      // Isolate button lost its subtree to the next filter flip. Inside an
+      // isolation the fences therefore come from the walk: a node outside it is
+      // never revealed, and the kind filter still applies, while the starting
+      // view and dead-end rules (which the walk already answered) stay out of it.
+      if (isolatedRoot && !n.hasClass('isoShown')) { n.addClass('hidden'); continue; }
+      const allow = catAllowed(n.data('meta').kind) && (isolatedRoot || shownByStarter(n.id()))
+        && (isolatedRoot || showOrphans || !n.hasClass('orphan'));
       n.removeClass('hidden');
       if (!allow) n.addClass('hidden');
     }
@@ -1231,16 +1378,19 @@ function layoutShownNow() {
   runLayout(currentLayout, { skipSaved: true, visibleOnly: true, reflow: false });
 }
 
-// Skill-gate edges start HIDDEN on a fresh browser (P3-1: the default view is
-// calmer without 1,539 gold spokes); the choice persists via dw.showSkillEdges.
-// Region links (P4-1b) start hidden too — they are geography, not crafting, and
-// the default map is a crafting view.
+// Every link layer starts ON (2026-10-16): the map is meant to show what the
+// data says, and a layer that is off looks like a relation that does not exist
+// — "Coal Node's page names 12 regions" read as "Coal Node has no links". Each
+// row in the legend turns one off, and the choice persists
+// (dw.showSkillEdges, dw.showRegionEdges, dw.showUnlockEdges, …). The ↺ All row
+// puts them all back on; only the dead-end chip stays off there.
 const edgePrefs = {
   materials: urlBool('links', localStorage.getItem('dw.showMatEdges') !== '0'), // recipe links (default ON, persisted)
-  skills: urlBool('skilllinks', localStorage.getItem('dw.showSkillEdges') === '1'), // default OFF first load
-  regions: urlBool('regions', localStorage.getItem('dw.showRegionEdges') === '1'), // default OFF first load
-  // quest links (P7) are the default VIEW this time (the quest layer is the
-  // map's spine, not a side-layer): region → quest → reward, plus quest → mount
+  skills: urlBool('skilllinks', localStorage.getItem('dw.showSkillEdges') !== '0'), // default ON
+  regions: urlBool('regions', localStorage.getItem('dw.showRegionEdges') !== '0'), // default ON (members + sub-regions)
+  unlocks: urlBool('unlocklinks', localStorage.getItem('dw.showUnlockEdges') !== '0'), // default ON (recipe unlocks + mount vestiges)
+  // quest links (P7) are the map's spine, not a side-layer: region → quest →
+  // reward, plus quest → mount
   quests: urlBool('questlinks', localStorage.getItem('dw.showQuestEdges') !== '0'),
 }; // toggle via the legend's LINKS rows (retired header chips kept in sync)
 function applyEdgeVisibility() {
@@ -1253,6 +1403,10 @@ function applyEdgeVisibility() {
       }
       if (e.hasClass('questEdge')) {
         e.toggleClass('hidden', !edgePrefs.quests || e.source().hasClass('hidden') || e.target().hasClass('hidden'));
+        continue;
+      }
+      if (e.hasClass('unlockEdge')) {
+        e.toggleClass('hidden', !edgePrefs.unlocks || e.source().hasClass('hidden') || e.target().hasClass('hidden'));
         continue;
       }
       const isSkill = SKILL_NAMES.has(e.source().id());
@@ -1301,6 +1455,7 @@ for (const k of Object.keys(kindColor)) {
     onclick: () => {
       if (activeCats.has(k)) activeCats.delete(k); else activeCats.add(k);
       lgSyncKind(k);
+      leaveStarterView(); // a kind row is a request for the whole map
       applyCategoryVisibility();
     },
   });
@@ -1323,6 +1478,7 @@ for (const k of Object.keys(kindColor)) {
       else activeCats.delete(kk);
     }
     showOrphans = false; // a solo view means exactly one kind, no dead ends
+    leaveStarterView();
     for (const kk of Object.keys(lgRows)) lgSyncKind(kk);
     lgDeadRow.classList.toggle('off', !showOrphans);
     lgDeadRow.querySelector('.lg-check').textContent = showOrphans ? '◆' : '◇';
@@ -1348,16 +1504,23 @@ const lgDeadRow = lgMakeRow({
   label: 'Dead ends',
   on: showOrphans,
   onclick: () => {
-    showOrphans = !showOrphans;
-    storeOpt('showOrphans', showOrphans ? '1' : '0');
-    lgDeadRow.classList.toggle('off', !showOrphans);
-    lgDeadRow.querySelector('.lg-check').textContent = showOrphans ? '◆' : '◇';
-    const oc = document.getElementById('orphansChip');
-    oc.classList.toggle('on', showOrphans); // retired header chip mirrors
+    setDeadEnds(!showOrphans);
     applyCategoryVisibility();
   },
 });
+/** Dead ends (degree-0 items: drops, quest items, resource nodes) on or off —
+ *  the flag, its storage and the two controls that mirror it, in one place.
+ *  @param {boolean} on */
+function setDeadEnds(on) {
+  showOrphans = on;
+  storeOpt('showOrphans', on ? '1' : '0');
+  lgDeadRow.classList.toggle('off', !on);
+  lgDeadRow.querySelector('.lg-check').textContent = on ? '◆' : '◇';
+  const oc = document.getElementById('orphansChip');
+  if (oc) oc.classList.toggle('on', on); // retired header chip mirrors
+}
 lgDeadRow.querySelector('.lg-check').textContent = showOrphans ? '◆' : '◇';
+document.getElementById('orphansChip').classList.toggle('on', showOrphans);
 // master switch — everything back on in one click (was impossible before:
 // with every item row off there was no way to recover short of a reload)
 let lgAllRow = null; // assigned after the LINKS section is built
@@ -1381,9 +1544,13 @@ function showEverything() {
   edgePrefs.regions = true;
   storeOpt('showRegionEdges', '1');
   lgRegionRow.classList.remove('off');
+  edgePrefs.unlocks = true;
+  storeOpt('showUnlockEdges', '1');
+  lgUnlockRow.classList.remove('off');
   edgePrefs.quests = true;
   storeOpt('showQuestEdges', '1');
   lgQuestRow.classList.remove('off');
+  leaveStarterView();
   if (lgAllRow) lgAllRow.classList.remove('attention');
   applyCategoryVisibility();
   applyEdgeVisibility();
@@ -1420,6 +1587,17 @@ const lgPossRow = lgMakeRow({
   },
 });
 lgPossRow.querySelector('.lg-check').textContent = focusOwned ? '◆' : '◇';
+// the starting view: on for a fresh browser, and the way back to it after a
+// visitor has gone looking at the rest of the atlas
+const lgStarterRow = lgMakeRow({
+  cls: 'lg-toggle',
+  swatch: '<span class="lg-check">◆</span>',
+  label: 'Starting area',
+  on: starterOnly,
+  onclick: () => setStarterView(!starterOnly),
+});
+lgStarterRow.querySelector('.lg-check').textContent = starterOnly ? '◆' : '◇';
+lgStarterRow.title = `The first minutes of the game — the tutorial quest, its region and division, what is gathered there and the skill nodes (${starterNodes.size} nodes). Any kind row, a search or Show everything leaves it; ↺ All comes back.`;
 const lgCount = document.createElement('span');
 lgCount.className = 'lg-badge';
 lgCount.id = 'ownedCount'; // same id the panel code updates — now lives in the legend
@@ -1470,6 +1648,22 @@ const lgRegionRow = lgMakeRow({
     applyEdgeVisibility();
   },
 });
+// unlock links — teal: the item that teaches a recipe (the wiki's `recipe=`
+// field, shown in a codex as "Unlocks when obtained") and the item that unlocks
+// a mount. Default ON.
+const lgUnlockRow = lgMakeRow({
+  cls: 'lg-line',
+  swatch: `<span class="lg-swatch line" style="background:${UNLOCK_EDGE_SWATCH}"></span>`,
+  label: 'Unlocks',
+  on: edgePrefs.unlocks,
+  onclick: () => {
+    edgePrefs.unlocks = !edgePrefs.unlocks;
+    storeOpt('showUnlockEdges', edgePrefs.unlocks ? '1' : '0');
+    lgUnlockRow.classList.toggle('off', !edgePrefs.unlocks);
+    applyEdgeVisibility();
+  },
+});
+lgUnlockRow.title = 'The item a recipe is learned from and the item that unlocks a mount (the wiki\'s recipe= and vestige fields), joined to what they unlock';
 // quest links (P7) — gold region → quest → reward spokes plus the violet
 // quest → mount unlocks (one row: they are the same layer). Default ON.
 const lgQuestRow = lgMakeRow({
@@ -1514,34 +1708,45 @@ document.getElementById('resetFilters').onclick = () => {
   for (const k of Object.keys(kindLabel)) activeCats.add(k);
   document.querySelectorAll('.chip[data-cat]').forEach(c => c.classList.add('on'));
   storeOpt('legendKinds', JSON.stringify([...activeCats]));
-  // ↺ All resets to the calm first-load view: dead ends hidden too, and the
+  // ↺ All resets to the calm first-load view — the starting area, with the dead
+  // ends that view carries for a browser with no opinion of its own — and the
   // Possessions focus dropped (owned marks themselves persist)
-  showOrphans = false;
-  lgDeadRow.classList.add('off');
-  lgDeadRow.querySelector('.lg-check').textContent = '◇';
-  document.getElementById('orphansChip').classList.remove('on');
+  setDeadEnds(deadEndDefault());
   if (focusOwned) {
     focusOwned = false;
     lgPossRow.classList.toggle('off', true);
     lgPossRow.querySelector('.lg-check').textContent = '◇';
     document.getElementById('possessionsChip').classList.remove('on');
   }
-  // skill + region edges hidden too
-  edgePrefs.skills = false;
-  storeOpt('showSkillEdges', '0');
-  document.getElementById('edgeSkillChip').classList.remove('on');
-  lgSkillRow.classList.add('off');
-  edgePrefs.regions = false;
-  storeOpt('showRegionEdges', '0');
-  lgRegionRow.classList.add('off');
+  // the link layers go back to their first-load state — all of them on, since
+  // that is what a fresh browser gets (a layer turned off looks like a relation
+  // the data does not have)
+  edgePrefs.skills = true;
+  storeOpt('showSkillEdges', '1');
+  document.getElementById('edgeSkillChip').classList.add('on');
+  lgSkillRow.classList.remove('off');
+  edgePrefs.regions = true;
+  storeOpt('showRegionEdges', '1');
+  lgRegionRow.classList.remove('off');
+  edgePrefs.unlocks = true;
+  storeOpt('showUnlockEdges', '1');
+  lgUnlockRow.classList.remove('off');
+  edgePrefs.quests = true;
+  storeOpt('showQuestEdges', '1');
+  lgQuestRow.classList.remove('off');
+  // …and the starting view is where a new visitor begins, so ↺ All returns to it
+  starterOnly = true;
+  starterRevealed.clear();
+  storeOpt('starterView', '1');
+  lgStarterRow.classList.toggle('off', false);
+  lgStarterRow.querySelector('.lg-check').textContent = '◆';
   for (const k of Object.keys(lgRows)) lgSyncKind(k); // legend rows stay in step
   applyCategoryVisibility();
   applyEdgeVisibility();
 };
 
 document.getElementById('orphansChip').onclick = () => {
-  showOrphans = !showOrphans;
-  document.getElementById('orphansChip').classList.toggle('on', showOrphans);
+  setDeadEnds(!showOrphans);
   applyCategoryVisibility();
 };
 
@@ -1775,6 +1980,12 @@ function selectNode(id, { fly = true, syncHash = true } = {}) {
   document.getElementById('welcome').classList.add('hidden');
   selectedId = id;
   const n0 = nodeById.get(id);
+  // a node the starting view hides is revealed when it is asked for by name
+  // (a recipe chip, a deep link, a tool call) — the view keeps the rest quiet
+  if (n0 && !shownByStarter(id)) {
+    starterRevealed.add(id);
+    applyCategoryVisibility();
+  }
   if (n0 && showOrphans === false) {
     const el = cy.getElementById(id);
     if (el.length && el.hasClass('orphan')) {
@@ -1797,7 +2008,7 @@ function clearIsolation() {
   isolatedRoot = null;
   forgetHighlight(); // an isolation is gone — any expansion grows from it no more
   cy.batch(() => {
-    cy.nodes().removeClass('hidden highlighted').style({ opacity: '' });
+    cy.nodes().removeClass('hidden highlighted isoShown').style({ opacity: '' });
     cy.edges().removeClass('hidden highlighted').style({ opacity: '' });
     applyCategoryVisibility();
   });
@@ -1882,7 +2093,12 @@ function isolateTree(id, depthOverride = null, dirOverride = null) {
     showOrphans = false;
     document.getElementById('orphansChip').classList.remove('on');
     cy.nodes().forEach(n => {
-      if (!keep.has(n.id())) n.addClass('hidden');
+      const kept = keep.has(n.id());
+      // .isoShown is what tells a later filter pass the node is IN this tree:
+      // without it that pass would re-derive .hidden from the filters and the
+      // isolation would be gone (see applyCategoryVisibility)
+      n.toggleClass('isoShown', kept);
+      if (!kept) n.addClass('hidden');
       else n.removeClass('hidden');
     });
     cy.edges().forEach(e => {
@@ -1953,8 +2169,11 @@ function spokeNeighbours(nodeId, dir) {
   const n = nodeById.get(nodeId);
   if (!n) return [];
   if (n.kind === 'region') {
-    if (dir === 'up') return [];
+    // "up" is the division this region sits in (and nothing else contains a
+    // region); "down" is the regions it holds plus its members and its quests
+    if (dir === 'up') return regionParent.has(nodeId) ? [regionParent.get(nodeId)] : [];
     return [
+      ...(regionChildren.get(nodeId) || []),
       ...(regionMembers.get(nodeId) || new Map()).keys(),
       ...(regionQuests.get(nodeId) || []),
     ].filter(id => nodeById.has(id));
@@ -2566,6 +2785,21 @@ function wikiRow(n) {
   return `<div class="p-section p-actions"><a class="btn" href="${esc(href)}" target="_blank" rel="noopener">Wiki page ↗</a></div>`;
 }
 
+/* The live-map row, the sibling of the wiki row above.
+
+   data.json carries no coordinates, so the atlas cannot draw where a gatherable
+   is — but the Wyrmwatch map draws 25,298 markers from the game's own files, and
+   for the nodes whose name answers to one of its marker types the panel offers
+   that map pre-filtered to exactly those markers (scripts/build-map-links.mjs
+   does the join at build time; src/map-links.js explains the link format). A
+   node with no counterpart in the map's taxonomy renders no row rather than a
+   link that opens somebody else's map on nothing. */
+function mapRow(n) {
+  const link = mapLinkFor(n.id);
+  if (!link) return '';
+  return `<div class="p-section p-actions"><a class="btn" href="${esc(link.href)}" target="_blank" rel="noopener" title="${esc(mapLinkSummary(link))}">Live map ↗</a></div>`;
+}
+
 /* Mark-as-owned, everywhere in a panel.
 
    The ledger is about what you HAVE, so the ☆ lives on every chip and row that
@@ -2691,6 +2925,19 @@ function renderPanelBody(n) {
   if (n.kind === 'region') {
     const members = regionMembers.get(id) || new Map();
     const verb = { mined: 'mined', chopped: 'chopped', picked: 'picked', farmed: 'farmed', caught: 'fished', drops: 'drops', chest: 'in chests', dungeon: 'in dungeons', other: 'found' };
+    // the hierarchy first: which division this is part of, or which regions it
+    // holds — the same jumpable rows the Quests-here section uses, so the map's
+    // own claim about the shape of Ashenfall is readable from either end
+    const division = regionParent.get(id);
+    if (division) sections.push(`<div class="p-section"><div class="p-label">Found in</div><div class="recipe-mats"><span class="mat" data-goto="${esc(division)}"><span class="fi-pin">⌖</span><span class="mn">${esc(division)}</span></span></div></div>`);
+    const subRegions = regionChildren.get(id) || [];
+    if (subRegions.length) {
+      const subRows = subRegions.slice().sort((a, b) => a.localeCompare(b)).map(child => {
+        const n = regionMembers.get(child)?.size || 0;
+        return `<div class="found-row fi-jump" data-goto="${esc(child)}"><span class="fi-pin">⌖</span><span class="fr">${esc(child)}</span><span class="fw">${n ? `${n} found here` : 'nothing listed yet'}</span></div>`;
+      }).join('');
+      sections.push(`<div class="p-section"><div class="p-label">Sub-regions (${subRegions.length})</div>${subRows}</div>`);
+    }
     const rows = [...members.entries()].sort((a, b) => a[0].localeCompare(b[0])).map(([item, methods]) =>
       `<div class="found-row fi-jump" data-goto="${esc(item)}">${iconImg(item)}<span class="fr">${esc(item)}</span><span class="fw">${[...methods].map(m => esc(verb[m] || m)).join(' · ')}</span></div>`
     ).join('');
@@ -2987,6 +3234,7 @@ function renderPanelBody(n) {
       <option value="both">up + down</option>
     </select>`}
   </div>
+  ${mapRow(n)}
   ${wikiRow(n)}`);
 
   panelBody.innerHTML = sections.join('');
@@ -3124,6 +3372,8 @@ function closeSuggestions() {
 
 searchInput.addEventListener('input', () => {
   const q = searchInput.value.trim();
+  // searching is a request to see something the starting view may not hold
+  if (q) { leaveStarterView(); applyCategoryVisibility(); }
   searchClear.style.display = q ? 'block' : 'none';
   if (q.length < 1) { closeSuggestions(); return; }
   const scored = [];
@@ -3342,6 +3592,7 @@ function atlasViewState() {
     linkLayers: { ...edgePrefs },
     deadEnds: showOrphans,
     layout: currentLayout,
+    startingView: starterOnly,
     ownedCount: owned.size,
   };
 }
@@ -3353,6 +3604,10 @@ function setVisibleKinds(kinds) {
     if (wanted.has(kind)) activeCats.add(kind); else activeCats.delete(kind);
   }
   for (const kind of Object.keys(kindColor)) lgSyncKind(kind);
+  // the same thing a kind row does, so it leaves the starting view the same way:
+  // an agent asking for one kind while the first-minutes view is on would
+  // otherwise get a handful of nodes and no way to know why
+  leaveStarterView();
   applyCategoryVisibility();
 }
 
@@ -3360,14 +3615,12 @@ function setVisibleKinds(kinds) {
  *  source of truth for the pref, the stored option and the chip mirror.
  *  @param {string} layer materials|skills|regions|quests @param {boolean} on */
 function setLinkLayer(layer, on) {
-  const row = { materials: lgMatRow, skills: lgSkillRow, regions: lgRegionRow, quests: lgQuestRow }[layer];
+  const row = { materials: lgMatRow, skills: lgSkillRow, regions: lgRegionRow, unlocks: lgUnlockRow, quests: lgQuestRow }[layer];
   if (row && edgePrefs[layer] !== on) row.click();
 }
 
-/** Show or hide dead-end nodes. @param {boolean} on */
-function setDeadEnds(on) {
-  if (showOrphans !== on) document.getElementById('orphansChip').click();
-}
+/** Show or hide dead-end nodes — the retired header chip and the WebMCP tool
+ *  both go through the one setDeadEnds() beside the legend row. */
 
 initWebMcp({
   D, nodeById, regionMembers, regionQuests, questById, mountById, foundIn,
@@ -3382,6 +3635,7 @@ initWebMcp({
   owned, toggleOwned,
   setKinds: setVisibleKinds, setLinkLayer, setDeadEnds,
   viewState: atlasViewState,
+  mapLink: id => mapLinkFor(id),
 });
 
 /* Classic scripts leaked every top-level `function` declaration onto window; a

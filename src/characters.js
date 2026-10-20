@@ -30,6 +30,7 @@ export const DW_CHARACTERS = (function () {
   const STATE_KEYS = [
     'layout', 'dens', 'animate', 'savedLayouts', 'worker', 'autoRelayout',
     'showMatEdges', 'showSkillEdges', 'showRegionEdges', 'legendKinds',
+    'showUnlockEdges',
     'showOrphans', 'owned', 'planMode', 'planUseOwned', 'wpProgress',
     'isoDepth', 'isoDir', 'highlight', 'force',
   ];

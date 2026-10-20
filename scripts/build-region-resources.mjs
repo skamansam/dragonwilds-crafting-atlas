@@ -40,6 +40,7 @@ import { CANON_REGIONS } from "../src/regions.js";
 import { fetchPage } from "./fetch-page.mjs";
 import {
 	collectResources,
+	parseRegionHierarchy,
 	parseResources,
 	resolveNodeId,
 	splitRegionPages,
@@ -145,6 +146,16 @@ for (const region of CANON_REGIONS) {
 // not get hold of is unknown, and is only ever reported
 const { stubs, unknown } = splitRegionPages(CANON_REGIONS, wikitextByRegion);
 
+// The same page that names the 34 regions also says how they nest: its
+// ==Geography== section lists the five territorial divisions and the regions
+// each one is made of. No region page repeats that, so this is the only source
+// for "Temple Woods is in Brynmoor", and the app draws it as a link.
+const worldPage = await regionPage("Ashenfall");
+readCache();
+const { divisions, unmatched: unmatchedDivisions } = worldPage
+	? parseRegionHierarchy(worldPage.wikitext, CANON_REGIONS)
+	: { divisions: {}, unmatched: [] };
+
 /* ── resolve, asking the wiki about the titles the cache cannot settle ── */
 
 // The local cache is not a faithful proxy for the wiki's own link resolution:
@@ -203,6 +214,7 @@ for (const region of CANON_REGIONS) {
 const out = {
 	source: "https://dragonwilds.runescape.wiki/w/Ashenfall",
 	generatedAt: new Date().toISOString(),
+	divisions,
 	stubs,
 	regions: sorted,
 };
@@ -213,7 +225,9 @@ const header = `${[
 	"// { region: { itemId: [method, …] } }. The complement of found-in.js, which",
 	"// reads the item pages instead. Overlay only: src/app.js folds it into the",
 	"// region hubs at boot, data.json is untouched. `stubs` names the pages with",
-	"// no ==Resources== heading yet, so an empty hub can say why it is empty.",
+	"// no ==Resources== heading yet, so an empty hub can say why it is empty, and",
+	"// `divisions` is the Ashenfall page's own map of which division contains",
+	"// which region — the only place that says so (`Brynmoor → Temple Woods, …`).",
 	`window.DW_REGION_RESOURCES = ${JSON.stringify(out)};`,
 ].join("\n")}\n`;
 
@@ -235,18 +249,29 @@ if (check) {
 		)[1],
 	);
 	const judgeable = new Set(CANON_REGIONS.filter((r) => !unknown.includes(r)));
-	// canonical order on both sides, so the comparison is a plain string match
-	const payload = (sourceStubs, regions) =>
+	// canonical order on both sides, so the comparison is a plain string match.
+	// null = the Ashenfall page could not be read this run: the hierarchy is
+	// unjudged on BOTH sides, because no answer is not the same as an empty one.
+	const payload = (sourceStubs, regions, sourceDivisions) =>
 		JSON.stringify({
 			stubs: [...judgeable].filter((r) => sourceStubs.includes(r)),
+			divisions: sourceDivisions,
 			regions: Object.fromEntries(
 				[...judgeable]
 					.filter((r) => (regions[r] || null) !== null)
 					.map((r) => [r, regions[r]]),
 			),
 		});
-	const mine = payload(stubs, sorted);
-	const theirs = payload(committed.stubs || [], committed.regions || {});
+	const mine = payload(stubs, sorted, worldPage ? divisions : null);
+	const theirs = payload(
+		committed.stubs || [],
+		committed.regions || {},
+		worldPage ? committed.divisions || {} : null,
+	);
+	if (!worldPage)
+		console.log(
+			"unjudged: the Ashenfall page could not be read — the sub-region hierarchy is not compared",
+		);
 	if (mine === theirs) {
 		console.log("up to date: public/region-resources.js matches the wiki");
 	} else {
@@ -259,6 +284,18 @@ if (check) {
 		if (added.length) console.log(`  new stub pages: ${added.join(", ")}`);
 		if (gone.length)
 			console.log(`  pages that gained a ==Resources== section: ${gone.join(", ")}`);
+		for (const division of [
+			...new Set([...Object.keys(a.divisions || {}), ...Object.keys(b.divisions || {})]),
+		]) {
+			const now = (a.divisions || {})[division] || [];
+			const was = (b.divisions || {})[division] || [];
+			if (now.join() === was.join()) continue;
+			const plus = now.filter((c) => !was.includes(c));
+			const minus = was.filter((c) => !now.includes(c));
+			console.log(
+				`  ${division}: +${plus.length} -${minus.length} sub-region(s)${plus.length ? ` (${plus.join(", ")})` : ""}${minus.length ? ` (${minus.join(", ")})` : ""}`,
+			);
+		}
 		for (const region of CANON_REGIONS) {
 			const now = Object.keys(a.regions[region] || {});
 			const was = Object.keys(b.regions[region] || {});
@@ -322,6 +359,17 @@ console.log(
 if (stubs.length)
 	console.log(
 		`no ==Resources== on the wiki yet — stubs named in the overlay (${stubs.length}): ${stubs.join(", ")}`,
+	);
+const subRegions = Object.values(divisions).reduce((n, kids) => n + kids.length, 0);
+if (worldPage)
+	console.log(
+		`the Ashenfall page's ==Geography==: ${Object.keys(divisions).length} divisions holding ${subRegions} regions (${Object.entries(divisions)
+			.map(([division, kids]) => `${division} ${kids.length}`)
+			.join(", ")})`,
+	);
+if (unmatchedDivisions.length)
+	console.log(
+		`  headings/bullets there that no canonical region answers to (${new Set(unmatchedDivisions).size}): ${[...new Set(unmatchedDivisions)].join(", ")}`,
 	);
 if (unknown.length)
 	console.log(

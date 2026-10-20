@@ -30,6 +30,9 @@
 //            attach-existing-data path), skill levels + total, switching, delete
 //   mobile   the ◈ layers door: 720px and below the pinned legend is hidden, so
 //            this button is how a phone reaches the Region/Quest link rows
+//   maplinks the live-map hand-off: the generated public/map-links.js artifact,
+//            the codex's "Live map ↗" row (its exact hash, tooltip and the
+//            nodes that must render no row), and the atlas_map_link tool
 //   webmcp   the agent tools (src/webmcp.js): registered through
 //            document.modelContext.registerTool exactly as Chrome's WebMCP API
 //            documents it, then executed one by one against the live app
@@ -51,6 +54,14 @@ const BASE = urlArg ? urlArg.slice(6).replace(/\/$/, '') : `http://localhost:${P
 // below checks the wiki link a codex renders against the URL the node itself
 // carries, and asking the page for that URL would test the page against itself.
 const DATASET = JSON.parse(fs.readFileSync(path.join(REPO, 'public', 'data.json'), 'utf8'));
+// The generated live-map artifact, read from disk for the same reason: the
+// maplinks section compares what the codex renders against what the generator
+// committed, not the page against itself.
+const MAP_ARTIFACT = JSON.parse(
+  /window\.DW_MAP_LINKS\s*=\s*(\{[\s\S]*\});/.exec(
+    fs.readFileSync(path.join(REPO, 'public', 'map-links.js'), 'utf8'),
+  )[1],
+);
 
 let srv = null;
 if (!urlArg) {
@@ -74,7 +85,7 @@ if (!urlArg) {
 }
 
 const only = process.argv.slice(2).filter(a => !a.startsWith('--'))[0] || null;
-const sections = ['smoke', 'panel', 'panelcodex', 'edits', 'undo', 'layouts', 'tours', 'route', 'options', 'quests', 'characters', 'mobile', 'webmcp'].filter(s => !only || s === only);
+const sections = ['smoke', 'starter', 'panel', 'panelcodex', 'edits', 'undo', 'layouts', 'tours', 'route', 'options', 'quests', 'characters', 'mobile', 'maplinks', 'webmcp'].filter(s => !only || s === only);
 
 const results = [];
 let page, browser;
@@ -85,8 +96,20 @@ const ok = (name, cond, detail = '') => {
 };
 const errors = [];
 
-async function boot(hash = '', search = '') {
-  await page.goto(`${BASE}/${search}${hash}`, { waitUntil: 'domcontentloaded', timeout: 60000 });
+// The suite's baseline is the WHOLE map: every section below is about the atlas,
+// and the starting view (the first-load default, ?starter) has its own section,
+// so it is pinned off here unless the caller asks for it — by naming the option
+// in `search` itself, or with firstLoad, which boots the page exactly as a
+// first-time visitor sees it (no ?starter at all, nothing pinned).
+async function boot(hash = '', search = '', firstLoad = false, hard = false) {
+  const q = firstLoad || search.includes('starter=') ? search
+    : search ? `${search}&starter=0` : '?starter=0';
+  await page.goto(`${BASE}/${q}${hash}`, { waitUntil: 'domcontentloaded', timeout: 60000 });
+  // a hash-only difference is a SAME-DOCUMENT navigation: the app keeps its
+  // in-memory view and just applies the route. A check that wants the link
+  // loaded the way a visitor's click loads it asks for `hard`, which reloads
+  // the very same URL.
+  if (hard) await page.reload({ waitUntil: 'domcontentloaded', timeout: 60000 });
   await page.waitForFunction(() => window.__cy && window.__cy.nodes().length > 0, null, { timeout: 120000, polling: 500 });
   await page.waitForFunction(() => document.getElementById('veil').classList.contains('hidden'), null, { timeout: 60000, polling: 250 });
   await page.waitForTimeout(800); // settle boot layout
@@ -441,14 +464,20 @@ async function secSmoke() {
   ok('"only" on an OFF row still shows that kind', soloFromOff.food > 0, `${soloFromOff.food} food node(s) visible`);
   ok('"only" on an OFF row hides every other kind', soloFromOff.others === 0, `${soloFromOff.others} non-food node(s) visible`);
   // sticky solo leaves the map on that one kind, so the smoke section restores
-  // the calm first-load view here for the sections that follow
+  // the first-load view here with ↺ All — which is the starting area, not the
+  // whole map (that is what a solo view has to be able to recover from)
   await page.evaluate(() => {
     [...document.querySelectorAll('#legend .lg-row')]
       .find(r => r.querySelector('span:last-child')?.textContent === '↺ All — reset view').click();
   });
   await page.waitForTimeout(900);
-  const afterSoloReset = await page.evaluate(() => window.__cy.nodes(':visible').length);
-  ok('↺ All leaves the solo view', afterSoloReset > soloFromOff.food, `${afterSoloReset} node(s) visible`);
+  const afterSoloReset = await page.evaluate(() => {
+    const shown = window.__cy.nodes(':visible').map(n => n.data('meta').kind);
+    const row = [...document.querySelectorAll('#legend .lg-row')].find(r => r.textContent.includes('Starting area'));
+    return { total: shown.length, others: shown.filter(k => k !== 'food').length, starter: !!row && !row.classList.contains('off') };
+  });
+  ok('↺ All leaves the solo view', afterSoloReset.others > 0 && afterSoloReset.starter,
+    `${afterSoloReset.total} node(s) visible, ${afterSoloReset.others} non-food, starting area on=${afterSoloReset.starter}`);
 
   // ── newer-build notice ──────────────────────────────────────
   // the build stamps an id into the page and emits the same id as version.json;
@@ -475,6 +504,172 @@ async function secSmoke() {
   await page.waitForTimeout(400);
   ok('banner can be dismissed', await page.$eval('#updateBanner', el => el.hidden));
   await page.unroute('**/version.json');
+}
+
+/* ── starter (the first-load view) ─────────────────────────────────────── */
+// A fresh browser opens on the beginning of the game rather than on all 2,123
+// nodes: the tutorial quest, the region it is set in and that region's division,
+// everything found in the region, and every skill node (the skills panel is the
+// other thing a new character already has). This section drives that view end to
+// end — what it holds, what leaves it, what brings it back, and the two URL
+// options that describe it (?starter=, ?orphans=). It is the suite's only
+// firstLoad boot, so it is the only place the real default is exercised.
+async function secStarter() {
+  console.log('starter:');
+  await clearStorage(['dw.starterView', 'dw.showOrphans', 'dw.legendKinds']);
+  await boot('', '', true);
+
+  const first = await page.evaluate(() => {
+    const all = window.__cy.nodes();
+    const shown = all.filter(n => !n.hasClass('hidden')).map(n => ({ id: n.id(), kind: n.data('meta').kind }));
+    const rowOf = label => [...document.querySelectorAll('#legend .lg-row')].find(r => r.textContent.includes(label));
+    const checkOf = label => { const r = rowOf(label); return r && !r.classList.contains('off') ? r.querySelector('.lg-check').textContent : null; };
+    // the set the view is computed from: everything the wiki lists in the
+    // tutorial's region, that region and the division above it, the quest
+    // itself, and every skill node
+    // the app's own membership rule: the item pages' "found in" (found-in.js)
+    // unioned with the region page's ==Resources== list (region-resources.js)
+    const members = new Set([
+      ...Object.entries(window.DW_FOUND_IN || {})
+        .filter(([, list]) => list.some(f => f.region === 'Temple Woods')).map(([id]) => id),
+      ...Object.keys(window.DW_REGION_RESOURCES?.regions?.['Temple Woods'] || {}),
+    ]);
+    const skills = all.filter(n => n.data('meta').kind === 'skill').map(n => n.id());
+    return {
+      ids: shown.map(s => s.id),
+      skillsShown: shown.filter(s => s.kind === 'skill').length,
+      skillsTotal: skills.length,
+      skillsHidden: all.filter(n => n.data('meta').kind === 'skill' && n.hasClass('hidden')).length,
+      expected: [...members, 'Temple Woods', 'Brynmoor', 'First Steps', ...skills].filter(id => window.__cy.getElementById(id).length),
+      starter: checkOf('Starting area'), dead: checkOf('Dead ends'),
+      stored: localStorage.getItem('dw.starterView'),
+    };
+  });
+  const shownSet = new Set(first.ids);
+  const missing = first.expected.filter(id => !shownSet.has(id));
+  const extra = first.ids.filter(id => !new Set(first.expected).has(id));
+  ok('a fresh browser opens on the starting view', first.starter === '◆' && first.ids.length > 30 && first.ids.length < 60,
+    `${first.ids.length} node(s) visible, Starting area=${first.starter}`);
+  ok('the starting view holds the tutorial neighbourhood', missing.length === 0,
+    missing.length ? `missing: ${missing.slice(0, 6).join(', ')}` : `${first.expected.length} expected nodes, all shown`);
+  ok('…and nothing outside it', extra.length === 0, extra.slice(0, 6).join(', ') || 'no strays');
+  ok('every skill node is in it', first.skillsShown === first.skillsTotal && first.skillsHidden === 0,
+    `${first.skillsShown}/${first.skillsTotal} skills shown`);
+  ok('the tutorial quest and both of its regions are in it',
+    ['First Steps', 'Temple Woods', 'Brynmoor'].every(id => shownSet.has(id)));
+  // the region is mostly things you pick up, and those have no recipe — a
+  // dead-end filter would hide the very items this view is about
+  ok('its dead ends come with it', first.dead === '◆', `Dead ends=${first.dead}`);
+
+  // the dead-end row still governs them, and putting them back restores the
+  // exact first view (a filter, not a one-way door)
+  const count = () => page.evaluate(() => window.__cy.nodes(':visible').length);
+  await page.evaluate(() => [...document.querySelectorAll('#legend .lg-row')].find(r => r.textContent.includes('Dead ends')).click());
+  await page.waitForTimeout(600);
+  const noDead = await count();
+  ok('the dead-end row turns the gatherables off inside it', noDead > 0 && noDead < first.ids.length,
+    `${noDead} of ${first.ids.length} node(s)`);
+  await page.evaluate(() => [...document.querySelectorAll('#legend .lg-row')].find(r => r.textContent.includes('Dead ends')).click());
+  await page.waitForTimeout(600);
+  ok('…and back on', await count() === first.ids.length, `${await count()} node(s)`);
+
+  // leaving: any kind row is a request to see the whole map, and it is remembered
+  await page.evaluate(() => {
+    const rows = [...document.querySelectorAll('#legend .lg-row')];
+    rows.find(r => r.querySelector('.lg-only')).click();
+  });
+  await page.waitForTimeout(900);
+  const left = await page.evaluate(() => ({
+    shown: window.__cy.nodes(':visible').length,
+    starter: [...document.querySelectorAll('#legend .lg-row')].find(r => r.textContent.includes('Starting area')).classList.contains('off'),
+    stored: localStorage.getItem('dw.starterView'),
+  }));
+  ok('a kind row leaves the starting view', left.starter && left.shown > first.ids.length * 10,
+    `${left.shown} node(s) visible, Starting area off=${left.starter}`);
+  ok('leaving it is remembered for the next visit', left.stored === '0', `dw.starterView=${left.stored}`);
+
+  // …and ↺ All comes back to it, node for node
+  await page.evaluate(() => {
+    [...document.querySelectorAll('#legend .lg-row')].find(r => r.textContent.includes('↺ All — reset view')).click();
+  });
+  await page.waitForTimeout(1200);
+  const back = await page.evaluate(() => ({
+    ids: window.__cy.nodes(':visible').map(n => n.id()).sort(),
+    dead: [...document.querySelectorAll('#legend .lg-row')].find(r => r.textContent.includes('Dead ends')).classList.contains('off') === false,
+  }));
+  ok('↺ All returns to the starting view, node for node',
+    JSON.stringify(back.ids) === JSON.stringify([...first.ids].sort()) && back.dead,
+    `${back.ids.length} node(s), dead ends on=${back.dead}`);
+
+  // a search is the other way out (the visitor is looking for something the
+  // view may not hold)
+  await page.fill('#search', 'Iron Bar');
+  await page.waitForTimeout(500);
+  ok('typing in the search box leaves the starting view', await page.evaluate(() =>
+    [...document.querySelectorAll('#legend .lg-row')].find(r => r.textContent.includes('Starting area')).classList.contains('off')));
+  await page.fill('#search', '');
+  await page.waitForTimeout(300);
+
+  // a node it hides is REVEALED when asked for by name (a deep link, a recipe
+  // chip, an agent tool call) — the view itself stays on
+  await clearStorage(['dw.starterView']);
+  await boot('#/iron_bar', '', true, true);
+  const deep = await page.evaluate(() => ({
+    title: document.getElementById('panelTitle').textContent,
+    shown: !window.__cy.getElementById('Iron Bar').hasClass('hidden'),
+    starter: ![...document.querySelectorAll('#legend .lg-row')].find(r => r.textContent.includes('Starting area')).classList.contains('off'),
+    extra: window.__cy.nodes(':visible').length,
+  }));
+  ok('a deep link to a hidden node reveals it and keeps the view',
+    deep.shown && deep.starter && deep.title === 'Iron Bar',
+    `${deep.title}, visible=${deep.shown}, starting view on=${deep.starter}, ${deep.extra} node(s) shown`);
+
+  // an isolation is an explicit request too, and it is the shown set: a filter
+  // pass (this one, the kind rows, the dead-end row) must not undo it, and the
+  // starting view must not clip it. Both are measured, on the same tree.
+  await clearStorage(['dw.starterView', 'dw.showOrphans']);
+  await boot('', '', true);
+  await page.evaluate(() => window.isolateTree('Iron Bar', 2, 'down'));
+  await page.waitForTimeout(900);
+  const isoStarter = await page.evaluate(() => ({
+    shown: window.__cy.nodes(':visible').length,
+    starter: ![...document.querySelectorAll('#legend .lg-row')].find(r => r.textContent.includes('Starting area')).classList.contains('off'),
+  }));
+  await page.evaluate(() => {
+    [...document.querySelectorAll('#legend .lg-row')].find(r => r.textContent.includes('Dead ends')).click();
+  });
+  await page.waitForTimeout(700);
+  const isoAfterFilter = await page.evaluate(() => window.__cy.nodes(':visible').length);
+  await clearStorage(['dw.starterView']);
+  await boot('', '?starter=0', true);
+  await page.evaluate(() => window.isolateTree('Iron Bar', 2, 'down'));
+  await page.waitForTimeout(900);
+  const isoPlain = await page.evaluate(() => window.__cy.nodes(':visible').length);
+  ok('an isolation is not clipped by the starting view',
+    isoStarter.shown === isoPlain && isoStarter.starter && isoStarter.shown > 1,
+    `${isoStarter.shown} node(s) isolated with the view on, ${isoPlain} with it off`);
+  ok('a filter flip does not undo the isolation',
+    isoAfterFilter === isoStarter.shown && isoAfterFilter < 200,
+    `${isoAfterFilter} node(s) after toggling the dead ends`);
+
+  // the two URL options: a shared link says which view it wants, and ?orphans=
+  // overrides the dead ends the starting view would otherwise carry
+  await boot('', '?starter=0', true);
+  const linkOff = await page.evaluate(() => ({
+    shown: window.__cy.nodes(':visible').length,
+    starter: [...document.querySelectorAll('#legend .lg-row')].find(r => r.textContent.includes('Starting area')).classList.contains('off'),
+  }));
+  ok('?starter=0 opens the whole map instead', linkOff.starter && linkOff.shown > 500,
+    `${linkOff.shown} node(s) visible`);
+  await boot('', '?starter=1&orphans=0', true);
+  const linkOrphans = await page.evaluate(() => ({
+    shown: window.__cy.nodes(':visible').length,
+    starter: ![...document.querySelectorAll('#legend .lg-row')].find(r => r.textContent.includes('Starting area')).classList.contains('off'),
+    dead: [...document.querySelectorAll('#legend .lg-row')].find(r => r.textContent.includes('Dead ends')).classList.contains('off'),
+  }));
+  ok('?starter=1&orphans=0 keeps the view but drops the gatherables',
+    linkOrphans.starter && linkOrphans.dead && linkOrphans.shown > 0 && linkOrphans.shown < first.ids.length,
+    `${linkOrphans.shown} of ${first.ids.length} node(s)`);
 }
 
 /* ── panel ─────────────────────────────────────────────────────────────── */
@@ -1503,7 +1698,8 @@ async function secOptions() {
   console.log('options:');
   const KEYS = ['dw.layout', 'dw.force', 'dw.animate', 'dw.savedLayouts', 'dw.worker', 'dw.dens',
     'dw.autoRelayout', 'dw.legendKinds', 'dw.showOrphans', 'dw.showMatEdges',
-    'dw.showSkillEdges', 'dw.showRegionEdges', 'dw.isoDepth', 'dw.isoDir'];
+    'dw.showSkillEdges', 'dw.showRegionEdges', 'dw.showUnlockEdges', 'dw.showQuestEdges',
+    'dw.starterView', 'dw.isoDepth', 'dw.isoDir'];
   await boot();
   await clearStorage(KEYS);
 
@@ -1727,14 +1923,15 @@ async function secQuests() {
       hub: hub.nonempty(), hidden: hub.nonempty() && hub.hasClass('hidden'),
       orphan: hub.nonempty() && hub.hasClass('orphan'),
       spokes: spokes.length, shownSpokes: spokes.filter(e => !e.hasClass('hidden')).length,
+      rowOn: ![...document.querySelectorAll('#legend .lg-row')].find(r => r.textContent.trim() === 'Region links').classList.contains('off'),
     };
   });
   ok('the region pages\' own resource lists are loaded',
     rr.regions >= 20 && rr.links >= 290 && /\/w\/Ashenfall$/.test(rr.source) && rr.generated,
     `${rr.regions} regions, ${rr.links} links, source=${rr.source}`);
   ok('a territory only the region pages name now has a hub',
-    rr.hub && !rr.hidden && !rr.orphan && rr.spokes === 17 && rr.shownSpokes === 0,
-    `Bleakfields Valley: hub=${rr.hub} spokes=${rr.spokes} (${rr.shownSpokes} shown — region links are off by default)`);
+    rr.hub && !rr.hidden && !rr.orphan && rr.spokes === 17 && rr.rowOn && rr.shownSpokes > 0,
+    `Bleakfields Valley: hub=${rr.hub} spokes=${rr.spokes}, row on=${rr.rowOn} (${rr.shownSpokes} shown — its gatherables are dead ends)`);
 
   // the panel reads like the wiki page it came from: the item and its verb
   await page.evaluate(() => window.selectNode('Bleakfields Valley'));
@@ -1772,31 +1969,44 @@ async function secQuests() {
     && union.duplicates === 0 && union.rows === union.spokes,
     `Redberry Bush: ${union.how} · ${union.rows} rows / ${union.spokes} spokes, ${union.duplicates} duplicates`);
 
-  // the spokes are real edges, and the legend row is what reveals them
+  // the spokes are real edges and the legend row is what governs them. The
+  // layer starts ON — a layer that is off looks like a relation the data does
+  // not have — so the row's job here is to be able to switch it off and back.
   await page.evaluate(() => window.selectNode(''));
   const clickRegionRow = () => page.evaluate(() => {
     [...document.querySelectorAll('#legend .lg-row')].find(r => r.textContent.trim() === 'Region links').click();
   });
-  await clickRegionRow();
-  await page.waitForTimeout(300);
-  const mined = await page.evaluate(() => {
+  const readRegionSpokes = () => page.evaluate(() => {
     const cy = window.__cy;
     const shownNodes = new Set(cy.nodes(':visible').map(n => n.id()));
     const region = cy.edges('.regionEdge');
     const open = region.filter(e => !e.hasClass('hidden'));
+    const row = [...document.querySelectorAll('#legend .lg-row')].find(r => r.textContent.trim() === 'Region links');
     return {
       total: region.length,
       shown: open.length,
       // a spoke shows exactly when the pref is on AND both its ends are on screen
       expected: region.filter(e => shownNodes.has(e.data('source')) && shownNodes.has(e.data('target'))).length,
       fromBleakfields: open.filter(e => e.data('source') === 'Bleakfields Valley').length,
+      on: !row.classList.contains('off'),
       stored: localStorage.getItem('dw.showRegionEdges'),
     };
   });
-  ok('the Region links row reveals the mined spokes',
-    mined.total >= 1100 && mined.shown === mined.expected && mined.fromBleakfields > 0 && mined.stored === '1',
-    `${mined.shown}/${mined.total} region spokes shown (all with both ends visible), ${mined.fromBleakfields} from the new hub`);
+  const spokesOn = await readRegionSpokes();
+  ok('the Region links row starts on, showing the mined spokes',
+    spokesOn.on && spokesOn.total >= 1100 && spokesOn.shown === spokesOn.expected && spokesOn.fromBleakfields > 0,
+    `${spokesOn.shown}/${spokesOn.total} region spokes shown (all with both ends visible), ${spokesOn.fromBleakfields} from the new hub`);
   await clickRegionRow();
+  await page.waitForTimeout(300);
+  const spokesOff = await readRegionSpokes();
+  ok('turning the Region links row off hides every mined spoke',
+    !spokesOff.on && spokesOff.shown === 0 && spokesOff.stored === '0',
+    `${spokesOff.shown}/${spokesOff.total} shown, dw.showRegionEdges=${spokesOff.stored}`);
+  await clickRegionRow();
+  await page.waitForTimeout(300);
+  const spokesBack = await readRegionSpokes();
+  ok('…and back on', spokesBack.on && spokesBack.shown === spokesBack.expected && spokesBack.stored === '1',
+    `${spokesBack.shown}/${spokesBack.total} shown, dw.showRegionEdges=${spokesBack.stored}`);
   await clearStorage(['dw.showRegionEdges']);
 
   // clearStorage above left the app on a freshly loaded, not-yet-populated page,
@@ -1939,15 +2149,23 @@ async function secMobile() {
     sheet.open && sheet.fits && sheet.scrolls && sheet.rows >= 20 && sheet.rowOnScreen && sheet.aria === 'true',
     `${sheet.rows} rows · fits=${sheet.fits} scrolls=${sheet.scrolls} rowOnScreen=${sheet.rowOnScreen}`);
 
-  await phone.locator('#legend .lg-row', { hasText: 'Region links' }).first().tap();
-  await phone.waitForTimeout(500);
-  const layer = await phone.evaluate(() => ({
+  // the layer starts ON, so the tap that proves a phone can reach the row is
+  // the one that turns it off — and a second tap puts it back
+  const readLayer = () => phone.evaluate(() => ({
     stored: localStorage.getItem('dw.showRegionEdges'),
     shown: window.__cy.edges('.regionEdge').filter(e => !e.hasClass('hidden')).length,
     total: window.__cy.edges('.regionEdge').length,
   }));
-  ok('the Region links row is reachable on a phone and turns the spokes on',
-    layer.stored === '1' && layer.shown > 0, `${layer.shown}/${layer.total} spokes shown, stored=${layer.stored}`);
+  await phone.locator('#legend .lg-row', { hasText: 'Region links' }).first().tap();
+  await phone.waitForTimeout(500);
+  const layerOff = await readLayer();
+  ok('the Region links row is reachable on a phone and turns the spokes off',
+    layerOff.stored === '0' && layerOff.shown === 0, `${layerOff.shown}/${layerOff.total} spokes shown, stored=${layerOff.stored}`);
+  await phone.locator('#legend .lg-row', { hasText: 'Region links' }).first().tap();
+  await phone.waitForTimeout(500);
+  const layerOn = await readLayer();
+  ok('…and a second tap turns them back on',
+    layerOn.stored === '1' && layerOn.shown > 0, `${layerOn.shown}/${layerOn.total} spokes shown, stored=${layerOn.stored}`);
 
   await phone.locator('#legendBtn').tap();
   await phone.waitForTimeout(400);
@@ -2258,6 +2476,104 @@ async function secPanelCodex() {
     `${sweptRows} rows across ${Object.keys(firstOfKind).length} kinds, ${sweptOwnable} of them ownable`);
 }
 
+/* ── maplinks ──────────────────────────────────────────────────────────── */
+// The atlas has no coordinates, so "where exactly do I find this" leaves the
+// site: the codex hands the reader to the Wyrmwatch map pre-filtered to the
+// markers of that node's type. This section drives the whole hand-off — the
+// committed artifact, the row's exact hash and tooltip, the nodes that must get
+// no row, and the agent tool that returns the same URL — because a link that
+// opens the wrong view costs a reader a click and looks like the atlas lied.
+async function secMaplinks() {
+  console.log('maplinks:');
+  await boot();
+
+  const source = MAP_ARTIFACT.source.map;
+  const hashOf = entry => `#view=${entry.view.x},${entry.view.y},${entry.view.zoom}`
+    + (entry.plane ? '&level=1' : '') + `&filters=${entry.keys.join(',')}`;
+  const linked = Object.keys(MAP_ARTIFACT.nodes).filter(id => DATASET.nodes.some(n => n.id === id));
+  const expected = Object.fromEntries(linked.map(id => [id, source + hashOf(MAP_ARTIFACT.nodes[id])]));
+
+  // one node, read the way a reader reads it: the row that says where to go
+  const panelLink = id => page.evaluate(id => {
+    window.selectNode(id, { fly: false, syncHash: false });
+    const a = document.querySelector('#panelBody a[href*="survivalservers.com"]');
+    return a ? {
+      href: a.getAttribute('href'), text: a.textContent.trim(),
+      target: a.getAttribute('target'), rel: a.getAttribute('rel'),
+      title: a.getAttribute('title'),
+    } : null;
+  }, id);
+
+  const iron = await panelLink('Iron Ore Node');
+  ok('the codex offers the live map for a gatherable the map draws',
+    iron && iron.href === expected['Iron Ore Node'] && iron.text === 'Live map ↗' &&
+    iron.target === '_blank' && /noopener/.test(iron.rel || ''),
+    iron ? iron.href : 'no live-map row');
+  ok('…and its tooltip names the marker count and the plane',
+    !!iron && /Iron on the live Wyrmwatch map/.test(iron.title) &&
+    /\d+(,\d+)* markers on the surface, pre-filtered/.test(iron.title),
+    iron ? iron.title : '');
+
+  // the format itself: a HASH, with a view before the filters because the map
+  // reads filters inside readView() and ignores a filter-only hash
+  const vent = await panelLink('Anima Vent');
+  const ventHash = vent ? vent.href.slice(source.length) : '';
+  ok('the link is a view+filters hash, never a query string, and a multi-type label keeps every key',
+    ventHash.startsWith('#view=') && !ventHash.includes('?') &&
+    ventHash.includes('&filters=anima_vent_air') && ventHash.split('&filters=')[1].split(',').length === 7,
+    ventHash.replace(/#view=[^&]*/, '#view=…'));
+  ok('…and the view is a real place on that map: finite metres, zoom in range',
+    !!vent && MAP_ARTIFACT.nodes['Anima Vent'].view.zoom <= 7 &&
+    /#view=-?\d+(\.\d+)?,-?\d+(\.\d+)?,-?\d+(\.\d+)?/.test(ventHash),
+    vent ? ventHash.split('&')[0] : '');
+
+  // every linked node, through the real panel — not the formatter alone
+  const wrong = await page.evaluate(({ ids, expected }) => {
+    const bad = [];
+    for (const id of ids) {
+      window.selectNode(id, { fly: false, syncHash: false });
+      const a = document.querySelector('#panelBody a[href*="survivalservers.com"]');
+      const href = a ? a.getAttribute('href') : null;
+      if (href !== expected[id]) bad.push(`${id}: ${href || 'no row'}`);
+    }
+    document.getElementById('panelClose').click();
+    return bad;
+  }, { ids: linked, expected });
+  ok('every linked atlas node opens its own pre-filtered view',
+    wrong.length === 0, `${linked.length} checked${wrong.length ? ` — ${wrong.slice(0, 3).join(' · ')}` : ''}`);
+
+  // …and the other half of the promise: no counterpart, no link. A guessed
+  // link ("Soul Stone" → the `stone` type) is worse than no link at all.
+  const unlinked = DATASET.nodes.map(n => n.id).filter(id => !MAP_ARTIFACT.nodes[id]).slice(0, 20);
+  const stray = await page.evaluate(ids => ids.filter(id => {
+    window.selectNode(id, { fly: false, syncHash: false });
+    return !!document.querySelector('#panelBody a[href*="survivalservers.com"]');
+  }), unlinked);
+  ok('a node the map draws nothing for renders no live-map row',
+    stray.length === 0, `${unlinked.length} checked${stray.length ? ` — ${stray.join(', ')}` : ''}`);
+  const soul = await page.evaluate(() => {
+    window.selectNode('Soul Stone', { fly: false, syncHash: false });
+    return {
+      row: !!document.querySelector('#panelBody a[href*="survivalservers.com"]'),
+      wiki: !!document.querySelector('#panelBody a[href*="dragonwilds.runescape.wiki/w/"]'),
+    };
+  });
+  ok('…while its own page row stays, so the panel is not left empty',
+    !soul.row && soul.wiki, `live map=${soul.row}, wiki=${soul.wiki}`);
+
+  // the agent gets the same URL by name — the tool and the button cannot disagree
+  const tool = await page.evaluate(async ([id, expected]) => {
+    const answer = await window.DW_WEBMCP.execute('atlas_map_link', { item: id });
+    return { answer, ok: answer.includes(expected) };
+  }, ['Iron Ore Node', expected['Iron Ore Node']]);
+  ok('WebMCP atlas_map_link returns the codex\'s own URL',
+    tool.ok, tool.answer.split('\n')[0]);
+  const soulTool = await page.evaluate(() => window.DW_WEBMCP.execute('atlas_map_link', { item: 'Soul Stone' }));
+  ok('WebMCP atlas_map_link explains a node with no markers instead of inventing a link',
+    /has no markers on the live map/.test(soulTool) && !/survivalservers\.com/.test(soulTool),
+    soulTool.slice(0, 80));
+}
+
 /* ── webmcp ────────────────────────────────────────────────────────────── */
 // The atlas' agent tools. Real Chrome only exposes document.modelContext behind
 // an origin trial or chrome://flags/#enable-webmcp-testing, so this section
@@ -2357,12 +2673,18 @@ async function secWebmcp() {
   const isolated = await tool('atlas_isolate_tree', { item: 'Iron Bar', direction: 'down', depth: 2 });
   // ':visible' lags the style pass by a beat, so count the .hidden class — the
   // same number atlas_get_state has to report
-  const isoState = await vp.evaluate(() => ({ drawn: window.__cy.nodes().length - window.__cy.nodes('.hidden').length }));
+  const isoState = await vp.evaluate(() => ({
+    drawn: window.__cy.nodes().length - window.__cy.nodes('.hidden').length,
+    total: window.__cy.nodes().length,
+  }));
   const isoReport = await tool('atlas_get_state');
+  // this page boots the real first-load view (no ?starter pin), so the check is
+  // about the tree being a real subset of the map and the number the tool
+  // reports being the number on screen — not about it shrinking this page
   ok('WebMCP atlas_isolate_tree draws only the tree it says it drew',
-    /Isolated the crafting tree of Iron Bar/.test(isolated) && isoState.drawn < drawnBefore &&
+    /Isolated the crafting tree of Iron Bar/.test(isolated) && isoState.drawn > 0 && isoState.drawn < isoState.total &&
     new RegExp(`Nodes drawn: ${isoState.drawn} of `).test(isoReport) && /Isolated tree: Iron Bar \(Materials\) \(down, depth 2\)/.test(isoReport),
-    `${drawnBefore} → ${isoState.drawn} nodes, tool said: ${isolated.split('— ')[1] || ''}`);
+    `${drawnBefore} → ${isoState.drawn} of ${isoState.total} nodes, tool said: ${isolated.split('— ')[1] || ''}`);
 
   const hl = await tool('atlas_highlight_links', { item: 'Iron Bar', direction: 'enables' });
   const hlCount = await vp.evaluate(() => window.__cy.nodes('.highlighted').length);
@@ -2412,6 +2734,7 @@ try {
   for (const s of sections) {
     currentSection = s;
     if (s === 'smoke') await secSmoke();
+    else if (s === 'starter') await secStarter();
     else if (s === 'panel') await secPanel();
     else if (s === 'panelcodex') await secPanelCodex();
     else if (s === 'edits') await secEdits();
@@ -2423,6 +2746,7 @@ try {
     else if (s === 'quests') await secQuests();
     else if (s === 'characters') await secCharacters();
     else if (s === 'mobile') await secMobile();
+    else if (s === 'maplinks') await secMaplinks();
     else if (s === 'webmcp') await secWebmcp();
   }
 } catch (e) {

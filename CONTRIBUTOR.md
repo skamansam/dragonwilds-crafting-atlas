@@ -93,12 +93,14 @@ for an external runner.
 | `src/styles/` | The design system split by section: `base`, `search`, `controls`, `legend`, `panel`, `overlays`, `minimap` |
 | `src/routing.js` | Pure rules for hash slugs and `?query` graph options (also mirrored in `tests/lib/routing.ts`) |
 | `src/characters.js` | Per-character graph state (`dw.characters`) and the switch/snapshot logic |
-| `src/webmcp.js` | The atlas as WebMCP agent tools (13 of them: search, codex, plan, path, region, quest, owned, view state, focus, isolate, highlight, mark owned, filters). Registers through `document.modelContext` when the browser has it, always publishes the set on `window.DW_WEBMCP`, and holds no state — app.js injects every capability via `initWebMcp()` |
+| `src/map-links.js` | Turns one node of `public/map-links.js` into the live Wyrmwatch link (the `#view=…&filters=…` format its own `readView()` accepts) and one sentence describing what it opens; also publishes `window.DW_MAP_LINK_API` for the console and the harness |
+| `src/webmcp.js` | The atlas as WebMCP agent tools (14 of them: search, codex, plan, path, region, quest, owned, view state, focus, isolate, highlight, mark owned, filters, live map). Registers through `document.modelContext` when the browser has it, always publishes the set on `window.DW_WEBMCP`, and holds no state — app.js injects every capability via `initWebMcp()` |
 | `src/tours.js` | Guided tours (driver.js) |
 | `public/layout-worker.js` | Web Worker for off-main-thread layout |
 | `public/data.js` `public/data.json` | The shipped dataset (see CONTRIBUTOR-DATA.md) |
 | `public/found-in.js` | Region / gather-method annotations (`window.DW_FOUND_IN`), mined from the item pages |
 | `public/region-resources.js` | What each region and territory holds (`window.DW_REGION_RESOURCES`), mined from the region pages' `==Resources==` sections, plus `stubs` — the pages with no `==Resources==` heading yet, so an empty hub can say why it is empty |
+| `public/map-links.js` | Which node opens the live Wyrmwatch map and where it is framed (`window.DW_MAP_LINKS`), joined at build time from the map's own marker reference — the atlas has no coordinates, so this is how "where exactly?" leaves the site |
 | `public/quests.js` | The quest layer (`window.DW_QUESTS`) — quest type, region, "Where to start" and reward items |
 | `public/mounts.js` | The mount layer (`window.DW_MOUNTS`) — base type, unlocking quests, acquisition line and lore |
 | `public/layouts/` | Precomputed position snapshots (`manifest.js` bundled, `curated.js` shared) |
@@ -131,7 +133,7 @@ Adding an app file or a CSS partial means adding an `import` (or `@import`).
 - **`public/` is copied verbatim** into the build: `vendor/` (classic IIFE
 bundles that self-register on `window`), `icons/`, `fonts/`, `data.js`,
 `data.json`, the overlays (`found-in.js`, `region-resources.js`, `quests.js`,
-`mounts.js`), `layouts/*` and `layout-worker.js` (whose
+`mounts.js`, `map-links.js`), `layouts/*` and `layout-worker.js` (whose
 `importScripts('vendor/…')` paths depend on sitting beside `vendor/`). None of it
 is transformed — which is exactly why `data.js` and friends still set globals
 from a `<script>` tag in `index.html` instead of being imported.
@@ -141,18 +143,18 @@ Consequences worth knowing:
 - **The module entry is deferred.** Classic scripts run while the document
   parses; module scripts run after. So `window.cytoscape`, `window.d3`,
   `window.driver`, `window.DW_DATA`, `window.DW_LAYOUTS`, `window.DW_CURATED`,
-  `window.DW_FOUND_IN`, `window.DW_REGION_RESOURCES`, `window.DW_QUESTS` and
-  `window.DW_MOUNTS` all exist
+  `window.DW_FOUND_IN`, `window.DW_REGION_RESOURCES`, `window.DW_QUESTS`,
+  `window.DW_MOUNTS` and `window.DW_MAP_LINKS` all exist
   before `src/main.js` executes. If you add a vendor bundle that a module needs
   at import time, give it a `<script>` in `index.html` ahead of the module.
 - **The data contracts are globals**: `window.DW_DATA`, `window.DW_LAYOUTS`,
   `window.DW_CURATED`, `window.DW_FOUND_IN`, `window.DW_REGION_RESOURCES`,
   `window.DW_QUESTS`,
-  `window.DW_MOUNTS` (set by `public/` files) and `window.DW_ROUTING`,
+  `window.DW_MOUNTS`, `window.DW_MAP_LINKS` (set by `public/` files) and `window.DW_ROUTING`,
   `window.DW_CHARACTERS`, `window.DW_TOURS` (set by the
   `src/` modules, which mirror themselves onto `window` for the harness and the
   console), while `found-in.js` / `region-resources.js` / `quests.js` /
-  `mounts.js` are **overlays**: the
+  `mounts.js` / `map-links.js` are **overlays**: the
   app synthesizes their region hubs and quest nodes at boot and leaves
   `data.json` (recipes, plans, paths, counts) untouched. A missing overlay file
   is not an error — the layer simply does not appear. The region hubs read
@@ -257,13 +259,23 @@ and JSDoc with real types on what you write or touch.
 |---|---|---|
 | Gherkin (vitest + cucumber) | `npx vitest run` | Pure logic: highlight/frontier math, character state, routing slugs, the `?query` option parser, and the data-edit merge (`tests/features/edits-apply.*` driving `scripts/apply-edits-core.mjs`) |
 | Playwright e2e | `npx playwright test` | A few real browser flows, booted by the config's `webServer` (`npx vite --port 8491`): boot, search → codex, isolate, requires-growth, layout completion, persisted settings, `?tour=` and `#/` deep links, `?iso=` on load, console cleanliness |
-| Acceptance suite | `node scripts/test-ui.mjs [section]` | The broad UI suite (~250 checks across `smoke`/`panel`/`panelcodex`/`edits`/`undo`/`layouts`/`tours`/`route`/`options`/`quests`/`characters`/`mobile`/`webmcp`). It boots the `src/` sources through the same Vite dev server (or `--url=` for a deployed/built site); run one section while iterating, the whole thing before you land. `webmcp` is the one section that stubs a browser API: it defines `document.modelContext` (registerTool/getTools/executeTool) before the page loads, the documented surface real Chrome only exposes behind `chrome://flags/#enable-webmcp-testing`, then drives all 13 tools |
+| Acceptance suite | `node scripts/test-ui.mjs [section]` | The broad UI suite (~290 checks across `smoke`/`starter`/`panel`/`panelcodex`/`edits`/`undo`/`layouts`/`tours`/`route`/`options`/`quests`/`characters`/`mobile`/`webmcp`). It boots the `src/` sources through the same Vite dev server (or `--url=` for a deployed/built site); run one section while iterating, the whole thing before you land. `webmcp` is the one section that stubs a browser API: it defines `document.modelContext` (registerTool/getTools/executeTool) before the page loads, the documented surface real Chrome only exposes behind `chrome://flags/#enable-webmcp-testing`, then drives all 13 tools |
 | Lint | `npm run lint` | `biome check .` — compare against the baseline, don't chase it |
 
 All three layers are plain Node + a browser; nothing is compiled. When a check
 fails, fix the cause — never widen an assertion, skip a scenario, or add a lint
 suppression to make a run green. If the *expected behaviour* is what changed,
 say so in the commit and rewrite the assertion to the new intent.
+
+**`boot(hash, search, firstLoad, hard)`** is how a section reaches a page, and
+its defaults are deliberate. The suite's baseline view is the **whole map**, so
+the starting view (`?starter`, the first-load default) is pinned off with
+`?starter=0` unless the caller names `starter` in `search` itself or passes
+`firstLoad` — which boots the page exactly as a first-time visitor sees it and is
+the only reason `starter` can test the real default. `hard` reloads the very same
+URL once, because a hash-only difference is a *same-document* navigation: without
+it `boot('#/iron_bar')` keeps the running app's in-memory view and just applies
+the route, which is not what a visitor's click does.
 
 ## Deploy
 

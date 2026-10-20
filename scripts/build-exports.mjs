@@ -19,9 +19,15 @@
 //
 // Region pseudo-nodes (P4-1b) are exported as a separate node class so Desktop
 // users can style/filter them: kind=region hubs with `foundHere` method lists,
-// joined to member items by interaction=region edges (source = region hub).
-// They mirror the web app's build-from-DW_FOUND_IN hubs (app.js) and are NOT
-// part of DW_DATA — plans, paths and recipe counts stay recipe-only.
+// joined to member items by interaction=region edges (source = region hub), and
+// by interaction=subregion edges between a division and the regions it holds
+// (the Ashenfall page's ==Geography==, via build-region-resources.mjs). They
+// mirror the web app's hubs (app.js) and are NOT part of DW_DATA — plans, paths
+// and recipe counts stay recipe-only.
+//
+// Unlock links are exported too: interaction=unlock, source = the item that
+// teaches the recipe (a recipe's `blueprint=`) or that unlocks a mount (its
+// vestige), target = what it unlocks. The app's teal layer.
 import fs from 'node:fs';
 import vm from 'node:vm';
 import path from 'node:path';
@@ -202,6 +208,19 @@ for (const [region, members] of Object.entries(RR?.regions || {})) {
   }
 }
 
+// the ==Geography== hierarchy (build-region-resources.mjs): which division holds
+// which region. Mirrored here so a Desktop import shows the same parent/child
+// relation the app draws, under its own interaction value.
+const regionParent = new Map();
+const regionChildren = new Map();
+for (const [division, kids] of Object.entries(RR?.divisions || {})) {
+  if (!CANON_REGIONS.includes(division)) continue;
+  const list = (kids || []).filter((c) => CANON_REGIONS.includes(c) && c !== division);
+  if (!list.length) continue;
+  regionChildren.set(division, list);
+  for (const child of list) if (!regionParent.has(child)) regionParent.set(child, division);
+}
+
 // ---------- quest layer (P7) ----------
 // The same overlay src/app.js synthesizes at boot: one hub per region that has
 // finds OR a quest set in it, a node per quest (kind=quest, NOT in DW_DATA), and
@@ -238,7 +257,11 @@ for (const region of CANON_REGIONS) {
       : { x: loneHub++ * 420, y: -LAYER_H * 2 }; // quest-only region — no centroid to use
   hubPos.set(region, position);
   posById.set(region, position);
+  const division = regionParent.get(region) || null;
+  const subRegions = regionChildren.get(region) || [];
   const bits = [];
+  if (division) bits.push(`found in ${division}`);
+  if (subRegions.length) bits.push(`contains ${subRegions.length} region${subRegions.length > 1 ? 's' : ''}`);
   if (items.length) bits.push(`${items.length} found here`);
   if (quests.length) bits.push(`${quests.length} quest${quests.length > 1 ? 's' : ''}`);
   if (!bits.length) bits.push('no resources listed yet');
@@ -257,14 +280,17 @@ for (const region of CANON_REGIONS) {
       stacklimit: null,
       repaircost: null,
       catalogue: null,
-      description: `Region of Ashenfall - ${bits.join(' · ')} (from the wiki's location prose, its region pages' own resource lists and its quest tables; a map aid, not a crafting step)`,
+      description: `${subRegions.length ? 'Division' : 'Region'} of Ashenfall - ${bits.join(' · ')} (from the wiki's location prose, its region pages' own resource lists and its quest tables; a map aid, not a crafting step)`,
       stats: null,
       icon: null,
+      division,
+      subRegions: subRegions.length ? subRegions.slice().sort().join('; ') : null,
       foundHere: items.length ? items.map(it => `${it} (${[...members.get(it)].sort().join(', ')})`).join('; ') : null,
       questsHere: quests.length ? quests.slice().sort().join('; ') : null,
     },
     position,
   });
+  for (const child of subRegions) edges.push(subRegionEdge(region, child));
   for (const it of items) edges.push(regionEdge(region, it));
 }
 
@@ -342,6 +368,74 @@ for (const qe of QUEST_EDGES) {
   });
 }
 
+/* ---------- unlock links ----------
+   The relations the dataset states in its own fields and the codex prints, but
+   that never reached the graph: a recipe's `blueprint=` (the item you must pick
+   up to be taught it) and a mount's vestige (the item that unlocks the mount).
+   Both are "this item leads to that", so both export as interaction=unlock —
+   the app's teal layer. */
+const seenUnlock = new Set();
+for (const r of D.recipes || []) {
+  if (!r.blueprint || r.blueprint === r.output) continue;
+  if (!idSet.has(r.blueprint) || !idSet.has(r.output)) continue;
+  const key = `${r.blueprint} -> ${r.output}`;
+  if (seenUnlock.has(key)) continue;
+  seenUnlock.add(key);
+  edges.push(unlockEdge(r.blueprint, r.output, 'recipe'));
+}
+for (const [mountId, m] of Object.entries((M && M.mounts) || {})) {
+  if (!idSet.has(mountId) || !m.vestige || !idSet.has(m.vestige)) continue;
+  edges.push(unlockEdge(m.vestige, mountId, 'mount'));
+}
+
+// a division → one of its regions (the ==Geography== hierarchy)
+function subRegionEdge(division, region) {
+  return {
+    selected: false,
+    data: {
+      id: `s${edges.length}`,
+      source: division,
+      target: region,
+      interaction: 'subregion',
+      shared_interaction: 'subregion',
+      name: `${division} (contains) ${region}`,
+      shared_name: `${division} (contains) ${region}`,
+      qty: null,
+      facility: null,
+      skill: null,
+      xp: null,
+      blueprint: null,
+      variant: null,
+      deprecated: false,
+      sourceRecipe: null,
+    },
+  };
+}
+
+// an item → the recipe it teaches, or the mount it unlocks (teal in the app)
+function unlockEdge(item, target, what) {
+  return {
+    selected: false,
+    data: {
+      id: `u${edges.length}`,
+      source: item,
+      target,
+      interaction: 'unlock',
+      shared_interaction: 'unlock',
+      name: `${item} (unlocks ${what}) ${target}`,
+      shared_name: `${item} (unlocks ${what}) ${target}`,
+      qty: null,
+      facility: null,
+      skill: null,
+      xp: null,
+      blueprint: null,
+      variant: null,
+      deprecated: false,
+      sourceRecipe: null,
+    },
+  };
+}
+
 // a region → item 'found here' spoke (shared by both hubs)
 function regionEdge(region, item) {
   return {
@@ -375,7 +469,7 @@ const cyjs = {
     name: 'Dragonwilds Crafting Atlas',
     source: D.source,
     generatedAt: D.generatedAt,
-    description: `All items, stations, skills and spells of RuneScape: Dragonwilds as one dependency graph. interaction: craft | spell | skill-gate${FI ? ' | region' : ''}${Q ? ' | quest | mount' : ''}. Nodes with kind=region are map-aid hubs (found-here groupings from the wiki's location prose); nodes with kind=quest are the quests themselves (region -> quest -> reward, from the wiki's Quests page). Neither is a crafting step.`,
+    description: `All items, stations, skills and spells of RuneScape: Dragonwilds as one dependency graph. interaction: craft | spell | skill-gate | unlock${FI ? ' | region' : ''}${RR ? ' | subregion' : ''}${Q ? ' | quest | mount' : ''}. Nodes with kind=region are map-aid hubs (found-here groupings from the wiki's location prose, joined to their division by subregion edges); nodes with kind=quest are the quests themselves (region -> quest -> reward, from the wiki's Quests page). Neither is a crafting step.`,
   },
   elements: { nodes, edges },
 };
@@ -423,8 +517,11 @@ const edgeKeys = [
   ['sourceRecipe', 'string'],
 ];
 const regionNodeKeys = [
-  // region-hub-only columns: everything found in the region ("item (methods)"
+  // region-hub-only columns: the division it belongs to (or the regions it
+  // holds, for a division), everything found in the region ("item (methods)"
   // entries) and the quests set in it
+  ['division', 'string'],
+  ['subRegions', 'string'],
   ['foundHere', 'string'],
   ['questsHere', 'string'],
 ];
@@ -498,7 +595,7 @@ ${keyLines.join('\n')}
     <graph id="Dragonwilds Crafting Atlas" edgedefault="directed">
       <data key="g0">Dragonwilds Crafting Atlas</data>
       <data key="g1">${xmlEsc(D.generatedAt)}</data>
-      <data key="g2">All items, stations, skills and spells of RuneScape: Dragonwilds as one dependency graph. interaction: craft | spell | skill-gate${FI ? ' | region' : ''}${Q ? ' | quest | mount' : ''}. Nodes with kind=region are map-aid hubs (found-here groupings from the wiki's location prose); nodes with kind=quest are the quests themselves (region -&gt; quest -&gt; reward, from the wiki's Quests page). Neither is a crafting step.</data>
+      <data key="g2">All items, stations, skills and spells of RuneScape: Dragonwilds as one dependency graph. interaction: craft | spell | skill-gate | unlock${FI ? ' | region' : ''}${RR ? ' | subregion' : ''}${Q ? ' | quest | mount' : ''}. Nodes with kind=region are map-aid hubs (found-here groupings from the wiki's location prose, joined to their division by subregion edges); nodes with kind=quest are the quests themselves (region -&gt; quest -&gt; reward, from the wiki's Quests page). Neither is a crafting step.</data>
 ${nodeLines.join('\n')}
 ${edgeLines.join('\n')}
     </graph>
@@ -538,6 +635,8 @@ const INT_STYLE = [
   ['spell', '#8f9fd9', 'LONG_DASH', 1.6],
   ['skill-gate', '#6d6a5e', 'DASH', 1.2],
   ['region', '#8cc8aa', 'DASH', 1.0], // found-here spokes — soft green dash
+  ['subregion', '#c4f0d8', 'DASH', 1.6], // division → its regions — brighter green
+  ['unlock', '#58c9b9', 'DOT', 1.2], // recipe unlocks + mount vestiges — teal dot
   ['quest', '#d9a13f', 'DASH', 1.6], // region → quest → reward spokes — gold dash
   ['mount', '#c9a0e0', 'DOT', 1.4], // quest → mount unlocks — violet dot
 ];
