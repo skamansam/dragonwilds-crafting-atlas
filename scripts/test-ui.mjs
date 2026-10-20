@@ -47,6 +47,10 @@ const urlArg = process.argv.find(a => a.startsWith('--url='));
 // --serve-only: serve the atlas and stay up (used by playwright.config.ts webServer)
 const serveOnly = process.argv.includes('--serve-only');
 const BASE = urlArg ? urlArg.slice(6).replace(/\/$/, '') : `http://localhost:${PORT}`;
+// The shipped dataset, read from disk rather than from the page: the panel sweep
+// below checks the wiki link a codex renders against the URL the node itself
+// carries, and asking the page for that URL would test the page against itself.
+const DATASET = JSON.parse(fs.readFileSync(path.join(REPO, 'public', 'data.json'), 'utf8'));
 
 let srv = null;
 if (!urlArg) {
@@ -2191,6 +2195,67 @@ async function secPanelCodex() {
     afterHl.zoom > 0.4 && afterHl.coverX <= 1.15 && afterHl.coverY <= 1.15,
     `zoom ${afterHl.zoom.toFixed(2)} — cover ${afterHl.coverX.toFixed(2)}×${afterHl.coverY.toFixed(2)}`);
   await page.evaluate(() => { document.getElementById('panelClose').click(); });
+
+  // ── one codex per kind, swept in a single pass ─────────────────────────
+  // The panel is where a bug per kind hides: a row rendered one way for items
+  // and another for story nodes, a ☆ on something nobody owns, a node whose own
+  // page is named but not linked. So every kind the app can open is opened here
+  // — the sixteen in the dataset plus the three overlay kinds it synthesizes —
+  // and each is asked the same three things: does the panel render, do its own
+  // rows carry the ☆ exactly where the row's target is ownable, and does it end
+  // with the wiki page the node is described on.
+  const firstOfKind = await page.evaluate(() => {
+    const first = {};
+    for (const n of window.DW_DATA.nodes) if (!first[n.kind]) first[n.kind] = n.id;
+    first.region = 'Bleakfields Valley'; // a hub with rows, and a page of its own
+    first.quest = (window.DW_QUESTS.order || [])[0]; // mounts are in the dataset, so their kind is already set
+    return first;
+  });
+  const storedWiki = new Map(DATASET.nodes.map(n => [n.id, n.wiki || null]));
+  // the three synthesized kinds are mined from the wiki's own pages and carry no
+  // URL, so their link is derived from the node's name (see wikiPageUrl in src/app.js)
+  const STORY_KINDS = new Set(['region', 'quest', 'mount']);
+  const derivedWiki = id => `https://dragonwilds.runescape.wiki/w/${encodeURI(String(id).replace(/ /g, '_'))}`;
+  let sweptRows = 0, sweptOwnable = 0;
+  for (const [kind, id] of Object.entries(firstOfKind)) {
+    await page.evaluate(nodeId => window.selectNode(nodeId), id);
+    await page.waitForTimeout(250);
+    const res = await page.evaluate(() => {
+      const body = document.getElementById('panelBody');
+      const sections = [...body.children];
+      const link = sections.length ? sections[sections.length - 1].querySelector('a[href*="dragonwilds.runescape.wiki/w/"]') : null;
+      const unownable = new Set(['region', 'quest', 'skill', 'spell']);
+      const rows = [...body.querySelectorAll('[data-goto]')]
+        .filter(el => window.__cy.getElementById(el.dataset.goto).nonempty())
+        .map(el => ({
+          // the kind rides on the node's meta, not on its data (see the eles in src/app.js)
+          ownable: !unownable.has((window.__cy.getElementById(el.dataset.goto).data('meta') || {}).kind),
+          star: !!el.querySelector('.own-star'),
+        }));
+      return {
+        title: document.getElementById('panelTitle').textContent,
+        sections: sections.length,
+        href: link ? link.getAttribute('href') : null,
+        rows: rows.length,
+        ownable: rows.filter(r => r.ownable).length,
+        starred: rows.filter(r => r.ownable && r.star).length,
+        contextStars: rows.filter(r => !r.ownable && r.star).length,
+        wider: [...body.querySelectorAll('.p-actions')].filter(el => el.scrollWidth > el.clientWidth + 1).length,
+      };
+    });
+    const wantWiki = storedWiki.get(id) || (STORY_KINDS.has(kind) ? derivedWiki(id) : null);
+    sweptRows += res.rows;
+    sweptOwnable += res.ownable;
+    ok(`the ${kind} codex opens with its own rows, ☆s and wiki link`,
+      res.title === id && res.sections > 0 && res.wider === 0 &&
+      res.starred === res.ownable && res.contextStars === 0 &&
+      (wantWiki ? res.href === wantWiki : res.href === null),
+      `${res.rows} rows (${res.ownable} ownable, ${res.starred} starred) · wiki ${res.href ? res.href.replace('https://dragonwilds.runescape.wiki', '…') : '— none —'}`);
+  }
+  // …and the sweep is not vacuous: those kinds really do list things to tick
+  ok('the panel sweep covers rows with something to tick',
+    sweptRows > 20 && sweptOwnable > 10,
+    `${sweptRows} rows across ${Object.keys(firstOfKind).length} kinds, ${sweptOwnable} of them ownable`);
 }
 
 /* ── webmcp ────────────────────────────────────────────────────────────── */

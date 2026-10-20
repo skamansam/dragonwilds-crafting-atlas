@@ -265,3 +265,15 @@ skill level for each base node.
     than on its own return value). Documented for agents in public/llms.txt, for users in README.md
     and for contributors in CONTRIBUTOR.md.
 
+[x] the node panel should always end with the link to that node's own wiki page.
+
+    → DONE (2026-10-16): every codex now ends with a `Wiki page ↗` row — the dataset's own
+    URL where the node carries one, derived from the node's name for a region hub or a quest
+    (their overlays carry none: they are synthesized from those very pages), and no row at all
+    for the one kind no page describes. The region and quest panels had none — the request was
+    that they get one at the bottom of the panel, which is where the item panels already had
+    theirs. Coverage: the new `panelcodex` sweep opens a codex for each of the 18 kinds the app
+    can show (the 16 in the dataset plus region and quest) and asks the same three things of
+    each — it renders, every ownable row carries its ☆, and its last row is the wiki link
+    (null for the kind no page describes). The sweep found the one ownable row that had no star:
+    the station a recipe is made at (`.recipe-facility`), which the plan already lets you tick.

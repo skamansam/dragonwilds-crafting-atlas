@@ -2543,14 +2543,39 @@ function highlightLabels(n) {
   return HIGHLIGHT_WORDS[n && n.kind] || HIGHLIGHT_WORDS_DEFAULT;
 }
 
+/** The wiki page URL for a page title — the same shape every `wiki` field in
+ *  the dataset already has, so a derived link and a stored one cannot drift.
+ *  @param {string} name the page title (a node's own name) @returns {string} */
+function wikiPageUrl(name) {
+  return `https://dragonwilds.runescape.wiki/w/${encodeURI(String(name).replace(/ /g, '_'))}`;
+}
+
+/* The row every panel ends with: the page this node is described on.
+
+   Most nodes carry a `wiki` URL in the dataset, and a panel that did not show
+   it left a reader to search the wiki by hand. The three story kinds are
+   different: a region hub, a quest node and a mount are synthesized from the
+   wiki's own pages (the place page, the Quests page, the Mount page), so they
+   carry no URL — and one that names a page and gives no way to read it is the
+   same complaint. Their URL is therefore derived from the node's name, exactly
+   as a stored one is shaped. A node with neither (an `implicit` entry nothing
+   links, which no page describes) renders no row rather than a guessed one. */
+function wikiRow(n) {
+  const href = n.wiki || (STORY_KINDS.has(n.kind) ? wikiPageUrl(n.name) : '');
+  if (!href) return '';
+  return `<div class="p-section p-actions"><a class="btn" href="${esc(href)}" target="_blank" rel="noopener">Wiki page ↗</a></div>`;
+}
+
 /* Mark-as-owned, everywhere in a panel.
 
-   The ledger is about ITEMS, so the ☆ lives on every chip and row that names
-   one — the region hub's found list, "what you need", direct materials, used-to-
-   make, quest rewards, recipe unlocks — not just on the panel title. Regions,
-   quests, skills and spells are map context: nothing owns them. */
+   The ledger is about what you HAVE, so the ☆ lives on every chip and row that
+   names something ownable — the region hub's found list, "what you need", direct
+   materials, used-to-make, quest rewards, recipe unlocks and the station a
+   recipe is made at (a facility you build, which the plan's Build chips already
+   tick the same way) — not just on the panel title. Regions, quests, skills and
+   spells are map context: nothing owns them. */
 const UNOWNABLE_KINDS = new Set(['region', 'quest', 'skill', 'spell']);
-const OWN_STAR_SELECTOR = '.mat, .found-row, .used-row, .recipe-unlock';
+const OWN_STAR_SELECTOR = '.mat, .found-row, .used-row, .recipe-unlock, .recipe-facility';
 
 /** Append a ☆/★ toggle to every ownable chip and row in the open panel. */
 function addOwnStars() {
@@ -2690,6 +2715,7 @@ function renderPanelBody(n) {
     // quests) and is contained by nothing, so there is no upstream button here
     sections.push(storyActionsHTML(n));
     sections.push(`<div class="p-section"><div class="p-hint">Region hubs are map aids mined from the wiki's location prose, its region pages' own resource lists and its quest tables — recipes and plans ignore them. Their green links and the gold quest links toggle in the legend (LINKS).</div></div>`);
+    sections.push(wikiRow(n)); // the place page this hub was mined from
     panelBody.innerHTML = sections.join('');
     panelBody.scrollTop = 0;
     panelBody.querySelectorAll('[data-goto]').forEach(el => { el.onclick = () => selectNode(el.dataset.goto); });
@@ -2723,6 +2749,7 @@ function renderPanelBody(n) {
     // items, so both directions exist here (a region has only the one)
     sections.push(storyActionsHTML(n));
     sections.push(`<div class="p-section"><div class="p-hint">Quest nodes come from the wiki's Quests page — region → quest → reward. Part-completed quests count for mounts shown here too. Recipes, plans and paths ignore them; toggle their gold links in the legend (LINKS → Quest links).</div></div>`);
+    sections.push(wikiRow(n)); // the quest's own page, derived the same way
     panelBody.innerHTML = sections.join('');
     panelBody.scrollTop = 0;
     panelBody.querySelectorAll('[data-goto]').forEach(el => { el.onclick = () => selectNode(el.dataset.goto); });
@@ -2960,9 +2987,7 @@ function renderPanelBody(n) {
       <option value="both">up + down</option>
     </select>`}
   </div>
-  <div class="p-section p-actions">
-    ${n.wiki ? `<a class="btn" href="${n.wiki}" target="_blank" rel="noopener">Wiki page ↗</a>` : ''}
-  </div>`);
+  ${wikiRow(n)}`);
 
   panelBody.innerHTML = sections.join('');
   panelBody.scrollTop = 0;
