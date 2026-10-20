@@ -11,7 +11,9 @@
 //
 // This file is CACHED, not committed: `cache/` is gitignored like the wiki raw
 // cache, and the reference is ~4.7 MB of someone else's data. The generator
-// reads cache/wyrmwatch/reference.json when it is there.
+// reads cache/wyrmwatch/reference.json when it is there. WYRMWATCH_REFERENCE_URL
+// overrides the snapshot URL, which is how the guard's own test serves a refusal
+// deterministically instead of depending on the live host.
 //
 //   node scripts/build-map-links.mjs                    # from the cached reference
 //   node scripts/build-map-links.mjs --refresh          # re-download it first
@@ -45,6 +47,7 @@ const MAP_URL =
 // the snapshot the atlas is built against; bump it (and re-run) when the map
 // publishes a newer one, which it announces as wyrmwatch-reference-<date>.json
 const REFERENCE_URL =
+	process.env.WYRMWATCH_REFERENCE_URL ||
 	"https://www.survivalservers.com/themes/epona/images/sspanel/wyrmwatch-reference-20260914.json";
 const ATTRIBUTION =
 	"Positions from the Wyrmwatch map by SurvivalServers (its own page credits MetaForge's map API); map artwork © Jagex";
@@ -89,8 +92,14 @@ if ((!source || refresh) && !offline) {
 		source = await fetchReference();
 	} catch (e) {
 		console.error(`could not fetch the map reference: ${e.message}`);
-		if (!source) process.exit(1);
-		console.warn("falling back to the cached copy");
+		// Never fatal HERE: a --check run without a reference is unjudged, exactly
+		// as the region overlay treats a wiki page it could not read — otherwise
+		// the host's Cloudflare challenge fails every deploy, which it did. A run
+		// that must GENERATE falls through to the guard below, which names the
+		// file to save and exits 1.
+		if (source) console.warn("falling back to the cached copy");
+		else if (check)
+			console.warn("checking without it: the drift comparison is unjudged");
 	}
 }
 if (!source) source = cachedText(); // --refresh with no cache to fall back on
